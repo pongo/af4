@@ -1,133 +1,130 @@
-import { nextTick, ref, type ShallowRef } from "vue";
+import { nextTick, ref, type Ref, type ShallowRef } from "vue";
 import TaskListItem from "./TaskListItem.vue";
 
 type TaskListItem = InstanceType<typeof TaskListItem>;
 
 const PAGE_SIZE_FALLBACK = 10;
 
+class Navigation {
+  private lastIndex: number;
+
+  constructor(
+    items: string[],
+    private taskItems: Readonly<ShallowRef<TaskListItem[] | null>>,
+    private focusedIndex: Ref<number>,
+  ) {
+    this.lastIndex = items.length - 1;
+  }
+
+  up() {
+    // если мы уже на самой первой задаче, то прокручиваем страницу вверх,
+    // чтобы была видна форма добавления задачи
+    if (this.focusedIndex.value === 0) {
+      window.scrollTo({ top: 0 });
+      return;
+    }
+    this.focusedIndex.value = Math.max(0, this.focusedIndex.value - 1);
+  }
+
+  down() {
+    // если мы уже на самой последней задаче, то прокручиваем страницу вниз,
+    // чтобы был виден контент снизу
+    if (this.focusedIndex.value === this.lastIndex) {
+      window.scrollTo({ top: document.body.scrollHeight });
+      return;
+    }
+    this.focusedIndex.value = Math.min(this.lastIndex, this.focusedIndex.value + 1);
+  }
+
+  pageup(once = false) {
+    // для постраничной прокрутки мы находим индексы видимых задач
+    const visibleIndices = getVisibleIndices(this.taskItems.value);
+
+    // если найти не удалось, то перемещаем фокус на PAGE_SIZE_FALLBACK задач
+    if (visibleIndices.length === 0) {
+      this.focusedIndex.value = Math.max(0, this.focusedIndex.value - PAGE_SIZE_FALLBACK);
+      return;
+    }
+
+    // иначе перемещаем фокус на самую первую видимую задачу
+    const firstVisibleIndex = visibleIndices[0];
+    if (this.focusedIndex.value > firstVisibleIndex || once) {
+      this.focusedIndex.value = Math.max(0, firstVisibleIndex);
+      return;
+    }
+
+    /* focusedIndex.value = Math.max(0, focusedIndex.value - (visibleIndices[visibleIndices.length - 1] - visibleIndices[0])); */
+
+    // но если мы уже находимся на самой первой видимой задаче, то
+    // сперва прокручиваем страницу, а затем заново вызываем эту процедуру
+    const focusedHeight = this.taskItems.value?.[this.focusedIndex.value]?.$el?.offsetHeight ?? 0;
+    window.scrollBy({ top: -window.innerHeight + focusedHeight });
+    nextTick(() => {
+      this.pageup(true);
+    });
+  }
+
+  pagedown(once = false) {
+    const lastIndex = this.lastIndex;
+
+    const visibleIndices = getVisibleIndices(this.taskItems.value);
+    if (visibleIndices.length === 0) {
+      this.focusedIndex.value = Math.min(lastIndex, this.focusedIndex.value + PAGE_SIZE_FALLBACK);
+      return;
+    }
+
+    const lastVisibleIndex = visibleIndices[visibleIndices.length - 1];
+    if (this.focusedIndex.value < lastVisibleIndex || once) {
+      this.focusedIndex.value = Math.min(lastIndex, lastVisibleIndex);
+      return;
+    }
+
+    /* focusedIndex.value = Math.min(itemsMin, focusedIndex.value + (lastVisibleIndex - visibleIndices[0])); */
+
+    const focusedHeight = this.taskItems.value?.[this.focusedIndex.value]?.$el?.offsetHeight ?? 0;
+    window.scrollBy({ top: window.innerHeight - focusedHeight });
+    nextTick(() => {
+      this.pagedown(true);
+    });
+  }
+}
+
 export function useTaskListNavigation(
   items: string[],
   taskItems: Readonly<ShallowRef<TaskListItem[] | null>>,
 ) {
   const focusedIndex = ref<number>(0);
+  const nav = new Navigation(items, taskItems, focusedIndex);
 
   return {
     focusedIndex,
     navigate,
   };
 
-  function up() {
-    if (focusedIndex.value === 0) {
-      window.scrollTo({ top: 0 });
-      return;
-    }
-    focusedIndex.value = Math.max(0, focusedIndex.value - 1);
-  }
-
-  function down() {
-    const lastIndex = items.length - 1;
-    if (focusedIndex.value === lastIndex) {
-      window.scrollTo({ top: document.body.scrollHeight });
-      return;
-    }
-    focusedIndex.value = Math.min(lastIndex, focusedIndex.value + 1);
-  }
-
-  function pageup(once = false) {
-    const visibleIndices = getVisibleIndices();
-    if (visibleIndices.length === 0) {
-      focusedIndex.value = Math.max(0, focusedIndex.value - PAGE_SIZE_FALLBACK);
-      return;
-    }
-
-    const firstVisibleIndex = visibleIndices[0];
-    if (focusedIndex.value > firstVisibleIndex || once) {
-      focusedIndex.value = Math.max(0, firstVisibleIndex);
-      return;
-    }
-
-    /* focusedIndex.value = Math.max(0, focusedIndex.value - (visibleIndices[visibleIndices.length - 1] - visibleIndices[0])); */
-
-    const focusedHeight = taskItems.value?.[focusedIndex.value]?.$el?.offsetHeight ?? 0;
-    window.scrollBy({ top: -window.innerHeight + focusedHeight });
-    nextTick(() => {
-      pageup(true);
-      // const visibleIndices = getVisibleIndices();
-      // focusedIndex.value = Math.max(
-      //   0,
-      //   visibleIndices.length > 0 ? visibleIndices[0] : focusedIndex.value - PAGE_SIZE_FALLBACK,
-      // );
-    });
-  }
-
-  function pagedown(once = false) {
-    const lastIndex = items.length - 1;
-
-    const visibleIndices = getVisibleIndices();
-    if (visibleIndices.length === 0) {
-      focusedIndex.value = Math.min(lastIndex, focusedIndex.value + PAGE_SIZE_FALLBACK);
-      return;
-    }
-
-    const lastVisibleIndex = visibleIndices[visibleIndices.length - 1];
-    if (focusedIndex.value < lastVisibleIndex || once) {
-      focusedIndex.value = Math.min(lastIndex, lastVisibleIndex);
-      return;
-    }
-
-    /* focusedIndex.value = Math.min(itemsMin, focusedIndex.value + (lastVisibleIndex - visibleIndices[0])); */
-
-    const focusedHeight = taskItems.value?.[focusedIndex.value]?.$el?.offsetHeight ?? 0;
-    window.scrollBy({ top: window.innerHeight - focusedHeight });
-    nextTick(() => {
-      pagedown(true);
-      // const visibleIndices = getVisibleIndices();
-      // focusedIndex.value = Math.min(
-      //   lastIndex,
-      //   visibleIndices.length > 0
-      //     ? visibleIndices[visibleIndices.length - 1]
-      //     : focusedIndex.value + PAGE_SIZE_FALLBACK,
-      // );
-    });
-  }
-
   function navigate(direction: "up" | "down" | "pageup" | "pagedown") {
-    switch (direction) {
-      case "up":
-        up();
-        return;
-      case "down":
-        down();
-        return;
-      case "pageup":
-        pageup();
-        return;
-      case "pagedown":
-        pagedown();
-        return;
-    }
+    nav[direction]();
   }
+}
 
-  function getVisibleIndices() {
-    if (!taskItems.value) return [];
-    return taskItems.value
-      .map((component, index) => {
-        const el = component?.$el;
-        if (el) {
-          const rect = (el as HTMLElement).getBoundingClientRect();
-          if (
-            rect.top < window.innerHeight &&
-            rect.bottom < window.innerHeight &&
-            rect.top > 0 &&
-            rect.bottom > 0
-          ) {
-            return index;
-          }
+function getVisibleIndices(taskItems: TaskListItem[] | null) {
+  if (!taskItems) return [];
+  return taskItems
+    .map((component, index) => {
+      const el = component?.$el;
+      if (el) {
+        const rect = (el as HTMLElement).getBoundingClientRect();
+        if (
+          rect.top < window.innerHeight &&
+          rect.bottom < window.innerHeight &&
+          rect.top > 0 &&
+          rect.bottom > 0
+        ) {
+          return index;
         }
-        return null;
-      })
-      .filter((index) => index !== null);
-  }
+      }
+      return null;
+    })
+    .filter((index) => index !== null);
 }
 
 /* function scrollToFocusedItem() {
