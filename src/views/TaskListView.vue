@@ -253,6 +253,14 @@ function bindHotkeys() {
     const id = getFocusedTaskId(event);
     if (id === undefined) return;
   });
+
+  hotkeys("ctrl+c", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const focusedTask = taskListRef.value?.getFocusedTask();
+    if (focusedTask === undefined) return;
+    navigator.clipboard.writeText(focusedTask.title);
+  });
 }
 
 function getFocusedTaskId(event: KeyboardEvent) {
