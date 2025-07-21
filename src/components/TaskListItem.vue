@@ -57,15 +57,25 @@ const vFocus = {
 // });
 
 const focusedWithoutFocus = computed(() => props.focused && newTodoFormFocused.value);
+const wasFocused = ref(false);
 
 watch(
   () => props.focused,
   (value) => {
     if (value) {
       globalFocusedItem.value = props.state;
+      wasFocused.value = true;
     }
   },
 );
+
+onMounted(() => {
+  wasFocused.value = props.focused;
+});
+
+const canBeMarkedAsWasFocused = computed(() => {
+  return props.state.list === "closed" || props.state.list === "open";
+});
 </script>
 
 <template>
@@ -81,6 +91,7 @@ watch(
         ? 'text-neutral-400 line-through decoration-red-300 decoration-2'
         : undefined,
       state.list === 'review' && state.status === 'new' ? 'bg-yellow-50' : undefined,
+      canBeMarkedAsWasFocused ? (wasFocused ? undefined : 'bg-indigo-50') : undefined,
     ]"
     @click="
       $emit('focus');
