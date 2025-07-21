@@ -1,1 +1,6 @@
 @import "tailwindcss";
+@import "vue3-toastify/dist/index.css";
+
+:root {
+  --toastify-toast-width: 500px;
+}

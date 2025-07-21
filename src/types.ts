@@ -1,48 +1,92 @@
-export type TaskStatus = "new" | "readded" | "postponed" | "completed" | "deleted";
+export type TaskStatus = "new" | "postponed" | "completed" | "deleted";
 
-export type Task = {
+type BaseTask = {
   id: string;
   title: string;
   createdAt: Date;
   // updatedAt: Date;
-  status: TaskStatus;
-  postponedUntil?: Date;
-  // completedAt?: Date;
+  completedAt?: Date;
+  deletedAt?: Date;
   list: ListType;
   zero?: boolean;
 };
+type PostponedTask = BaseTask & {
+  status: "postponed";
+  postponedUntil: Date;
+};
+export type AdditionalStatus = "readded" | "postponed";
+export type CompletedTask = BaseTask & {
+  status: "completed";
+  additionalStatus?: AdditionalStatus;
+  completedAt: Date;
+};
+export type DeletedTask = BaseTask & {
+  status: "deleted";
+  deletedAt: Date;
+};
+type NewTask = BaseTask & {
+  status: "new";
+};
 
-export type ListType = "open" | "closed" | "review" | "postponed" | "deleted";
+export type Task = NewTask | PostponedTask | CompletedTask | DeletedTask;
+
+export type ListType = "open" | "closed" | "review" | "deleted";
+
+export type BaseCurrentList = {
+  actionedCount: number;
+  showNext: boolean;
+  willBeMarkedForReview?: boolean;
+};
+
+type CurrentOpenList = BaseCurrentList & {
+  list: "open";
+};
+type CurrentClosedList = BaseCurrentList & {
+  list: "closed";
+  willBeMarkedForReview: boolean;
+};
+type CurrentReviewList = BaseCurrentList & {
+  list: "review";
+  showNext: true;
+};
+type CurrentDeletedList = BaseCurrentList & {
+  list: "deleted";
+  showNext: false;
+};
+export type CurrentList =
+  | CurrentOpenList
+  | CurrentClosedList
+  | CurrentReviewList
+  | CurrentDeletedList;
 
 export type TaskList = {
   id: string;
-  // parts: {
-  //   open: Task[];
-  //   closed: Task[];
-  //   review: Task[];
-  //   postponed: Task[];
-  // };
   tasks: Task[];
-  current: {
-    list: ListType;
-    actionedCount: number;
-  };
+  current: CurrentList;
 };
 
 export type UserAction =
   | { type: "Next" }
   | { type: "AddTask"; title: string }
+  | { type: "AddPostponedTask"; title: string }
   | { type: "ReaddTask"; id: string }
   | { type: "CompleteTask"; id: string }
   | { type: "DeleteTask"; id: string }
-  | { type: "ZeroTask"; id: string };
+  | { type: "ZeroTask"; id: string }
+  | { type: "PostponeTask"; id: string };
 
 export type TaskListAction =
   | { type: "AddTask"; task: Task }
-  | { type: "ReaddTask"; id: string }
-  | { type: "CompleteTask"; id: string }
-  | { type: "ChangeCurrentList"; newCurrent: ListType }
+  // | { type: "ReaddTask"; id: string }
+  | { type: "CompleteTask"; id: string; additionalStatus?: AdditionalStatus; completedAt: Date }
+  | { type: "ChangeCurrentList"; newCurrent: CurrentList }
   | { type: "MoveAllTasks"; from: ListType; to: ListType }
   | { type: "DeleteAllTasks"; from: ListType }
-  | { type: "MarkDeleteTask"; id: string }
-  | { type: "ZeroTask"; id: string };
+  | { type: "DeleteAllDeletedTasks" }
+  | { type: "MarkDeleteTask"; id: string; deletedAt: Date }
+  | { type: "ZeroTask"; id: string }
+  | { type: "IncreaseActionedCount" }
+  | { type: "UpdateCurrentListStatus" }
+  | { type: "CheckPostponedTasks" }
+  | { type: "ClearZero" }
+  | { type: "CleanList"; list: ListType };

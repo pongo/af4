@@ -1,39 +1,47 @@
 import { nextTick, ref, type Ref, type ShallowRef } from "vue";
 import TaskListItem from "./TaskListItem.vue";
+import type { Task } from "@/types.ts";
 
 type TaskListItem = InstanceType<typeof TaskListItem>;
 
 const PAGE_SIZE_FALLBACK = 10;
 
 class Navigation {
-  private lastIndex: number;
-
   constructor(
-    items: string[],
+    private items: Ref<Task[]>,
     private taskItems: Readonly<ShallowRef<TaskListItem[] | null>>,
     private focusedIndex: Ref<number>,
-  ) {
-    this.lastIndex = items.length - 1;
-  }
+  ) {}
 
   up() {
     // если мы уже на самой первой задаче, то прокручиваем страницу вверх,
     // чтобы была видна форма добавления задачи
     if (this.focusedIndex.value === 0) {
-      window.scrollTo({ top: 0 });
+      scrollTop();
       return;
     }
     this.focusedIndex.value = Math.max(0, this.focusedIndex.value - 1);
   }
 
   down() {
+    const lastIndex = this.items.value.length - 1;
     // если мы уже на самой последней задаче, то прокручиваем страницу вниз,
     // чтобы был виден контент снизу
-    if (this.focusedIndex.value === this.lastIndex) {
-      window.scrollTo({ top: document.body.scrollHeight });
+    if (this.focusedIndex.value === lastIndex) {
+      scrollBottom();
       return;
     }
-    this.focusedIndex.value = Math.min(this.lastIndex, this.focusedIndex.value + 1);
+    this.focusedIndex.value = Math.min(lastIndex, this.focusedIndex.value + 1);
+  }
+
+  home() {
+    this.focusedIndex.value = 0;
+    scrollTop();
+  }
+
+  end() {
+    this.focusedIndex.value = this.items.value.length - 1;
+    scrollBottom();
   }
 
   pageup(once = false) {
@@ -65,7 +73,7 @@ class Navigation {
   }
 
   pagedown(once = false) {
-    const lastIndex = this.lastIndex;
+    const lastIndex = this.items.value.length - 1;
 
     const visibleIndices = getVisibleIndices(this.taskItems.value);
     if (visibleIndices.length === 0) {
@@ -89,8 +97,16 @@ class Navigation {
   }
 }
 
+function scrollBottom() {
+  window.scrollTo({ top: document.body.scrollHeight });
+}
+
+function scrollTop() {
+  window.scrollTo({ top: 0 });
+}
+
 export function useTaskListNavigation(
-  items: string[],
+  items: Ref<Task[]>,
   taskItems: Readonly<ShallowRef<TaskListItem[] | null>>,
 ) {
   const focusedIndex = ref<number>(0);
@@ -101,7 +117,7 @@ export function useTaskListNavigation(
     navigate,
   };
 
-  function navigate(direction: "up" | "down" | "pageup" | "pagedown") {
+  function navigate(direction: "up" | "down" | "pageup" | "pagedown" | "home" | "end") {
     nav[direction]();
   }
 }

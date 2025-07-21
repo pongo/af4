@@ -1,61 +1,56 @@
 <script setup lang="ts">
-import NewTodoForm from "../components/NewTodoForm.vue";
-import TaskList from "../components/TaskList.vue";
-import { createKeybindingsHandler } from "tinykeys";
+import { ref, watch } from "vue";
+import type { TaskList } from "@/types.ts";
+import { nanoid } from "nanoid";
+import TaskListView from "./TaskListView.vue";
+import { CheckPostponedTasks, DeleteAllDeletedTasks } from "@/af4.ts";
 
-const handler = createKeybindingsHandler({
-  "Shift+D": () => {
-    alert("The 'Shift' and 'd' keys were pressed at the same time");
+const state = ref<TaskList>(load());
+
+watch(
+  state,
+  (newState) => {
+    localStorage.setItem("af4-state", JSON.stringify(newState));
   },
-  "y e e t": () => {
-    alert("The keys 'y', 'e', 'e', and 't' were pressed in order");
-  },
-  "$mod+KeyD": (event) => {
-    event.preventDefault();
-    alert("Either 'Control+d' or 'Meta+d' were pressed");
-  },
-});
+  { deep: true },
+);
 
-window.addEventListener("keydown", handler);
+function load() {
+  const savedState = localStorage.getItem("af4-state");
+  if (savedState) {
+    const data = parse(savedState);
+    // data.tasks = data.tasks.filter((task) => task.list !== "deleted");
+    DeleteAllDeletedTasks(data);
+    CheckPostponedTasks(data, new Date());
+    return data;
+  }
 
-function handleAddTodo() {}
+  return newState();
+}
 
-const tasks = [
-  "Cancel Insurance",
-  "Write Henry S.",
-  "Contribute to P & Y’s",
-  "Buy Guillotine",
-  "Weed Old Accounts",
-  "Ring Ben’s Gutters",
-  "Get Phoenix Insurance",
-  "Investigate ways of",
-  "Approaching business",
-  "Photo Plus Manual",
-  "Sort out domain hosti",
-  "Photos for Facebook",
-  "“Taxi Driver”",
-  "“Fanny Cradock”",
-  "“I Know Where I’m Goi",
-  "“The Edge of the Worl",
-];
+function parse(data: string): TaskList {
+  const dateKeys = new Set(["createdAt", "postponedUntil", "completedAt", "deletedAt"]);
+  return JSON.parse(data, (key, value) => {
+    if (dateKeys.has(key)) {
+      return new Date(value);
+    }
+    return value;
+  }) as TaskList;
+}
+
+function newState(): TaskList {
+  return {
+    id: nanoid(),
+    tasks: [],
+    current: {
+      list: "open",
+      actionedCount: 0,
+      showNext: false,
+    },
+  };
+}
 </script>
 
 <template>
-  <main>
-    <div class="max-w-4xl mx-auto p-6">
-      <NewTodoForm
-        @add-todo="handleAddTodo"
-        placeholder="Press <space>, <c> or <n> to add a new task"
-      />
-
-      <TaskList :items="tasks" />
-      <!-- <TodoList :todos="todos" /> -->
-      <!-- 
-      @toggle-complete="handleToggleComplete"
-      @delete-todo="handleDeleteTodo"
-      @update-todo="handleUpdateTodo" -->
-
-      <!-- <TodoStats :total="todos.length" :remaining="remaining" /> -->
-    </div>
-  </main>
+  <TaskListView :state="state" />
 </template>
