@@ -1,5 +1,14 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, useTemplateRef, watch, type ComponentPublicInstance } from "vue";
+import {
+  computed,
+  nextTick,
+  onMounted,
+  onUnmounted,
+  ref,
+  useTemplateRef,
+  watch,
+  type ComponentPublicInstance,
+} from "vue";
 import TaskListItem from "./TaskListItem.vue";
 import { useTaskListNavigation } from "./useTaskListNavigation.ts";
 import type { ListType, TaskList } from "@/types.ts";
@@ -65,6 +74,15 @@ watch(focusedIndex, () => {
   });
 });
 
+watch(
+  () => props.state.current.list,
+  () => {
+    if (!props.state.current.restoreFocus) {
+      focusedIndex.value = 0;
+    }
+  },
+);
+
 defineEmits<{ next: [] }>();
 defineExpose({
   navigate,
@@ -115,10 +133,10 @@ defineExpose({
     <template v-if="props.state.current.list === 'closed'">
       <p>Можете вернуться в начало списка <MyKbd>Home</MyKbd> и снова пройтись по задачам.</p>
       <p>
-        <template v-if="props.state.current.willBeMarkedForReview">
+        <span v-if="props.state.current.willBeMarkedForReview" class="bg-yellow-100">
           Если нажмете <NextButton @next="$emit('next')" />, то задачи будут отмечены для ревью.
           Выполните хотя бы одну задачу, чтобы этого избежать.
-        </template>
+        </span>
         <template v-else>
           Нажмите <NextButton @next="$emit('next')" />, чтобы перейти к открытому списку.
         </template>

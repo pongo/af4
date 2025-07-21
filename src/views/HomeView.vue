@@ -3,7 +3,7 @@ import { ref, watch } from "vue";
 import type { TaskList } from "@/types.ts";
 import { nanoid } from "nanoid";
 import TaskListView from "./TaskListView.vue";
-import { CheckPostponedTasks, DeleteAllDeletedTasks } from "@/af4.ts";
+import { applyActions, CheckPostponedTasks, DeleteAllDeletedTasks } from "@/af4.ts";
 
 const state = ref<TaskList>(load());
 
@@ -20,8 +20,11 @@ function load() {
   if (savedState) {
     const data = parse(savedState);
     // data.tasks = data.tasks.filter((task) => task.list !== "deleted");
-    DeleteAllDeletedTasks(data);
-    CheckPostponedTasks(data, new Date());
+    applyActions({ generateId: nanoid, now: () => new Date() })(data, [
+      { type: "DeleteAllDeletedTasks" },
+      { type: "CheckPostponedTasks" },
+      { type: "CleanList", list: data.current.list },
+    ]);
     return data;
   }
 

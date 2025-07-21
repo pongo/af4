@@ -30,16 +30,20 @@ type NewTask = BaseTask & {
 
 export type Task = NewTask | PostponedTask | CompletedTask | DeletedTask;
 
-export type ListType = "open" | "closed" | "review" | "deleted";
+export type ListType = "open" | "open-new" | "closed" | "review" | "deleted";
 
 export type BaseCurrentList = {
   actionedCount: number;
   showNext: boolean;
   willBeMarkedForReview?: boolean;
+  restoreFocus?: boolean;
 };
 
 type CurrentOpenList = BaseCurrentList & {
   list: "open";
+};
+type CurrentOpenNewList = BaseCurrentList & {
+  list: "open-new";
 };
 type CurrentClosedList = BaseCurrentList & {
   list: "closed";
@@ -55,6 +59,7 @@ type CurrentDeletedList = BaseCurrentList & {
 };
 export type CurrentList =
   | CurrentOpenList
+  | CurrentOpenNewList
   | CurrentClosedList
   | CurrentReviewList
   | CurrentDeletedList;

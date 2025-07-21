@@ -30,6 +30,8 @@ function handleAddTodo(title: string, { postponed = false }: { postponed?: boole
     } else {
       notify("Задача добавлена в открытый список");
     }
+  } else if (props.state.current.list === "open" && props.state.current.actionedCount > 0) {
+    notify("Задача появится после перехода из закрытого списка");
   }
 }
 

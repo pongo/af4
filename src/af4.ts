@@ -36,12 +36,13 @@ export function af4({ generateId, now }: { generateId: () => string; now: () => 
             }
 
             if (tasklist.current.actionedCount > 0) {
-              result.push({ type: "ChangeCurrentList", newCurrent: makeCurrent("open") });
+              // result.push({ type: "ChangeCurrentList", newCurrent: makeCurrent("open") });
             } else {
-              result.push({ type: "ChangeCurrentList", newCurrent: makeCurrent("closed") });
               result.push({ type: "MoveAllTasks", from: "closed", to: "review" });
-              result.push({ type: "MoveAllTasks", from: "open", to: "closed" });
+              // result.push({ type: "ChangeCurrentList", newCurrent: makeCurrent("closed") });
+              // result.push({ type: "MoveAllTasks", from: "open", to: "closed" });
             }
+            result.push({ type: "ChangeCurrentList", newCurrent: makeCurrent("open") });
             break;
           case "review":
             result.push({ type: "DeleteAllTasks", from: "review" });
@@ -60,7 +61,7 @@ export function af4({ generateId, now }: { generateId: () => string; now: () => 
         break;
       }
       case "AddTask": {
-        result.push({ type: "AddTask", task: createTask(action.title) });
+        result.push({ type: "AddTask", task: createTask(action.title, tasklist) });
         result.push({ type: "UpdateCurrentListStatus" });
         break;
       }
@@ -72,7 +73,7 @@ export function af4({ generateId, now }: { generateId: () => string; now: () => 
         }
 
         complete(action.id, "readded");
-        result.push({ type: "AddTask", task: createTask(existingTask.title) });
+        result.push({ type: "AddTask", task: createTask(existingTask.title, tasklist) });
         result.push({ type: "UpdateCurrentListStatus" });
         break;
       }
@@ -123,8 +124,12 @@ export function af4({ generateId, now }: { generateId: () => string; now: () => 
       result.push({ type: "IncreaseActionedCount" });
       if (shouldMoveOpenToClosed(tasklist)) {
         result.push({ type: "DeleteAllTasks", from: "closed" });
-        result.push({ type: "ChangeCurrentList", newCurrent: makeCurrent("closed") });
+        const newCurrent = makeCurrent("closed");
+        newCurrent.restoreFocus = true;
+        result.push({ type: "ChangeCurrentList", newCurrent });
         result.push({ type: "MoveAllTasks", from: "open", to: "closed" });
+        result.push({ type: "IncreaseActionedCount" });
+        result.push({ type: "UpdateCurrentListStatus" });
       }
     }
 
@@ -159,6 +164,8 @@ export function af4({ generateId, now }: { generateId: () => string; now: () => 
             list: "deleted",
             showNext: false,
           };
+        default:
+          throw new Error("Should never happen");
       }
     }
   };
@@ -169,13 +176,15 @@ export function af4({ generateId, now }: { generateId: () => string; now: () => 
     return true;
   }
 
-  function createTask(title: string): Task {
+  function createTask(title: string, tasklist: TaskList): Task {
+    const list: ListType =
+      tasklist.current.list === "open" && tasklist.current.actionedCount > 0 ? "open-new" : "open";
     return {
       id: generateId(),
       title,
       createdAt: now(),
       status: "new",
-      list: "open",
+      list,
     };
   }
 
@@ -217,6 +226,7 @@ export function applyActions({ generateId, now }: { generateId: () => string; no
           tasklist.current = action.newCurrent;
           if (action.newCurrent.list === "open") {
             CheckPostponedTasks(tasklist, now());
+            moveNewTasksToOpen(tasklist);
           }
           break;
         }
@@ -369,4 +379,12 @@ export function CheckPostponedTasks(tasklist: TaskList, now: Date) {
     );
     tasklist.tasks.push(...newTasks);
   }
+}
+
+function moveNewTasksToOpen(tasklist: TaskList) {
+  tasklist.tasks.forEach((task) => {
+    if (task.list === "open-new") {
+      task.list = "open";
+    }
+  });
 }
