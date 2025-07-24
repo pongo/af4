@@ -9,6 +9,8 @@ import { af4 as makeAf4, applyActions as makeApplyActions } from "@/app/model/af
 import { toast } from "vue3-toastify";
 import { undoLocalStorage } from "@/app/lib/undoLocalStorage";
 import { itemIconPosToggle } from "@/app/lib/toggles";
+import { useTaskListLabels } from "@/app/composables/useTaskListLabels.ts";
+import { useRouter } from "vue-router";
 
 const props = defineProps<{ state: TaskListType }>();
 
@@ -17,6 +19,9 @@ const applyActions = makeApplyActions({ generateId: nanoid, now: () => new Date(
 
 const newTodoFormRef = useTemplateRef("newTodoForm");
 const taskListRef = useTemplateRef("taskList");
+
+const { navigateListLabel } = useTaskListLabels();
+const router = useRouter();
 
 function handleAddTodo(title: string, { postponed = false }: { postponed?: boolean }) {
   const actions = af4(props.state, { type: postponed ? "AddPostponedTask" : "AddTask", title });
@@ -262,6 +267,22 @@ function bindHotkeys() {
     const focusedTask = taskListRef.value?.getFocusedTask();
     if (focusedTask === undefined) return;
     navigator.clipboard.writeText(focusedTask.title);
+  });
+
+  hotkeys("q", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const nextId = navigateListLabel(props.state.id, "up");
+    if (nextId === undefined) return;
+    router.replace(`/tl/${nextId}`);
+  });
+
+  hotkeys("a", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const nextId = navigateListLabel(props.state.id, "down");
+    if (nextId === undefined) return;
+    router.replace(`/tl/${nextId}`);
   });
 }
 

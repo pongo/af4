@@ -15,7 +15,16 @@ export function useTaskListLabels() {
     taskListLabels: readonly(taskListLabels),
     addTaskListLabel,
     getTaskListLabel,
+    navigateListLabel,
   };
+}
+
+function navigateListLabel(currentId: string, direction: "up" | "down") {
+  const currentIndex = taskListLabels.value.findIndex((list) => list.id === currentId);
+  if (currentIndex === -1) return;
+  const nextIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1;
+  if (nextIndex < 0 || nextIndex >= taskListLabels.value.length) return;
+  return taskListLabels.value[nextIndex].id;
 }
 
 function addTaskListLabel(name: string, id: string) {
