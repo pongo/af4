@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { nextTick, onMounted, onUnmounted, useTemplateRef } from "vue";
-import NewTodoForm from "@/components/NewTodoForm.vue";
-import TaskList from "@/components/TaskList.vue";
+import NewTodoForm from "@/pages/TaskList/ui/NewTodoForm.vue";
+import TaskList from "@/pages/TaskList/ui/TaskList.vue";
 import hotkeys from "hotkeys-js";
 import type { TaskList as TaskListType } from "@/app/types";
 import { nanoid } from "nanoid";
@@ -115,7 +115,7 @@ function notify(message: string) {
 }
 
 function bindHotkeys() {
-  hotkeys("space, c, n, a", (event) => {
+  hotkeys("space, c, n", (event) => {
     event.preventDefault();
     event.stopPropagation();
     newTodoFormRef.value?.focus();
@@ -292,7 +292,7 @@ onUnmounted(() => {
     <NewTodoForm
       ref="newTodoForm"
       @add-todo="handleAddTodo"
-      placeholder="Press <space>, <a>, <c> or <n> to add a new task"
+      placeholder="Press <space>, <c> or <n> to add a new task"
       class="mb-4"
     />
 

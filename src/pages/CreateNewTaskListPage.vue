@@ -52,7 +52,7 @@ const vFocus = {
       autocomplete="off"
       class="flex-1 rounded-md border border-neutral-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-neutral-500 focus:outline-none"
       @keyup.enter="add"
-      @keyup.esc.prevent="returnHome"
+      @keyup.esc="returnHome"
     />
     <button
       type="submit"

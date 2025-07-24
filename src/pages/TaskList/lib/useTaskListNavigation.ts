@@ -1,5 +1,5 @@
 import { nextTick, ref, type Ref, type ShallowRef } from "vue";
-import TaskListItem from "./TaskListItem.vue";
+import TaskListItem from "../ui/TaskListItem.vue";
 import type { Task } from "@/app/types";
 
 type TaskListItem = InstanceType<typeof TaskListItem>;

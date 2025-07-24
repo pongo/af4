@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import MyKbd from "./MyKbd.vue";
+import MyKbd from "@/components/MyKbd.vue";
 defineEmits<{ next: [] }>();
 </script>
 

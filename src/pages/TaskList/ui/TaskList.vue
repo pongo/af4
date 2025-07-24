@@ -1,19 +1,10 @@
 <script setup lang="ts">
-import {
-  computed,
-  nextTick,
-  onMounted,
-  onUnmounted,
-  ref,
-  useTemplateRef,
-  watch,
-  type ComponentPublicInstance,
-} from "vue";
+import { computed, nextTick, ref, watch, type ComponentPublicInstance } from "vue";
 import TaskListItem from "./TaskListItem.vue";
-import { useTaskListNavigation } from "./useTaskListNavigation.ts";
+import { useTaskListNavigation } from "../lib/useTaskListNavigation.ts";
 import type { ListType, TaskList } from "@/app/types.ts";
 import TaskListHelp from "./TaskListHelp.vue";
-import MyKbd from "./MyKbd.vue";
+import MyKbd from "@/components/MyKbd.vue";
 import NextButton from "./NextButton.vue";
 import { globalFocusedItem } from "@/app/lib/focusedItem.ts";
 
