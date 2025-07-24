@@ -6,7 +6,7 @@ import MyKbd from "./MyKbd.vue";
 import { newTodoFormFocused } from "./NewTodoForm.vue";
 import { itemIconPosToggle } from "@/toggles.ts";
 import { globalFocusedItem } from "@/focusedItem.ts";
-import { tw } from "@/shared/tw.ts";
+import { tw } from "@/lib/tw";
 
 const itemRef = useTemplateRef("item");
 

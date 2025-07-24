@@ -36,12 +36,12 @@ const router = createRouter({
     {
       path: "/tl/new/:id?",
       name: "CreateNewTaskList",
-      component: () => import("@/pages/CreateNewTaskList.vue"),
+      component: () => import("@/pages/CreateNewTaskListPage.vue"),
     },
     {
       path: "/tl/:id",
       name: "TaskList",
-      component: () => import("@/pages/TaskListPage.vue"),
+      component: () => import("@/pages/TaskList/TaskListPage.vue"),
       beforeEnter: (to) => {
         if (!localStorage.getItem(`af4-${to.params.id}`)) return `/tl/new/${to.params.id}`;
         return true;

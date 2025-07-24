@@ -3,7 +3,7 @@ import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import type { TaskList } from "@/types.ts";
 import { nanoid } from "nanoid";
-import TaskListView from "@/views/TaskListView.vue";
+import TaskListView from "@/pages/TaskList/TaskListView.vue";
 import { applyActions } from "@/af4.ts";
 
 const route = useRoute();

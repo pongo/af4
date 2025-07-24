@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { nextTick, onMounted, onUnmounted, useTemplateRef } from "vue";
-import NewTodoForm from "../components/NewTodoForm.vue";
-import TaskList from "../components/TaskList.vue";
+import NewTodoForm from "@/components/NewTodoForm.vue";
+import TaskList from "@/components/TaskList.vue";
 import hotkeys from "hotkeys-js";
 import type { TaskList as TaskListType } from "@/types.ts";
 import { nanoid } from "nanoid";
