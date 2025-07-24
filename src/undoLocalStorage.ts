@@ -1,12 +1,15 @@
-let state: string | null = null;
+const states = new Map<string, string>();
 
 export const undoLocalStorage = {
-  save() {
-    state = localStorage.getItem("af4-state");
+  save(id: string) {
+    const item = localStorage.getItem(`af4-${id}`);
+    if (item == null) return;
+    states.set(id, item);
   },
 
-  restore() {
-    if (state === null) return;
-    localStorage.setItem("af4-state", state);
+  restore(id: string) {
+    const state = states.get(id);
+    if (state == null) return;
+    localStorage.setItem(`af4-${id}`, state);
   },
 };

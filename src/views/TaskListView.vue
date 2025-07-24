@@ -239,7 +239,7 @@ function bindHotkeys() {
   hotkeys("ctrl+shift+z", (event) => {
     event.preventDefault();
     event.stopPropagation();
-    undoLocalStorage.restore();
+    undoLocalStorage.restore(props.state.id);
     notify("Обновите страницу");
   });
 
@@ -288,16 +288,14 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <main>
-    <div class="mx-auto max-w-4xl p-6">
-      <NewTodoForm
-        ref="newTodoForm"
-        @add-todo="handleAddTodo"
-        placeholder="Press <space>, <a>, <c> or <n> to add a new task"
-        class="mb-4"
-      />
+  <div _class="mx-auto max-w-4xl p-6">
+    <NewTodoForm
+      ref="newTodoForm"
+      @add-todo="handleAddTodo"
+      placeholder="Press <space>, <a>, <c> or <n> to add a new task"
+      class="mb-4"
+    />
 
-      <TaskList :state="state" ref="taskList" @next="next()" />
-    </div>
-  </main>
+    <TaskList :state="state" ref="taskList" @next="next()" />
+  </div>
 </template>
