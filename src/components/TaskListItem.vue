@@ -75,9 +75,9 @@ const backgroundColor = computed(() => {
   }
 
   // canBeMarkedAsWasFocused ? (wasFocused ? undefined : 'bg-indigo-50') : undefined,
-  if (canBeMarkedAsWasFocused.value && !wasFocused.value) {
-    return tw`bg-indigo-50`;
-  }
+  // if (canBeMarkedAsWasFocused.value && !wasFocused.value) {
+  // return tw`bg-indigo-50`;
+  // }
   if (ageDays.value > 4) {
     return tw`bg-red-300`;
   }
