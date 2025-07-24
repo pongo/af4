@@ -20,19 +20,23 @@ import type { TaskListLabel } from "@/app/composables/useTaskListLabels";
 import { RouterLink } from "vue-router";
 
 defineProps<{
-  taskListLabels: TaskListLabel[];
+  taskListLabels: Readonly<TaskListLabel[]>;
 }>();
 
 const { isMobile } = useSidebar();
+
+function changeTitle(name: string) {
+  document.title = name;
+}
 </script>
 
 <template>
   <SidebarGroup class="group-data-[collapsible=icon]:hidden">
-    <SidebarGroupLabel>Lists</SidebarGroupLabel>
+    <SidebarGroupLabel class="select-none">Lists</SidebarGroupLabel>
     <SidebarMenu>
       <SidebarMenuItem v-for="item in taskListLabels" :key="item.id">
         <SidebarMenuButton as-child :is-active="item.id === $route.params.id">
-          <RouterLink :to="`/tl/${item.id}`" :title="item.name">
+          <RouterLink :to="`/tl/${item.id}`" :title="item.name" @click="changeTitle(item.name)">
             <span>{{ item.name }}</span>
           </RouterLink>
         </SidebarMenuButton>

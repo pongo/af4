@@ -27,7 +27,7 @@ const { taskListLabels } = useTaskListLabels();
     <SidebarFooter>
       <SidebarMenu>
         <SidebarMenuItem>
-          <SidebarMenuButton asChild>
+          <SidebarMenuButton asChild class="select-none">
             <RouterLink to="/tl/new">
               <Plus />
               <span>New List</span>

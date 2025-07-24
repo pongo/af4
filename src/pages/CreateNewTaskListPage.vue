@@ -30,6 +30,10 @@ function add() {
   router.push(`/tl/${id}`);
 }
 
+function returnHome() {
+  router.push("/tl");
+}
+
 const vFocus = {
   mounted(el: HTMLInputElement) {
     el.focus();
@@ -47,7 +51,8 @@ const vFocus = {
       required
       autocomplete="off"
       class="flex-1 rounded-md border border-neutral-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-neutral-500 focus:outline-none"
-      @keypress.enter="add"
+      @keyup.enter="add"
+      @keyup.esc.prevent="returnHome"
     />
     <button
       type="submit"

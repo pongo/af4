@@ -1,6 +1,8 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { useTaskListLabels } from "@/app/composables/useTaskListLabels";
 
+const { taskListLabels, getTaskListLabel } = useTaskListLabels();
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   scrollBehavior: () => ({ top: 0 }),
@@ -26,7 +28,6 @@ const router = createRouter({
     {
       path: "/tl",
       redirect() {
-        const { taskListLabels } = useTaskListLabels();
         if (taskListLabels.value.length > 0) {
           return `/tl/${taskListLabels.value[0].id}`;
         }
@@ -37,13 +38,24 @@ const router = createRouter({
       path: "/tl/new/:id?",
       name: "CreateNewTaskList",
       component: () => import("@/pages/CreateNewTaskListPage.vue"),
+      beforeEnter() {
+        document.title = "New list";
+      },
     },
     {
       path: "/tl/:id",
       name: "TaskList",
       component: () => import("@/pages/TaskList/TaskListPage.vue"),
-      beforeEnter: (to) => {
-        if (!localStorage.getItem(`af4-${to.params.id}`)) return `/tl/new/${to.params.id}`;
+      props(route) {
+        const list = getTaskListLabel(route.params.id as string);
+        if (!list) return false;
+        document.title = list.name;
+        return { name: list.name };
+      },
+      beforeEnter(to) {
+        if (!getTaskListLabel(to.params.id as string)) {
+          return `/tl/new/${to.params.id}`;
+        }
         return true;
       },
     },
