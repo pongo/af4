@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
-import type { TaskList } from "@/types.ts";
+import type { TaskList } from "@/app/types";
 import { nanoid } from "nanoid";
 import TaskListView from "@/pages/TaskList/TaskListView.vue";
-import { applyActions } from "@/af4.ts";
+import { applyActions } from "@/app/model/af4";
 
 const route = useRoute();
 const id = computed(() => route.params.id as string);

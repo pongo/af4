@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
-import { useTaskListLabels } from "@/useTaskListLabels.ts";
+import { useTaskListLabels } from "@/app/composables/useTaskListLabels";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),

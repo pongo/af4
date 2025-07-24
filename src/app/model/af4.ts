@@ -10,8 +10,8 @@ import type {
   ListType,
   CurrentList,
   DeletedTask,
-} from "./types.ts";
-import { undoLocalStorage } from "./undoLocalStorage.ts";
+} from "../types.ts";
+import { undoLocalStorage } from "../lib/undoLocalStorage.ts";
 
 export function af4({ generateId, now }: { generateId: () => string; now: () => Date }) {
   return (tasklist: TaskList, action: UserAction): TaskListAction[] => {

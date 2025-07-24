@@ -11,11 +11,11 @@ import {
 } from "vue";
 import TaskListItem from "./TaskListItem.vue";
 import { useTaskListNavigation } from "./useTaskListNavigation.ts";
-import type { ListType, TaskList } from "@/types.ts";
+import type { ListType, TaskList } from "@/app/types.ts";
 import TaskListHelp from "./TaskListHelp.vue";
 import MyKbd from "./MyKbd.vue";
 import NextButton from "./NextButton.vue";
-import { globalFocusedItem } from "@/focusedItem.ts";
+import { globalFocusedItem } from "@/app/lib/focusedItem.ts";
 
 const props = defineProps<{ state: TaskList }>();
 

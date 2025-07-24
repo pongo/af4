@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import type { Task } from "@/types.ts";
+import type { Task } from "@/app/types";
 import { CalendarCheck, Check, CheckCheck, Zap } from "lucide-vue-next";
 import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
 import MyKbd from "./MyKbd.vue";
 import { newTodoFormFocused } from "./NewTodoForm.vue";
-import { itemIconPosToggle } from "@/toggles.ts";
-import { globalFocusedItem } from "@/focusedItem.ts";
+import { itemIconPosToggle } from "@/app/lib/toggles";
+import { globalFocusedItem } from "@/app/lib/focusedItem";
 import { tw } from "@/lib/tw";
 
 const itemRef = useTemplateRef("item");

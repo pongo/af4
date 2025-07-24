@@ -3,12 +3,12 @@ import { nextTick, onMounted, onUnmounted, useTemplateRef } from "vue";
 import NewTodoForm from "@/components/NewTodoForm.vue";
 import TaskList from "@/components/TaskList.vue";
 import hotkeys from "hotkeys-js";
-import type { TaskList as TaskListType } from "@/types.ts";
+import type { TaskList as TaskListType } from "@/app/types";
 import { nanoid } from "nanoid";
-import { af4 as makeAf4, applyActions as makeApplyActions } from "@/af4.ts";
+import { af4 as makeAf4, applyActions as makeApplyActions } from "@/app/model/af4";
 import { toast } from "vue3-toastify";
-import { undoLocalStorage } from "@/undoLocalStorage.ts";
-import { itemIconPosToggle } from "@/toggles.ts";
+import { undoLocalStorage } from "@/app/lib/undoLocalStorage";
+import { itemIconPosToggle } from "@/app/lib/toggles";
 
 const props = defineProps<{ state: TaskListType }>();
 

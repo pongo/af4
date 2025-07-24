@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { TaskList } from "@/types.ts";
-import { useTaskListLabels } from "@/useTaskListLabels.ts";
+import type { TaskList } from "@/app/types";
+import { useTaskListLabels } from "@/app/composables/useTaskListLabels";
 import { nanoid } from "nanoid";
 import { ref } from "vue";
 import { useRouter, useRoute } from "vue-router";

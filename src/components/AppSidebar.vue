@@ -11,7 +11,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { useTaskListLabels } from "@/useTaskListLabels.ts";
+import { useTaskListLabels } from "@/app/composables/useTaskListLabels";
 import { RouterLink } from "vue-router";
 
 const props = defineProps<SidebarProps>();
