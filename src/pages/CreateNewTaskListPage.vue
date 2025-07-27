@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { TaskList } from "@/app/types";
+import type { SystemType, TaskList } from "@/app/types";
 import { useTaskListLabels } from "@/app/composables/useTaskListLabels";
 import { nanoid } from "nanoid";
 import { ref } from "vue";
@@ -9,6 +9,7 @@ const route = useRoute();
 const router = useRouter();
 const { addTaskListLabel } = useTaskListLabels();
 
+const system = ref<SystemType>("simple");
 const name = ref<string>("");
 
 function add() {
@@ -23,6 +24,7 @@ function add() {
       actionedCount: 0,
       showNext: false,
     },
+    system: system.value,
   };
   localStorage.setItem(`af4-${id}`, JSON.stringify(newState));
   addTaskListLabel(name.value, id);
@@ -54,11 +56,27 @@ const vFocus = {
       @keyup.enter="add"
       @keyup.esc="returnHome"
     />
+    <div>
+      <label for="system">
+        <span class="mr-2 text-sm font-medium text-gray-700 select-none">List type</span>
+        <select
+          name="system"
+          id="system"
+          v-model="system"
+          class="flex-1 rounded-md border border-neutral-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-neutral-500 focus:outline-none"
+          required
+        >
+          <option value="">Please select</option>
+          <option value="af4">AF4</option>
+          <option value="simple">Simple</option>
+        </select>
+      </label>
+    </div>
     <button
       type="submit"
-      class="w-auto self-start rounded-md border border-neutral-300 bg-white px-4 py-2 text-neutral-500 hover:bg-neutral-50 active:text-red-500 active:ring-red-500"
+      class="border-neutral-30 w-auto self-end rounded-md border bg-white px-4 py-2 text-neutral-500 shadow-sm hover:bg-neutral-50 active:text-red-500 active:ring-red-500"
     >
-      Create
+      Create list
     </button>
   </form>
 </template>

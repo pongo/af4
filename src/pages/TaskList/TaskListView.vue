@@ -3,18 +3,21 @@ import { nextTick, onMounted, onUnmounted, useTemplateRef } from "vue";
 import NewTodoForm from "@/pages/TaskList/ui/NewTodoForm.vue";
 import TaskList from "@/pages/TaskList/ui/TaskList.vue";
 import hotkeys from "hotkeys-js";
-import type { TaskList as TaskListType } from "@/app/types";
+import type { TaskListAction, TaskList as TTaskList, UserAction } from "@/app/types";
 import { nanoid } from "nanoid";
 import { af4 as makeAf4, applyActions as makeApplyActions } from "@/app/model/af4";
+import { simple as makeSimple } from "@/app/model/simple";
 import { toast } from "vue3-toastify";
 import { undoLocalStorage } from "@/app/lib/undoLocalStorage";
 import { itemIconPosToggle } from "@/app/lib/toggles";
 import { useTaskListLabels } from "@/app/composables/useTaskListLabels.ts";
 import { useRouter } from "vue-router";
+import { assert } from "smart-invariant";
 
-const props = defineProps<{ state: TaskListType }>();
+const props = defineProps<{ state: TTaskList }>();
 
 const af4 = makeAf4({ generateId: nanoid, now: () => new Date() });
+const simple = makeSimple({ generateId: nanoid, now: () => new Date() });
 const applyActions = makeApplyActions({ generateId: nanoid, now: () => new Date() });
 
 const newTodoFormRef = useTemplateRef("newTodoForm");
@@ -24,7 +27,10 @@ const { navigateListLabel } = useTaskListLabels();
 const router = useRouter();
 
 function handleAddTodo(title: string, { postponed = false }: { postponed?: boolean }) {
-  const actions = af4(props.state, { type: postponed ? "AddPostponedTask" : "AddTask", title });
+  const actions = createActions(props.state, {
+    type: postponed ? "AddPostponedTask" : "AddTask",
+    title,
+  });
   applyActions(props.state, actions);
   nextTick(() => {
     newTodoFormRef.value?.focus();
@@ -40,70 +46,19 @@ function handleAddTodo(title: string, { postponed = false }: { postponed?: boole
   }
 }
 
-const tasks = [
-  "Travel Agency",
-  "Schedule newsletters?",
-  "Restaurant L's birthday",
-  "Card for L",
-  "Weed Noguchi",
-  "Portuguese 17",
-  "Aeneid",
-  "“Then She Found Me”",
-  "Write E-book",
-  "Write M",
-  "Read Ultra Simple Gui",
-  "Camera Manual",
-  "Return chalk to T",
-  "Brain trainer",
-  "Tidy Office",
-  "“Fleurs du Mal”",
-  "Make Bed",
-  "German 24/3",
-  "Facebook",
-  "Spanish 12/2",
-  "Mow Lawn",
-  "Sort out Google bar",
-  "Blog “7 Habits of Poor",
-  "“Saraband”",
-  "Write",
-  "Bureau Top tidy?",
-  "MicroPlaza",
-  "Reading List (oldest)",
-  "Reading List (newest)",
-  "G replied?",
-  "Desk tidy?",
-  "Exercise",
-  "Walk",
-  "Tax Return",
-  "Photo Galleries",
-  "Squarespace Videos",
-  "Check BP",
-  "Journal 10+",
-  "Investment Managers",
-  "RegZooka",
-  "Cut Hedge",
-  "NumberWatch",
-  "Carswell",
-  "“The Cell”",
-  "Paper",
-  "Comments",
-  "Voicemail",
-  "Fix date for lunch",
-  "Email",
-  "FTSE",
-  "“Top Gear”",
-  "Lowest Point Forecast",
-  "Back Up",
-  "Reading",
-  "Doodle",
-  "Change Wallpaper",
-  "Reading List (quality)",
-  "Pitch C#",
-  "Wash Up",
-];
+function createActions(tasklist: TTaskList, action: UserAction): TaskListAction[] {
+  if (tasklist.system === undefined || tasklist.system === "af4") {
+    return af4(tasklist, action);
+  }
+  if (tasklist.system === "simple") {
+    return simple(tasklist, action);
+  }
+
+  throw new Error("Unknown system");
+}
 
 function next() {
-  const actions = af4(props.state, { type: "Next" });
+  const actions = createActions(props.state, { type: "Next" });
   applyActions(props.state, actions);
   nextTick(() => {
     taskListRef.value?.navigate("home");
@@ -168,7 +123,7 @@ function bindHotkeys() {
     const id = getFocusedTaskId(event);
     if (id === undefined) return;
 
-    const actions = af4(props.state, { type: "CompleteTask", id });
+    const actions = createActions(props.state, { type: "CompleteTask", id });
     applyActions(props.state, actions);
   });
 
@@ -178,7 +133,7 @@ function bindHotkeys() {
     const id = getFocusedTaskId(event);
     if (id === undefined) return;
 
-    const actions = af4(props.state, { type: "DeleteTask", id });
+    const actions = createActions(props.state, { type: "DeleteTask", id });
     applyActions(props.state, actions);
   });
 
@@ -188,7 +143,7 @@ function bindHotkeys() {
     const id = getFocusedTaskId(event);
     if (id === undefined) return;
 
-    const actions = af4(props.state, { type: "ZeroTask", id });
+    const actions = createActions(props.state, { type: "ZeroTask", id });
     applyActions(props.state, actions);
   });
 
@@ -198,7 +153,7 @@ function bindHotkeys() {
     const id = getFocusedTaskId(event);
     if (id === undefined) return;
 
-    const actions = af4(props.state, { type: "ReaddTask", id });
+    const actions = createActions(props.state, { type: "ReaddTask", id });
     applyActions(props.state, actions);
     if (props.state.current.list !== "open") {
       notify("Задача заново добавлена в открытый список");
@@ -211,7 +166,7 @@ function bindHotkeys() {
     const id = getFocusedTaskId(event);
     if (id === undefined) return;
 
-    const actions = af4(props.state, { type: "CompleteTask", id });
+    const actions = createActions(props.state, { type: "CompleteTask", id });
     applyActions(props.state, actions);
 
     newTodoFormRef.value?.focusWithText(id);
@@ -224,13 +179,13 @@ function bindHotkeys() {
     if (id === undefined) return;
 
     if (hotkeys.shift) {
-      const actions = af4(props.state, { type: "CompleteTask", id });
+      const actions = createActions(props.state, { type: "CompleteTask", id });
       applyActions(props.state, actions);
       newTodoFormRef.value?.focusWithText(id, { postponed: true });
       return;
     }
 
-    const actions = af4(props.state, { type: "PostponeTask", id });
+    const actions = createActions(props.state, { type: "PostponeTask", id });
     applyActions(props.state, actions);
     notify("Задача отложена до завтра");
   });

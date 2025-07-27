@@ -1,3 +1,5 @@
+export type SystemType = "af4" | "simple";
+
 export type TaskStatus = "new" | "postponed" | "completed" | "deleted";
 
 type BaseTask = {
@@ -68,6 +70,7 @@ export type TaskList = {
   id: string;
   tasks: Task[];
   current: CurrentList;
+  system?: SystemType;
 };
 
 export type UserAction =
