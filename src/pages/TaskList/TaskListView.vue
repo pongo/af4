@@ -36,14 +36,22 @@ function handleAddTodo(title: string, { postponed = false }: { postponed?: boole
   nextTick(() => {
     newTodoFormRef.value?.focus();
   });
-  if (props.state.current.list !== "open") {
-    if (postponed) {
-      notify("Задача добавлена на завтра");
-    } else {
-      notify("Задача добавлена в открытый список");
+
+  if (props.state.system === "af4" || props.state.system === undefined) {
+    if (props.state.current.list !== "open") {
+      if (postponed) {
+        notify("Задача добавлена на завтра");
+      } else {
+        notify("Задача добавлена в открытый список");
+      }
+    } else if (props.state.current.list === "open" && props.state.current.actionedCount > 0) {
+      notify("Задача появится после перехода из закрытого списка");
     }
-  } else if (props.state.current.list === "open" && props.state.current.actionedCount > 0) {
-    notify("Задача появится после перехода из закрытого списка");
+    return;
+  }
+
+  if (postponed) {
+    notify("Задача добавлена на завтра");
   }
 }
 

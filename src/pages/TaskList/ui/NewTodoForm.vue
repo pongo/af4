@@ -22,10 +22,10 @@ const newTodo = ref("");
 const postponed = ref(false);
 const inputRef = useTemplateRef("input");
 
-const handleSubmit = () => {
+const handleSubmit = (event?: KeyboardEvent | MouseEvent) => {
   if (!newTodo.value.trim()) return;
 
-  emit("add-todo", newTodo.value, { postponed: postponed.value });
+  emit("add-todo", newTodo.value, { postponed: event?.shiftKey || postponed.value });
   newTodo.value = "";
   reset();
   inputRef.value?.focus();
