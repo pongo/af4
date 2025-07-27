@@ -120,9 +120,7 @@ function openFirstLink() {
       backgroundColor,
       focused ? 'inset-ring-2 inset-ring-neutral-200' : undefined,
       state.status === 'completed' ? 'text-neutral-400' : undefined,
-      state.status === 'deleted'
-        ? 'text-neutral-400 line-through decoration-red-300 decoration-2'
-        : undefined,
+      state.status === 'deleted' ? 'text-neutral-400' : undefined,
     ]"
     @click="
       $emit('focus');
@@ -145,8 +143,15 @@ function openFirstLink() {
       </div>
     </div>
     <span class="w-full">
-      <span v-html="titleWithLinks" />
-      <span v-if="focusedWithoutFocus" class="ml-0.5 text-neutral-400"><MyKbd>Tab</MyKbd> </span>
+      <span
+        v-html="titleWithLinks"
+        :class="[
+          state.status === 'deleted'
+            ? 'text-neutral-400 line-through decoration-red-300 decoration-2'
+            : undefined,
+        ]"
+      />
+      <span v-if="focusedWithoutFocus" class="ml-2 text-neutral-400"><MyKbd>Tab</MyKbd> </span>
     </span>
     <span v-if="ageDays > 1" class="ml-0.5 text-neutral-400">{{ ageDays }}</span>
   </div>
