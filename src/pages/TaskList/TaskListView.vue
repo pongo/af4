@@ -269,18 +269,22 @@ function bindHotkeys() {
     navigator.clipboard.writeText(focusedTask.title);
   });
 
-  hotkeys("q", (event) => {
+  hotkeys("q,a", (event, handler) => {
     event.preventDefault();
     event.stopPropagation();
-    const nextId = navigateListLabel(props.state.id, "up");
+    const nextId = navigateListLabel(props.state.id, {
+      direction: handler.key === "q" ? "up" : "down",
+    });
     if (nextId === undefined) return;
     router.replace(`/tl/${nextId}`);
   });
 
-  hotkeys("a", (event) => {
+  hotkeys("alt+1, alt+2, alt+3, alt+4, alt+5, alt+6, alt+7, alt+8, alt+9", (event) => {
     event.preventDefault();
     event.stopPropagation();
-    const nextId = navigateListLabel(props.state.id, "down");
+    const index = parseInt(event.key, 10) - 1;
+    assert(index >= 0 && index <= 8);
+    const nextId = navigateListLabel(props.state.id, { index });
     if (nextId === undefined) return;
     router.replace(`/tl/${nextId}`);
   });
@@ -297,11 +301,9 @@ function getFocusedTaskId(event: KeyboardEvent) {
 
 onMounted(() => {
   bindHotkeys();
-  // tasks.forEach((task) => void handleAddTodo(task));
-
-  if (props.state.tasks.length === 0) {
-    newTodoFormRef.value?.focus();
-  }
+  // if (props.state.tasks.length === 0) {
+  //   newTodoFormRef.value?.focus();
+  // }
 });
 onUnmounted(() => {
   hotkeys.unbind();

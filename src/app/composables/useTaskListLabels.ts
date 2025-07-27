@@ -1,3 +1,4 @@
+import { assert } from "smart-invariant";
 import { computed, readonly, ref } from "vue";
 
 export type TaskListLabel = {
@@ -19,12 +20,26 @@ export function useTaskListLabels() {
   };
 }
 
-function navigateListLabel(currentId: string, direction: "up" | "down") {
-  const currentIndex = taskListLabels.value.findIndex((list) => list.id === currentId);
-  if (currentIndex === -1) return;
-  const nextIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1;
-  if (nextIndex < 0 || nextIndex >= taskListLabels.value.length) return;
-  return taskListLabels.value[nextIndex].id;
+type NavigateListLabelOptions = {
+  direction?: "up" | "down";
+  index?: number;
+};
+
+function navigateListLabel(currentId: string, options: NavigateListLabelOptions) {
+  assert(options.direction !== undefined || options.index !== undefined);
+
+  if (options.direction !== undefined) {
+    const currentIndex = taskListLabels.value.findIndex((list) => list.id === currentId);
+    if (currentIndex === -1) return;
+    const nextIndex = options.direction === "up" ? currentIndex - 1 : currentIndex + 1;
+    if (nextIndex < 0 || nextIndex >= taskListLabels.value.length) return;
+    return taskListLabels.value[nextIndex].id;
+  }
+
+  if (options.index !== undefined) {
+    if (options.index < 0 || options.index >= taskListLabels.value.length) return;
+    return taskListLabels.value[options.index].id;
+  }
 }
 
 function addTaskListLabel(name: string, id: string) {
