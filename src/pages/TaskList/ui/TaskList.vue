@@ -84,7 +84,7 @@ defineExpose({
 </script>
 
 <template>
-  <div class="mb-2">{{ countByLists }} {{ state.current }}</div>
+  <!-- <div class="mb-2">{{ countByLists }} {{ state.current }}</div> -->
   <TaskListHelp v-if="state.tasks.length === 0">Добавьте свою первую задачу.</TaskListHelp>
   <TaskListHelp v-else-if="currentTasks.length > 1">
     <p style="display: none">

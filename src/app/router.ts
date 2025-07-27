@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { useTaskListLabels } from "@/app/composables/useTaskListLabels";
+import TaskListPage from "@/pages/TaskList/TaskListPage.vue";
 
 const { taskListLabels, getTaskListLabel } = useTaskListLabels();
 
@@ -45,7 +46,7 @@ const router = createRouter({
     {
       path: "/tl/:id",
       name: "TaskList",
-      component: () => import("@/pages/TaskList/TaskListPage.vue"),
+      component: TaskListPage,
       props(route) {
         const list = getTaskListLabel(route.params.id as string);
         if (!list) return false;
