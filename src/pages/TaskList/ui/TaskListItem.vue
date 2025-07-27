@@ -7,6 +7,7 @@ import { newTodoFormFocused } from "./NewTodoForm.vue";
 import { itemIconPosToggle } from "@/app/lib/toggles";
 import { globalFocusedItem } from "@/app/lib/focusedItem";
 import { tw } from "@/lib/tw";
+import Autolinker from "autolinker";
 
 const itemRef = useTemplateRef("item");
 
@@ -19,6 +20,7 @@ const ageDays = computed(() => {
 });
 
 defineEmits<{ focus: [] }>();
+defineExpose({ openFirstLink });
 
 const vFocus = {
   mounted: (el: HTMLElement, binding: { value: boolean }) => {
@@ -65,9 +67,9 @@ onMounted(() => {
   wasFocused.value = props.focused;
 });
 
-const canBeMarkedAsWasFocused = computed(() => {
-  return props.state.list === "closed" || props.state.list === "open";
-});
+// const canBeMarkedAsWasFocused = computed(() => {
+//   return props.state.list === "closed" || props.state.list === "open";
+// });
 
 const backgroundColor = computed(() => {
   if (props.state.list === "review") {
@@ -86,6 +88,26 @@ const backgroundColor = computed(() => {
   }
   return undefined;
 });
+
+const titleWithLinks = computed(() => {
+  return Autolinker.link(props.state.title, {
+    phone: false,
+    email: false,
+    truncate: 50,
+    className: "my-link",
+  });
+});
+
+function openFirstLink() {
+  const links = Autolinker.parse(props.state.title, {
+    phone: false,
+    email: false,
+  });
+  if (links.length === 0) return;
+  const link = links[0];
+  if (link.getType() !== "url") return;
+  window.open(link.getAnchorHref(), "_blank");
+}
 </script>
 
 <template>
@@ -122,8 +144,8 @@ const backgroundColor = computed(() => {
         <Zap v-else-if="state.zero" class="mr-1 text-lime-500" />
       </div>
     </div>
-    <span class="w-full"
-      >{{ state.title }}
+    <span class="w-full">
+      <span v-html="titleWithLinks" />
       <span v-if="focusedWithoutFocus" class="ml-0.5 text-neutral-400"><MyKbd>Tab</MyKbd> </span>
     </span>
     <span v-if="ageDays > 1" class="ml-0.5 text-neutral-400">{{ ageDays }}</span>

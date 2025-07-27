@@ -247,6 +247,14 @@ function bindHotkeys() {
     if (nextId === undefined) return;
     router.replace(`/tl/${nextId}`);
   });
+
+  hotkeys("v", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const focusedItem = taskListRef.value?.getFocusedItem();
+    if (focusedItem === undefined) return;
+    focusedItem.openFirstLink();
+  });
 }
 
 function getFocusedTaskId(event: KeyboardEvent) {

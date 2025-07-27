@@ -123,6 +123,9 @@
   body {
     @apply bg-background text-foreground;
   }
+  .my-link {
+    @apply text-blue-600 underline visited:text-fuchsia-600 hover:text-red-600;
+  }
 }
 
 html {
