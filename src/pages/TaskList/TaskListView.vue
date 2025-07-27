@@ -13,6 +13,7 @@ import { itemIconPosToggle } from "@/app/lib/toggles";
 import { useTaskListLabels } from "@/app/composables/useTaskListLabels.ts";
 import { useRouter } from "vue-router";
 import { assert } from "smart-invariant";
+import { createKeybindingsHandler } from "tinykeys";
 
 const props = defineProps<{ state: TTaskList }>();
 
@@ -73,6 +74,19 @@ function notify(message: string) {
     // type: "success",
   });
 }
+
+const tinykeysHandler = createKeybindingsHandler({
+  "Alt+([0-9])": (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const num = parseInt(event.key, 10);
+    const index = (num === 0 ? 10 : num) - 1;
+    assert(index >= 0 && index <= 9);
+    const nextId = navigateListLabel(props.state.id, { index });
+    if (nextId === undefined) return;
+    router.replace(`/tl/${nextId}`);
+  },
+});
 
 function bindHotkeys() {
   hotkeys("space, c, n", (event) => {
@@ -233,16 +247,6 @@ function bindHotkeys() {
     if (nextId === undefined) return;
     router.replace(`/tl/${nextId}`);
   });
-
-  hotkeys("alt+1, alt+2, alt+3, alt+4, alt+5, alt+6, alt+7, alt+8, alt+9", (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    const index = parseInt(event.key, 10) - 1;
-    assert(index >= 0 && index <= 8);
-    const nextId = navigateListLabel(props.state.id, { index });
-    if (nextId === undefined) return;
-    router.replace(`/tl/${nextId}`);
-  });
 }
 
 function getFocusedTaskId(event: KeyboardEvent) {
@@ -256,12 +260,15 @@ function getFocusedTaskId(event: KeyboardEvent) {
 
 onMounted(() => {
   bindHotkeys();
+  window.addEventListener("keydown", tinykeysHandler);
+
   // if (props.state.tasks.length === 0) {
   //   newTodoFormRef.value?.focus();
   // }
 });
 onUnmounted(() => {
   hotkeys.unbind();
+  window.removeEventListener("keydown", tinykeysHandler);
 });
 </script>
 
