@@ -100,11 +100,6 @@ defineExpose({
   </TaskListHelp>
 
   <div ref="container" class="relative flex flex-col">
-    <!-- <div
-      class="absolute top-0 -left-10 origin-center translate-1/2 -translate-x-1/2 rotate-z-270 transform text-sm text-neutral-400"
-    >
-      {{ currentListName }}
-    </div> -->
     <TaskListItem
       v-for="(item, index) in currentTasks"
       :key="item.id"
@@ -114,6 +109,7 @@ defineExpose({
       :ref="(el) => setTaskItemRef(el, index)"
     />
     <div
+      v-if="state.system !== 'simple'"
       class="absolute top-14 -right-20 -translate-y-1/2 -rotate-90 transform text-sm whitespace-nowrap text-neutral-400"
     >
       {{ currentListName }}
