@@ -14,12 +14,21 @@ import { useTaskListLabels } from "@/app/composables/useTaskListLabels.ts";
 import { useRouter } from "vue-router";
 import { assert } from "smart-invariant";
 import { createKeybindingsHandler } from "tinykeys";
+import { useDailyCleanup } from "@/app/composables/useDailyCleanup.ts";
 
 const props = defineProps<{ state: TTaskList }>();
 
 const af4 = makeAf4({ generateId: nanoid, now: () => new Date() });
 const simple = makeSimple({ generateId: nanoid, now: () => new Date() });
 const applyActions = makeApplyActions({ generateId: nanoid, now: () => new Date() });
+
+useDailyCleanup(() => {
+  applyActions(props.state, [
+    { type: "DeleteAllDeletedTasks" },
+    { type: "CheckPostponedTasks" },
+    { type: "CleanList", list: props.state.current.list },
+  ]);
+});
 
 const newTodoFormRef = useTemplateRef("newTodoForm");
 const taskListRef = useTemplateRef("taskList");
