@@ -8,6 +8,8 @@ import { itemIconPosToggle } from "@/app/lib/toggles";
 import { globalFocusedItem } from "@/app/lib/focusedItem";
 import { tw } from "@/lib/tw";
 import Autolinker from "autolinker";
+import { YYYYMMDD } from "@/lib/YYYYMMDD.ts";
+import XDivider from "@/components/XDivider.vue";
 
 const itemRef = useTemplateRef("item");
 
@@ -143,7 +145,17 @@ function openFirstLink() {
       </div>
     </div>
     <span class="w-full">
+      <template v-if="state.title === '-'"
+        ><XDivider
+          class="text-neutral-400"
+          :class="[
+            state.status === 'deleted' ? 'line-through decoration-red-300 decoration-2' : undefined,
+          ]"
+          >{{ YYYYMMDD(state.createdAt) }}</XDivider
+        ></template
+      >
       <span
+        v-else
         v-html="titleWithLinks"
         :class="[
           state.status === 'deleted'
