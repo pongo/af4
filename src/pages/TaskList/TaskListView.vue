@@ -180,29 +180,29 @@ function bindHotkeys() {
     return false;
   });
 
-  hotkeys("shift+r", (event): false => {
-    const id = getFocusedTaskId(event);
-    if (id === undefined) return false;
+  hotkeys("shift+r", (): false => {
+    const focusedTask = taskListRef.value?.getFocusedTask();
+    if (focusedTask === undefined) return false;
 
-    const actions = createActions(props.state, { type: "CompleteTask", id });
+    const actions = createActions(props.state, { type: "CompleteTask", id: focusedTask.id });
     applyActions(props.state, actions);
 
-    newTodoFormRef.value?.focusWithText(id);
+    newTodoFormRef.value?.focusWithText(focusedTask.title);
     return false;
   });
 
-  hotkeys("f, h, shift+f, shift+h", (event): false => {
-    const id = getFocusedTaskId(event);
-    if (id === undefined) return false;
+  hotkeys("f, h, shift+f, shift+h", (): false => {
+    const focusedTask = taskListRef.value?.getFocusedTask();
+    if (focusedTask === undefined) return false;
 
     if (hotkeys.shift) {
-      const actions = createActions(props.state, { type: "CompleteTask", id });
+      const actions = createActions(props.state, { type: "CompleteTask", id: focusedTask.id });
       applyActions(props.state, actions);
-      newTodoFormRef.value?.focusWithText(id, { postponed: true });
+      newTodoFormRef.value?.focusWithText(focusedTask.title, { postponed: true });
       return false;
     }
 
-    const actions = createActions(props.state, { type: "PostponeTask", id });
+    const actions = createActions(props.state, { type: "PostponeTask", id: focusedTask.id });
     applyActions(props.state, actions);
     notify("Задача отложена до завтра");
     return false;
