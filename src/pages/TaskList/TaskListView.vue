@@ -97,171 +97,146 @@ const tinykeysHandler = createKeybindingsHandler({
 });
 
 function bindHotkeys() {
-  hotkeys("space, c, n", (event) => {
-    event.preventDefault();
-    event.stopPropagation();
+  hotkeys("space, c, n", (): false => {
     newTodoFormRef.value?.focus();
+    return false;
   });
 
-  hotkeys("up, w, j", (event) => {
-    event.preventDefault();
-    event.stopPropagation();
+  hotkeys("up, w, j", (): false => {
     taskListRef.value?.navigate("up");
+    return false;
   });
 
-  hotkeys("down, s, k", (event) => {
-    event.preventDefault();
-    event.stopPropagation();
+  hotkeys("down, s, k", (): false => {
     taskListRef.value?.navigate("down");
+    return false;
   });
 
-  hotkeys("home", (event) => {
-    event.preventDefault();
-    event.stopPropagation();
+  hotkeys("home", (): false => {
     taskListRef.value?.navigate("home");
+    return false;
   });
 
-  hotkeys("end", (event) => {
-    event.preventDefault();
-    event.stopPropagation();
+  hotkeys("end", (): false => {
     taskListRef.value?.navigate("end");
+    return false;
   });
 
-  hotkeys("pageup, pgup", (event) => {
-    event.preventDefault();
-    event.stopPropagation();
+  hotkeys("pageup, pgup", (): false => {
     taskListRef.value?.navigate("pageup");
+    return false;
   });
 
-  hotkeys("pagedown, pgdown", (event) => {
-    event.preventDefault();
-    event.stopPropagation();
+  hotkeys("pagedown, pgdown", (): false => {
     taskListRef.value?.navigate("pagedown");
+    return false;
   });
 
-  hotkeys("x, d", (event) => {
-    event.preventDefault();
-    event.stopPropagation();
+  hotkeys("x, d", (event): false => {
     const id = getFocusedTaskId(event);
-    if (id === undefined) return;
+    if (id === undefined) return false;
 
     const actions = createActions(props.state, { type: "CompleteTask", id });
     applyActions(props.state, actions);
+    return false;
   });
 
-  hotkeys("delete, backspace", (event) => {
-    event.preventDefault();
-    event.stopPropagation();
+  hotkeys("delete, backspace", (event): false => {
     const id = getFocusedTaskId(event);
-    if (id === undefined) return;
+    if (id === undefined) return false;
 
     const actions = createActions(props.state, { type: "DeleteTask", id });
     applyActions(props.state, actions);
+    return false;
   });
 
-  hotkeys("z", (event) => {
-    event.preventDefault();
-    event.stopPropagation();
+  hotkeys("z", (event): false => {
     const id = getFocusedTaskId(event);
-    if (id === undefined) return;
+    if (id === undefined) return false;
 
     const actions = createActions(props.state, { type: "ZeroTask", id });
     applyActions(props.state, actions);
+    return false;
   });
 
-  hotkeys("r", (event) => {
-    event.preventDefault();
-    event.stopPropagation();
+  hotkeys("r", (event): false => {
     const id = getFocusedTaskId(event);
-    if (id === undefined) return;
+    if (id === undefined) return false;
 
     const actions = createActions(props.state, { type: "ReaddTask", id });
     applyActions(props.state, actions);
     if (props.state.current.list !== "open") {
       notify("Задача заново добавлена в открытый список");
     }
+    return false;
   });
 
-  hotkeys("shift+r", (event) => {
-    event.preventDefault();
-    event.stopPropagation();
+  hotkeys("shift+r", (event): false => {
     const id = getFocusedTaskId(event);
-    if (id === undefined) return;
+    if (id === undefined) return false;
 
     const actions = createActions(props.state, { type: "CompleteTask", id });
     applyActions(props.state, actions);
 
     newTodoFormRef.value?.focusWithText(id);
+    return false;
   });
 
-  hotkeys("f, h, shift+f, shift+h", (event) => {
-    event.preventDefault();
-    event.stopPropagation();
+  hotkeys("f, h, shift+f, shift+h", (event): false => {
     const id = getFocusedTaskId(event);
-    if (id === undefined) return;
+    if (id === undefined) return false;
 
     if (hotkeys.shift) {
       const actions = createActions(props.state, { type: "CompleteTask", id });
       applyActions(props.state, actions);
       newTodoFormRef.value?.focusWithText(id, { postponed: true });
-      return;
+      return false;
     }
 
     const actions = createActions(props.state, { type: "PostponeTask", id });
     applyActions(props.state, actions);
     notify("Задача отложена до завтра");
+    return false;
   });
 
-  hotkeys("shift+right", (event) => {
-    event.preventDefault();
-    event.stopPropagation();
+  hotkeys("shift+right", (): false => {
     next();
+    return false;
   });
 
-  hotkeys("ctrl+shift+z", (event) => {
-    event.preventDefault();
-    event.stopPropagation();
+  hotkeys("ctrl+shift+z", (): false => {
     undoLocalStorage.restore(props.state.id);
     notify("Обновите страницу");
+    return false;
   });
 
-  hotkeys("'", (event) => {
-    event.preventDefault();
-    event.stopPropagation();
+  hotkeys("'", (): false => {
     itemIconPosToggle.next();
+    return false;
   });
 
-  hotkeys("f2", (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    const id = getFocusedTaskId(event);
-    if (id === undefined) return;
-  });
-
-  hotkeys("ctrl+c", (event) => {
-    event.preventDefault();
-    event.stopPropagation();
+  hotkeys("ctrl+c", (): false => {
     const focusedTask = taskListRef.value?.getFocusedTask();
-    if (focusedTask === undefined) return;
-    navigator.clipboard.writeText(focusedTask.title);
+    if (focusedTask !== undefined) {
+      navigator.clipboard.writeText(focusedTask.title);
+    }
+    return false;
   });
 
-  hotkeys("q,a", (event, handler) => {
-    event.preventDefault();
-    event.stopPropagation();
+  hotkeys("q,a", (event, handler): false => {
     const nextId = navigateListLabel(props.state.id, {
       direction: handler.key === "q" ? "up" : "down",
     });
-    if (nextId === undefined) return;
-    router.replace(`/tl/${nextId}`);
+    if (nextId !== undefined) {
+      router.replace(`/tl/${nextId}`);
+    }
+    return false;
   });
 
-  hotkeys("v", (event) => {
-    event.preventDefault();
-    event.stopPropagation();
+  hotkeys("v", (): false => {
     const focusedItem = taskListRef.value?.getFocusedItem();
-    if (focusedItem === undefined) return;
-    focusedItem.openFirstLink();
+    focusedItem?.openFirstLink();
+    return false;
   });
 }
 
