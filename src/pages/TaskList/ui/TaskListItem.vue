@@ -77,6 +77,7 @@ const backgroundColor = computed(() => {
   if (props.state.list === "review") {
     return props.state.status === "new" ? tw`bg-purple-50` : undefined;
   }
+  if (props.state.status !== "new") return undefined;
 
   // canBeMarkedAsWasFocused ? (wasFocused ? undefined : 'bg-indigo-50') : undefined,
   // if (canBeMarkedAsWasFocused.value && !wasFocused.value) {
