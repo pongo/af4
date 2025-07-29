@@ -11,9 +11,14 @@ import { globalFocusedItem } from "@/app/lib/focusedItem.ts";
 const props = defineProps<{ state: TaskList }>();
 
 const currentTasks = computed(() =>
-  props.state.tasks.filter(
-    (task) => task.list === props.state.current.list && task.status !== "postponed",
-  ),
+  props.state.tasks.filter((task) => {
+    if (task.list !== props.state.current.list) return false;
+    if (task.status === "postponed") return false;
+    if (task.title === "-" && (task.status === "deleted" || task.status === "completed")) {
+      return false;
+    }
+    return true;
+  }),
 );
 
 type TaskListItem = InstanceType<typeof TaskListItem>;
