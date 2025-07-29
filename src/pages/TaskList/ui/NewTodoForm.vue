@@ -4,6 +4,7 @@ export const newTodoFormFocused = ref(false);
 <script setup lang="ts">
 import { ref, onMounted, useTemplateRef } from "vue";
 import { Plus, CalendarCheck } from "lucide-vue-next";
+import { useShiftKey } from "./useShiftKey.ts";
 
 withDefaults(
   defineProps<{
@@ -50,6 +51,8 @@ function focus() {
 }
 
 defineExpose({ focusWithText, focus });
+
+const { shiftKey } = useShiftKey(inputRef);
 </script>
 
 <template>
@@ -70,7 +73,7 @@ defineExpose({ focusWithText, focus });
       class="rounded-md border border-neutral-300 bg-white px-4 py-2 text-neutral-500 transition-colors hover:bg-neutral-50 focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2 focus:outline-none active:text-red-500 active:ring-red-500"
       tabindex="-1"
     >
-      <CalendarCheck v-if="postponed" />
+      <CalendarCheck v-if="postponed || shiftKey" class="h-5 w-5" />
       <Plus v-else class="h-5 w-5" />
     </button>
   </div>
