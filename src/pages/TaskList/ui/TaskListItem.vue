@@ -111,6 +111,10 @@ function openFirstLink() {
   if (link.getType() !== "url") return;
   window.open(link.getAnchorHref(), "_blank");
 }
+
+const isDivider = computed(() => {
+  return props.state.title === "-";
+});
 </script>
 
 <template>
@@ -131,41 +135,45 @@ function openFirstLink() {
     "
     v-focus="focused"
   >
-    <div>
-      <div :class="itemIconPosToggle.currentValue.value === 'in' ? '' : '-ml-9'">
-        <CheckCheck
-          v-if="state.status === 'completed' && state.additionalStatus === 'readded'"
-          class="mr-1"
-        />
-        <CalendarCheck
-          v-else-if="state.status === 'completed' && state.additionalStatus === 'postponed'"
-          class="mr-1"
-        />
-        <Check v-else-if="state.status === 'completed'" class="mr-1" />
-        <Zap v-else-if="state.zero" class="mr-1 text-lime-500" />
-      </div>
-    </div>
-    <span class="w-full">
-      <template v-if="state.title === '-'"
-        ><XDivider
-          class="text-neutral-400"
-          :class="[
-            state.status === 'deleted' ? 'line-through decoration-red-300 decoration-2' : undefined,
-          ]"
-          >{{ YYYYMMDD(state.createdAt) }}</XDivider
-        ></template
-      >
-      <span
-        v-else
-        v-html="titleWithLinks"
+    <template v-if="isDivider">
+      <XDivider
+        class="w-full text-neutral-400"
         :class="[
-          state.status === 'deleted'
-            ? 'text-neutral-400 line-through decoration-red-300 decoration-2'
-            : undefined,
+          state.status === 'deleted' ? 'line-through decoration-red-300 decoration-2' : undefined,
         ]"
-      />
-      <span v-if="focusedWithoutFocus" class="ml-2 text-neutral-400"><MyKbd>Tab</MyKbd> </span>
-    </span>
-    <span v-if="ageDays > 1" class="ml-0.5 text-neutral-400">{{ ageDays }}</span>
+        >{{ YYYYMMDD(state.createdAt)
+        }}<span v-if="focusedWithoutFocus" class="ml-2 text-neutral-400"
+          ><MyKbd>Tab</MyKbd></span
+        ></XDivider
+      >
+    </template>
+    <template v-else>
+      <div>
+        <div :class="itemIconPosToggle.currentValue.value === 'in' ? '' : '-ml-9'">
+          <CheckCheck
+            v-if="state.status === 'completed' && state.additionalStatus === 'readded'"
+            class="mr-1"
+          />
+          <CalendarCheck
+            v-else-if="state.status === 'completed' && state.additionalStatus === 'postponed'"
+            class="mr-1"
+          />
+          <Check v-else-if="state.status === 'completed'" class="mr-1" />
+          <Zap v-else-if="state.zero" class="mr-1 text-lime-500" />
+        </div>
+      </div>
+      <div class="w-full">
+        <span
+          v-html="titleWithLinks"
+          :class="[
+            state.status === 'deleted'
+              ? 'text-neutral-400 line-through decoration-red-300 decoration-2'
+              : undefined,
+          ]"
+        />
+        <span v-if="focusedWithoutFocus" class="ml-2 text-neutral-400"><MyKbd>Tab</MyKbd> </span>
+      </div>
+      <div v-if="ageDays > 1" class="ml-0.5 text-neutral-400">{{ ageDays }}</div>
+    </template>
   </div>
 </template>
