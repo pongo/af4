@@ -322,6 +322,14 @@ export function applyActions({ generateId, now }: { generateId: () => string; no
           });
           break;
         }
+        case "PatchTask": {
+          const task = findTask(action.id);
+          if (action.additionalStatus !== undefined) {
+            assert(task.status === "completed", "Task should be completed");
+            task.additionalStatus = action.additionalStatus;
+          }
+          break;
+        }
       }
     }
 

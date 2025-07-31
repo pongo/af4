@@ -2,7 +2,7 @@
 export const newTodoFormFocused = ref(false);
 </script>
 <script setup lang="ts">
-import { ref, onMounted, useTemplateRef } from "vue";
+import { ref, useTemplateRef } from "vue";
 import { Plus, CalendarCheck } from "lucide-vue-next";
 import { useShiftKey } from "./useShiftKey.ts";
 
@@ -16,34 +16,36 @@ withDefaults(
 );
 
 const emit = defineEmits<{
-  (e: "add-todo", text: string, options: { postponed?: boolean }): void;
+  (e: "add-todo", text: string, options: { postponed?: boolean; origId?: string }): void;
 }>();
 
 const newTodo = ref("");
 const postponed = ref(false);
 const inputRef = useTemplateRef("input");
+const origId = ref<string | undefined>(undefined);
 
 const handleSubmit = (event?: KeyboardEvent | MouseEvent) => {
   if (!newTodo.value.trim()) return;
 
-  emit("add-todo", newTodo.value, { postponed: event?.shiftKey || postponed.value });
-  newTodo.value = "";
+  emit("add-todo", newTodo.value, {
+    postponed: event?.shiftKey || postponed.value,
+    origId: origId.value,
+  });
   reset();
   inputRef.value?.focus();
 };
 
-onMounted(() => {
-  // inputRef.value?.focus();
-});
-
-function focusWithText(text: string, options: { postponed?: boolean } = {}) {
+function focusWithText(text: string, options: { postponed?: boolean; origId?: string } = {}) {
   newTodo.value = text;
   postponed.value = options.postponed ?? false;
+  origId.value = options.origId;
   inputRef.value?.focus();
 }
 
 function reset() {
+  newTodo.value = "";
   postponed.value = false;
+  origId.value = undefined;
 }
 
 function focus() {

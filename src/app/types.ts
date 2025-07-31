@@ -97,4 +97,5 @@ export type TaskListAction =
   | { type: "UpdateCurrentListStatus" }
   | { type: "CheckPostponedTasks" }
   | { type: "ClearZero" }
-  | { type: "CleanList"; list: ListType };
+  | { type: "CleanList"; list: ListType }
+  | { type: "PatchTask"; id: string; additionalStatus?: AdditionalStatus };

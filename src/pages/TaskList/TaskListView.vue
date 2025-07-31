@@ -36,12 +36,22 @@ const taskListRef = useTemplateRef("taskList");
 const { navigateListLabel } = useTaskListLabels();
 const router = useRouter();
 
-function handleAddTodo(title: string, { postponed = false }: { postponed?: boolean }) {
-  const actions = createActions(props.state, {
-    type: postponed ? "AddPostponedTask" : "AddTask",
-    title,
-  });
-  applyActions(props.state, actions);
+function handleAddTodo(
+  title: string,
+  { postponed = false, origId }: { postponed?: boolean; origId?: string },
+) {
+  applyActions(
+    props.state,
+    createActions(props.state, {
+      type: postponed ? "AddPostponedTask" : "AddTask",
+      title,
+    }),
+  );
+  if (origId !== undefined) {
+    applyActions(props.state, [
+      { type: "PatchTask", id: origId, additionalStatus: postponed ? "postponed" : "readded" },
+    ]);
+  }
   nextTick(() => {
     newTodoFormRef.value?.focus();
   });
@@ -187,7 +197,7 @@ function bindHotkeys() {
     const actions = createActions(props.state, { type: "CompleteTask", id: focusedTask.id });
     applyActions(props.state, actions);
 
-    newTodoFormRef.value?.focusWithText(focusedTask.title);
+    newTodoFormRef.value?.focusWithText(focusedTask.title, { origId: focusedTask.id });
     return false;
   });
 
@@ -198,7 +208,10 @@ function bindHotkeys() {
     if (hotkeys.shift) {
       const actions = createActions(props.state, { type: "CompleteTask", id: focusedTask.id });
       applyActions(props.state, actions);
-      newTodoFormRef.value?.focusWithText(focusedTask.title, { postponed: true });
+      newTodoFormRef.value?.focusWithText(focusedTask.title, {
+        postponed: true,
+        origId: focusedTask.id,
+      });
       return false;
     }
 
