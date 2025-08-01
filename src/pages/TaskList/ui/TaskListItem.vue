@@ -10,6 +10,7 @@ import { tw } from "@/lib/tw";
 import Autolinker from "autolinker";
 import { YYYYMMDD } from "@/lib/YYYYMMDD.ts";
 import XDivider from "@/components/XDivider.vue";
+import { globalNow } from "@/app/lib/global-now.ts";
 
 const itemRef = useTemplateRef("item");
 
@@ -17,7 +18,7 @@ const props = defineProps<{ state: Task; focused: boolean }>();
 
 const ageDays = computed(() => {
   return Math.floor(
-    (new Date().getTime() - props.state.createdAt.getTime()) / (1000 * 60 * 60 * 24),
+    (globalNow.value.getTime() - props.state.createdAt.getTime()) / (1000 * 60 * 60 * 24),
   );
 });
 
