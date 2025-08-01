@@ -73,7 +73,12 @@ onMounted(() => {
 //   return props.state.list === "closed" || props.state.list === "open";
 // });
 
+const isDivider = computed(() => {
+  return props.state.title === "-";
+});
+
 const backgroundColor = computed(() => {
+  if (isDivider.value) return undefined;
   if (props.state.list === "review") {
     return props.state.status === "new" ? tw`bg-purple-50` : undefined;
   }
@@ -120,10 +125,6 @@ function openFirstLink() {
   if (link.getType() !== "url") return;
   window.open(link.getAnchorHref(), "_blank");
 }
-
-const isDivider = computed(() => {
-  return props.state.title === "-";
-});
 </script>
 
 <template>
