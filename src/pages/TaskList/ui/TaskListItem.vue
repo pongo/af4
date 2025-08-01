@@ -133,7 +133,7 @@ function openFirstLink() {
     ref="item"
     :data-id="state.id"
     :tabindex="focused ? 0 : -1"
-    class="flex flex-row justify-between px-2 py-1.75 text-black hover:bg-neutral-100 focus:inset-ring-2 focus:inset-ring-neutral-500 focus:outline-none"
+    class="flex flex-row justify-between p-2 pb-1.5 text-black hover:bg-neutral-100 focus:inset-ring-2 focus:inset-ring-neutral-500 focus:outline-none"
     :class="[
       backgroundColor,
       focused ? 'inset-ring-2 inset-ring-neutral-200' : undefined,
@@ -172,6 +172,16 @@ function openFirstLink() {
           <Check v-else-if="state.status === 'completed'" class="mr-1 inline-block" />
           <Zap v-else-if="state.zero" class="mr-1 inline-block text-lime-500" />
           <Asterisk v-else-if="isImportant" class="mr-1 inline-block text-red-500" />
+          <svg
+            v-else
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke-width="2"
+            class="mr-1 inline-block"
+          />
         </div>
       </div>
       <div class="w-full">
