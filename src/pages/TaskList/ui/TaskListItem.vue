@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Task } from "@/app/types";
-import { CalendarCheck, Check, CheckCheck, Zap } from "lucide-vue-next";
+import { Asterisk, CalendarCheck, Check, CheckCheck, Zap } from "lucide-vue-next";
 import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
 import MyKbd from "@/components/MyKbd.vue";
 import { newTodoFormFocused } from "./NewTodoForm.vue";
@@ -92,8 +92,17 @@ const backgroundColor = computed(() => {
   return undefined;
 });
 
+const reImportant = /^[!*]+/;
+const isImportant = computed(() => {
+  return reImportant.test(props.state.title);
+});
+
+const cleanedTitle = computed(() => {
+  return props.state.title.replace(reImportant, "").trim();
+});
+
 const titleWithLinks = computed(() => {
-  return Autolinker.link(props.state.title, {
+  return Autolinker.link(cleanedTitle.value, {
     phone: false,
     email: false,
     truncate: 50,
@@ -160,6 +169,7 @@ const isDivider = computed(() => {
           />
           <Check v-else-if="state.status === 'completed'" class="mr-1" />
           <Zap v-else-if="state.zero" class="mr-1 text-lime-500" />
+          <Asterisk v-else-if="isImportant" class="mr-1 text-red-500" />
         </div>
       </div>
       <div class="w-full">
