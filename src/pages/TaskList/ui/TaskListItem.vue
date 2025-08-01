@@ -131,7 +131,7 @@ const isDivider = computed(() => {
     ref="item"
     :data-id="state.id"
     :tabindex="focused ? 0 : -1"
-    class="flex flex-row justify-between p-2 text-black hover:bg-neutral-100 focus:inset-ring-2 focus:inset-ring-neutral-500 focus:outline-none"
+    class="flex flex-row justify-between px-2 py-1.75 text-black hover:bg-neutral-100 focus:inset-ring-2 focus:inset-ring-neutral-500 focus:outline-none"
     :class="[
       backgroundColor,
       focused ? 'inset-ring-2 inset-ring-neutral-200' : undefined,
@@ -161,15 +161,15 @@ const isDivider = computed(() => {
         <div :class="itemIconPosToggle.currentValue.value === 'in' ? '' : '-ml-9'">
           <CheckCheck
             v-if="state.status === 'completed' && state.additionalStatus === 'readded'"
-            class="mr-1"
+            class="mr-1 inline-block"
           />
           <CalendarCheck
             v-else-if="state.status === 'completed' && state.additionalStatus === 'postponed'"
-            class="mr-1"
+            class="relative top-[-2px] mr-1 inline-block"
           />
-          <Check v-else-if="state.status === 'completed'" class="mr-1" />
-          <Zap v-else-if="state.zero" class="mr-1 text-lime-500" />
-          <Asterisk v-else-if="isImportant" class="mr-1 text-red-500" />
+          <Check v-else-if="state.status === 'completed'" class="mr-1 inline-block" />
+          <Zap v-else-if="state.zero" class="mr-1 inline-block text-lime-500" />
+          <Asterisk v-else-if="isImportant" class="mr-1 inline-block text-red-500" />
         </div>
       </div>
       <div class="w-full">
