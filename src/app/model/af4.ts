@@ -209,9 +209,10 @@ function tomorrow(now: Date) {
 }
 
 export function applyActions({ generateId, now }: { generateId: () => string; now: () => Date }) {
-  return (tasklist: TaskList, actions: TaskListAction[]): void => {
+  return (tasklist: TaskList, actions: (TaskListAction | undefined)[]): void => {
     undoLocalStorage.save(tasklist.id);
     for (const action of actions) {
+      if (action === undefined) continue;
       switch (action.type) {
         case "AddTask": {
           tasklist.tasks.push(action.task);

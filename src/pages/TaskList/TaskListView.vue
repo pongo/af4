@@ -40,18 +40,15 @@ function handleAddTodo(
   title: string,
   { postponed = false, origId }: { postponed?: boolean; origId?: string },
 ) {
-  applyActions(
-    props.state,
-    createActions(props.state, {
+  applyActions(props.state, [
+    ...createActions(props.state, {
       type: postponed ? "AddPostponedTask" : "AddTask",
       title,
     }),
-  );
-  if (origId !== undefined) {
-    applyActions(props.state, [
-      { type: "PatchTask", id: origId, additionalStatus: postponed ? "postponed" : "readded" },
-    ]);
-  }
+    origId !== undefined
+      ? { type: "PatchTask", id: origId, additionalStatus: postponed ? "postponed" : "readded" }
+      : undefined,
+  ]);
   nextTick(() => {
     newTodoFormRef.value?.focus();
   });
