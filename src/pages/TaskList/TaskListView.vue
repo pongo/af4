@@ -8,7 +8,6 @@ import { nanoid } from "nanoid";
 import { af4 as makeAf4, applyActions as makeApplyActions } from "@/app/model/af4";
 import { simple as makeSimple } from "@/app/model/simple";
 import { toast } from "vue3-toastify";
-import { undoLocalStorage } from "@/app/lib/undoLocalStorage";
 import { itemIconPosToggle } from "@/app/lib/toggles";
 import { useTaskListLabels } from "@/app/composables/useTaskListLabels.ts";
 import { useRouter } from "vue-router";
@@ -70,6 +69,8 @@ function handleAddTodo(
     notify("Задача добавлена на завтра");
   }
 }
+
+const emit = defineEmits<{ undo: [string]; redo: [string] }>();
 
 function createActions(tasklist: TTaskList, action: UserAction): TaskListAction[] {
   if (tasklist.system === undefined || tasklist.system === "af4") {
@@ -223,9 +224,13 @@ function bindHotkeys() {
     return false;
   });
 
+  hotkeys("ctrl+z", (): false => {
+    emit("undo", props.state.id);
+    return false;
+  });
+
   hotkeys("ctrl+shift+z", (): false => {
-    undoLocalStorage.restore(props.state.id);
-    notify("Обновите страницу");
+    emit("redo", props.state.id);
     return false;
   });
 

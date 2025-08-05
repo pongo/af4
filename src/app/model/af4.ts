@@ -11,7 +11,6 @@ import type {
   CurrentList,
   DeletedTask,
 } from "../types.ts";
-import { undoLocalStorage } from "../lib/undoLocalStorage.ts";
 
 export function af4({ generateId, now }: { generateId: () => string; now: () => Date }) {
   return (tasklist: TaskList, action: UserAction): TaskListAction[] => {
@@ -210,7 +209,6 @@ function tomorrow(now: Date) {
 
 export function applyActions({ generateId, now }: { generateId: () => string; now: () => Date }) {
   return (tasklist: TaskList, actions: (TaskListAction | undefined)[]): void => {
-    undoLocalStorage.save(tasklist.id);
     for (const action of actions) {
       if (action === undefined) continue;
       switch (action.type) {
