@@ -66,6 +66,7 @@ watch(focusedIndex, () => {
     if (!task) return;
     if (task.id !== globalFocusedItem.value?.id) {
       console.log("!!!!", task, globalFocusedItem.value);
+      globalFocusedItem.value = task;
     }
   });
 });
