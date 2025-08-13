@@ -39,15 +39,7 @@ function handleAddTodo(
   title: string,
   { postponed = false, origId }: { postponed?: boolean; origId?: string },
 ) {
-  applyActions(props.state, [
-    ...createActions(props.state, {
-      type: postponed ? "AddPostponedTask" : "AddTask",
-      title,
-    }),
-    origId !== undefined
-      ? { type: "PatchTask", id: origId, additionalStatus: postponed ? "postponed" : "readded" }
-      : undefined,
-  ]);
+  applyActions(props.state, actions());
   nextTick(() => {
     newTodoFormRef.value?.focus();
   });
@@ -67,6 +59,20 @@ function handleAddTodo(
 
   if (postponed) {
     notify("Задача добавлена на завтра");
+  }
+
+  function actions() {
+    if (postponed) {
+      if (origId !== undefined) {
+        return createActions(props.state, { type: "PostponeTask", id: origId, title });
+      }
+      return createActions(props.state, { type: "AddPostponedTask", title });
+    }
+
+    if (origId !== undefined) {
+      return createActions(props.state, { type: "ReaddTask", id: origId, title });
+    }
+    return createActions(props.state, { type: "AddTask", title });
   }
 }
 
@@ -192,9 +198,6 @@ function bindHotkeys() {
     const focusedTask = taskListRef.value?.getFocusedTask();
     if (focusedTask === undefined) return false;
 
-    const actions = createActions(props.state, { type: "CompleteTask", id: focusedTask.id });
-    applyActions(props.state, actions);
-
     newTodoFormRef.value?.focusWithText(focusedTask.title, { origId: focusedTask.id });
     return false;
   });
@@ -204,8 +207,6 @@ function bindHotkeys() {
     if (focusedTask === undefined) return false;
 
     if (hotkeys.shift) {
-      const actions = createActions(props.state, { type: "CompleteTask", id: focusedTask.id });
-      applyActions(props.state, actions);
       newTodoFormRef.value?.focusWithText(focusedTask.title, {
         postponed: true,
         origId: focusedTask.id,

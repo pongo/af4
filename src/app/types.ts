@@ -77,11 +77,11 @@ export type UserAction =
   | { type: "Next" }
   | { type: "AddTask"; title: string }
   | { type: "AddPostponedTask"; title: string }
-  | { type: "ReaddTask"; id: string }
+  | { type: "ReaddTask"; id: string; title?: string }
+  | { type: "PostponeTask"; id: string; title?: string }
   | { type: "CompleteTask"; id: string }
   | { type: "DeleteTask"; id: string }
-  | { type: "ZeroTask"; id: string }
-  | { type: "PostponeTask"; id: string };
+  | { type: "ZeroTask"; id: string };
 
 export type TaskListAction =
   | { type: "AddTask"; task: Task }

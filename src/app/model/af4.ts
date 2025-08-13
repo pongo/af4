@@ -72,7 +72,10 @@ export function af4({ generateId, now }: { generateId: () => string; now: () => 
         }
 
         complete(action.id, "readded");
-        result.push({ type: "AddTask", task: createTask(existingTask.title, tasklist) });
+        result.push({
+          type: "AddTask",
+          task: createTask(action.title ?? existingTask.title, tasklist),
+        });
         result.push({ type: "UpdateCurrentListStatus" });
         break;
       }
@@ -108,7 +111,10 @@ export function af4({ generateId, now }: { generateId: () => string; now: () => 
           break;
         }
 
-        result.push({ type: "AddTask", task: createPostponedTask(task.title, now()) });
+        result.push({
+          type: "AddTask",
+          task: createPostponedTask(action.title ?? task.title, now()),
+        });
         result.push({ type: "UpdateCurrentListStatus" });
         break;
       }
