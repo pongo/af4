@@ -243,6 +243,7 @@ export function applyActions({ generateId, now }: { generateId: () => string; no
           const task = findTask(action.id);
           assert(task, `Task with id ${action.id} should exist`);
           task.status = "completed";
+          if (task.zero) delete task.zero;
           (task as CompletedTask).completedAt = action.completedAt;
           (task as CompletedTask).additionalStatus = action.additionalStatus;
           break;
@@ -260,6 +261,7 @@ export function applyActions({ generateId, now }: { generateId: () => string; no
         case "MarkDeleteTask": {
           const task = findTask(action.id);
           task.status = "deleted";
+          if (task.zero) delete task.zero;
           (task as DeletedTask).deletedAt = action.deletedAt;
           break;
         }

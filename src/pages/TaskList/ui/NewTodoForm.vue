@@ -17,6 +17,7 @@ withDefaults(
 
 const emit = defineEmits<{
   (e: "add-todo", text: string, options: { postponed?: boolean; origId?: string }): void;
+  (e: "focus-task"): void;
 }>();
 
 const newTodo = ref("");
@@ -52,6 +53,18 @@ function focus() {
   inputRef.value?.focus();
 }
 
+function focusTaskIfEmpty(event: KeyboardEvent) {
+  if (newTodo.value.length > 0) return;
+  if (event.shiftKey || event.ctrlKey || event.altKey || event.metaKey) return;
+
+  event.preventDefault();
+  event.stopPropagation();
+  newTodo.value = "";
+  // newTodoFormFocused.value = false;
+  // inputRef.value?.blur();
+  emit("focus-task");
+}
+
 defineExpose({ focusWithText, focus });
 
 const { shiftKey } = useShiftKey(inputRef);
@@ -65,7 +78,8 @@ const { shiftKey } = useShiftKey(inputRef);
       v-model="newTodo"
       @keyup.enter="handleSubmit"
       @keyup.esc="reset"
-      :placeholder="placeholder"
+      @keydown.space="focusTaskIfEmpty"
+      :placeholder="newTodoFormFocused ? 'Press <space> to return to the task' : placeholder"
       class="flex-1 rounded-md border border-neutral-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-neutral-500 focus:outline-none"
       @focus="newTodoFormFocused = true"
       @blur="newTodoFormFocused = false"

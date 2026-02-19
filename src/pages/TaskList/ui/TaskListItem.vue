@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import type { Task } from "@/app/types";
 import { Asterisk, CalendarCheck, Check, CheckCheck, Zap } from "lucide-vue-next";
-import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
+import { computed, onMounted, ref, shallowRef, useTemplateRef, watch } from "vue";
 import MyKbd from "@/components/MyKbd.vue";
 import { newTodoFormFocused } from "./NewTodoForm.vue";
 import { itemIconPosToggle } from "@/app/lib/toggles";
 import { globalFocusedItem } from "@/app/lib/focusedItem";
 import { tw } from "@/lib/tw";
-import Autolinker from "autolinker";
+import Autolinker, { HtmlTag } from "autolinker";
 import { YYYYMMDD } from "@/lib/YYYYMMDD.ts";
 import XDivider from "@/components/XDivider.vue";
 import { globalNow } from "@/app/lib/global-now.ts";
@@ -23,7 +23,11 @@ const ageDays = computed(() => {
 });
 
 defineEmits<{ focus: [] }>();
-defineExpose({ openFirstLink });
+defineExpose({ openFirstLink, edit, focus });
+
+function focus() {
+  itemRef.value?.focus();
+}
 
 const vFocus = {
   mounted: (el: HTMLElement, binding: { value: boolean }) => {
@@ -107,12 +111,29 @@ const cleanedTitle = computed(() => {
   return props.state.title.replace(reImportant, "").trim();
 });
 
+function ellipsis(str: string, truncateLen: number, ellipsisChars: string = "&hellip;"): string {
+  return str.length <= truncateLen
+    ? str
+    : str.substring(0, truncateLen - ellipsisChars.length) + ellipsisChars;
+}
+
 const titleWithLinks = computed(() => {
+  const completed = props.state.status === "completed" ? "text-neutral-400" : "";
   return Autolinker.link(cleanedTitle.value, {
     phone: false,
     email: false,
-    truncate: 50,
-    className: "my-link",
+    replaceFn(match) {
+      return new HtmlTag({
+        tagName: "a",
+        attrs: {
+          href: match.getAnchorHref(),
+          target: "_blank",
+          class: `my-link ${completed}`,
+          tabindex: "-1",
+        },
+        innerHtml: ellipsis(match.getAnchorText(), 50),
+      });
+    },
   });
 });
 
@@ -125,6 +146,14 @@ function openFirstLink() {
   const link = links[0];
   if (link.getType() !== "url") return;
   window.open(link.getAnchorHref(), "_blank");
+}
+
+function edit() {
+  let newTitle = prompt("Edit task", props.state.title);
+  if (newTitle === null) return;
+  newTitle = newTitle.trim();
+  if (newTitle === "" || newTitle === props.state.title) return;
+  return newTitle;
 }
 </script>
 
@@ -154,7 +183,7 @@ function openFirstLink() {
         ]"
         >{{ YYYYMMDD(state.createdAt)
         }}<span v-if="focusedWithoutFocus" class="ml-2 text-neutral-400"
-          ><MyKbd>Tab</MyKbd></span
+          ><MyKbd>Space</MyKbd></span
         ></XDivider
       >
     </template>
@@ -193,7 +222,7 @@ function openFirstLink() {
               : undefined,
           ]"
         />
-        <span v-if="focusedWithoutFocus" class="ml-2 text-neutral-400"><MyKbd>Tab</MyKbd> </span>
+        <span v-if="focusedWithoutFocus" class="ml-2 text-neutral-400"><MyKbd>Space</MyKbd> </span>
       </div>
       <div v-if="ageDays > 1" class="ml-0.5 text-neutral-400">{{ ageDays }}</div>
     </template>

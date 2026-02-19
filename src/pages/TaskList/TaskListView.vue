@@ -22,6 +22,7 @@ const simple = makeSimple({ generateId: nanoid, now: () => new Date() });
 const applyActions = makeApplyActions({ generateId: nanoid, now: () => new Date() });
 
 useDailyCleanup(() => {
+  console.log("useDailyCleanup [TaskListView]", new Date());
   applyActions(props.state, [
     { type: "DeleteAllDeletedTasks" },
     { type: "CheckPostponedTasks" },
@@ -101,6 +102,8 @@ function notify(message: string) {
   toast(message, {
     position: "bottom-center",
     hideProgressBar: true,
+    autoClose: 2500,
+    pauseOnFocusLoss: false,
     // theme: "colored",
     // type: "success",
   });
@@ -202,11 +205,11 @@ function bindHotkeys() {
     return false;
   });
 
-  hotkeys("f, h, shift+f, shift+h", (): false => {
+  hotkeys("f, h, shift+f, shift+h", (event: KeyboardEvent): false => {
     const focusedTask = taskListRef.value?.getFocusedTask();
     if (focusedTask === undefined) return false;
 
-    if (hotkeys.shift) {
+    if (event.shiftKey) {
       newTodoFormRef.value?.focusWithText(focusedTask.title, {
         postponed: true,
         origId: focusedTask.id,
@@ -263,6 +266,24 @@ function bindHotkeys() {
     focusedItem?.openFirstLink();
     return false;
   });
+
+  hotkeys("e, enter, f2", (): false => {
+    const focusedItem = taskListRef.value?.getFocusedItem();
+    const focusedTask = taskListRef.value?.getFocusedTask();
+    if (focusedItem === undefined || focusedTask === undefined) return false;
+
+    const newTitle = focusedItem.edit();
+    if (newTitle === undefined) return false;
+
+    focusedTask.title = newTitle;
+    // const actions = createActions(props.state, { type: "EditTask", id: focusedTask.id, title: newTitle });
+    // applyActions(props.state, actions);
+    return false;
+  });
+}
+
+function focusTask() {
+  taskListRef.value?.getFocusedItem()?.focus();
 }
 
 function getFocusedTaskId(event: KeyboardEvent) {
@@ -293,6 +314,7 @@ onUnmounted(() => {
     <NewTodoForm
       ref="newTodoForm"
       @add-todo="handleAddTodo"
+      @focus-task="focusTask"
       placeholder="Press <space>, <c> or <n> to add a new task"
       class="mb-4"
     />
