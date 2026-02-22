@@ -6,7 +6,7 @@ import { ref } from "vue";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
-let loadingTimer: number;
+let loadingTimer: ReturnType<typeof setTimeout>;
 const isLoading = ref(false);
 
 router.beforeEach(() => {
