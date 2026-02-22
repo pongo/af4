@@ -3,9 +3,9 @@ import { nextTick, onMounted, onUnmounted, useTemplateRef } from "vue";
 import NewTodoForm from "@/pages/TaskList/ui/NewTodoForm.vue";
 import TaskList from "@/pages/TaskList/ui/TaskList.vue";
 import hotkeys from "hotkeys-js";
-import type { TaskListAction, TaskList as TTaskList, UserAction } from "@/app/types";
+import type { TaskList as TTaskList, UserAction } from "@/app/types";
 import { nanoid } from "nanoid";
-import { af4 as makeAf4, applyActions as makeApplyActions } from "@/app/model/af4";
+import { af4 as makeAf4 } from "@/app/model/af4";
 import { simple as makeSimple } from "@/app/model/simple";
 import { toast } from "vue3-toastify";
 import { itemIconPosToggle } from "@/app/lib/toggles";
@@ -19,15 +19,23 @@ const props = defineProps<{ state: TTaskList }>();
 
 const af4 = makeAf4({ generateId: nanoid, now: () => new Date() });
 const simple = makeSimple({ generateId: nanoid, now: () => new Date() });
-const applyActions = makeApplyActions({ generateId: nanoid, now: () => new Date() });
+
+function dispatch(state: TTaskList, action: UserAction): void {
+  if (state.system === undefined || state.system === "af4") {
+    af4(state, action);
+    return;
+  }
+  if (state.system === "simple") {
+    simple(state, action);
+    return;
+  }
+  throw new Error("Unknown system");
+}
 
 useDailyCleanup(() => {
-  console.log("useDailyCleanup [TaskListView]", new Date());
-  applyActions(props.state, [
-    { type: "DeleteAllDeletedTasks" },
-    { type: "CheckPostponedTasks" },
-    { type: "CleanList", list: props.state.current.list },
-  ]);
+  const now = new Date();
+  console.log("useDailyCleanup [TaskListView]", now);
+  dispatch(props.state, { type: "Cleanup", now });
 });
 
 const newTodoFormRef = useTemplateRef("newTodoForm");
@@ -40,7 +48,7 @@ function handleAddTodo(
   title: string,
   { postponed = false, origId }: { postponed?: boolean; origId?: string },
 ) {
-  applyActions(props.state, actions());
+  dispatch(props.state, getAction());
   nextTick(() => {
     newTodoFormRef.value?.focus();
   });
@@ -62,37 +70,20 @@ function handleAddTodo(
     notify("Задача добавлена на завтра");
   }
 
-  function actions() {
+  function getAction(): UserAction {
     if (postponed) {
-      if (origId !== undefined) {
-        return createActions(props.state, { type: "PostponeTask", id: origId, title });
-      }
-      return createActions(props.state, { type: "AddPostponedTask", title });
+      if (origId !== undefined) return { type: "PostponeTask", id: origId, title };
+      return { type: "AddPostponedTask", title };
     }
-
-    if (origId !== undefined) {
-      return createActions(props.state, { type: "ReaddTask", id: origId, title });
-    }
-    return createActions(props.state, { type: "AddTask", title });
+    if (origId !== undefined) return { type: "ReaddTask", id: origId, title };
+    return { type: "AddTask", title };
   }
 }
 
 const emit = defineEmits<{ undo: [string]; redo: [string] }>();
 
-function createActions(tasklist: TTaskList, action: UserAction): TaskListAction[] {
-  if (tasklist.system === undefined || tasklist.system === "af4") {
-    return af4(tasklist, action);
-  }
-  if (tasklist.system === "simple") {
-    return simple(tasklist, action);
-  }
-
-  throw new Error("Unknown system");
-}
-
 function next() {
-  const actions = createActions(props.state, { type: "Next" });
-  applyActions(props.state, actions);
+  dispatch(props.state, { type: "Next" });
   nextTick(() => {
     taskListRef.value?.navigate("home");
   });
@@ -162,8 +153,7 @@ function bindHotkeys() {
     const id = getFocusedTaskId(event);
     if (id === undefined) return false;
 
-    const actions = createActions(props.state, { type: "CompleteTask", id });
-    applyActions(props.state, actions);
+    dispatch(props.state, { type: "CompleteTask", id });
     return false;
   });
 
@@ -171,8 +161,7 @@ function bindHotkeys() {
     const id = getFocusedTaskId(event);
     if (id === undefined) return false;
 
-    const actions = createActions(props.state, { type: "DeleteTask", id });
-    applyActions(props.state, actions);
+    dispatch(props.state, { type: "DeleteTask", id });
     return false;
   });
 
@@ -180,8 +169,7 @@ function bindHotkeys() {
     const id = getFocusedTaskId(event);
     if (id === undefined) return false;
 
-    const actions = createActions(props.state, { type: "ZeroTask", id });
-    applyActions(props.state, actions);
+    dispatch(props.state, { type: "ZeroTask", id });
     return false;
   });
 
@@ -189,8 +177,7 @@ function bindHotkeys() {
     const id = getFocusedTaskId(event);
     if (id === undefined) return false;
 
-    const actions = createActions(props.state, { type: "ReaddTask", id });
-    applyActions(props.state, actions);
+    dispatch(props.state, { type: "ReaddTask", id });
     if (props.state.current.list !== "open") {
       notify("Задача заново добавлена в открытый список");
     }
@@ -217,8 +204,7 @@ function bindHotkeys() {
       return false;
     }
 
-    const actions = createActions(props.state, { type: "PostponeTask", id: focusedTask.id });
-    applyActions(props.state, actions);
+    dispatch(props.state, { type: "PostponeTask", id: focusedTask.id });
     notify("Задача отложена до завтра");
     return false;
   });

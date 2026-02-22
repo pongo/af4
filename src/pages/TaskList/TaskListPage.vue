@@ -1,13 +1,17 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
-import type { TaskList } from "@/app/types";
-import { nanoid } from "nanoid";
+import type { TaskList, UserAction } from "@/app/types";
 import TaskListView from "@/pages/TaskList/TaskListView.vue";
-import { applyActions } from "@/app/model/af4";
 import { useDebouncedRefHistory } from "@vueuse/core";
 import { klona } from "klona";
 import { assert } from "smart-invariant";
+import { af4 as makeAf4 } from "@/app/model/af4";
+import { simple as makeSimple } from "@/app/model/simple";
+import { nanoid } from "nanoid";
+
+const af4 = makeAf4({ generateId: nanoid, now: () => new Date() });
+const simple = makeSimple({ generateId: nanoid, now: () => new Date() });
 
 const route = useRoute();
 const id = computed(() => route.params.id as string);
@@ -28,6 +32,18 @@ watch(
   { deep: true },
 );
 
+function dispatch(state: TaskList, action: UserAction): void {
+  if (state.system === undefined || state.system === "af4") {
+    af4(state, action);
+    return;
+  }
+  if (state.system === "simple") {
+    simple(state, action);
+    return;
+  }
+  throw new Error("Unknown system");
+}
+
 function load() {
   const savedState = localStorage.getItem(localStorageKey.value);
   if (!savedState) {
@@ -36,11 +52,7 @@ function load() {
 
   const data: TaskList = parse(savedState);
   // data.tasks = data.tasks.filter((task) => task.list !== "deleted");
-  applyActions({ generateId: nanoid, now: () => new Date() })(data, [
-    { type: "DeleteAllDeletedTasks" },
-    { type: "CheckPostponedTasks" },
-    { type: "CleanList", list: data.current.list },
-  ]);
+  dispatch(data, { type: "Cleanup", now: new Date() });
   return data;
 }
 

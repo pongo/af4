@@ -12,7 +12,7 @@ type BaseTask = {
   list: ListType;
   zero?: boolean;
 };
-type PostponedTask = BaseTask & {
+export type PostponedTask = BaseTask & {
   status: "postponed";
   postponedUntil: Date;
 };
@@ -26,7 +26,7 @@ export type DeletedTask = BaseTask & {
   status: "deleted";
   deletedAt: Date;
 };
-type NewTask = BaseTask & {
+export type NewTask = BaseTask & {
   status: "new";
 };
 
@@ -81,21 +81,5 @@ export type UserAction =
   | { type: "PostponeTask"; id: string; title?: string }
   | { type: "CompleteTask"; id: string }
   | { type: "DeleteTask"; id: string }
-  | { type: "ZeroTask"; id: string };
-
-export type TaskListAction =
-  | { type: "AddTask"; task: Task }
-  // | { type: "ReaddTask"; id: string }
-  | { type: "CompleteTask"; id: string; additionalStatus?: AdditionalStatus; completedAt: Date }
-  | { type: "ChangeCurrentList"; newCurrent: CurrentList }
-  | { type: "MoveAllTasks"; from: ListType; to: ListType }
-  | { type: "DeleteAllTasks"; from: ListType }
-  | { type: "DeleteAllDeletedTasks" }
-  | { type: "MarkDeleteTask"; id: string; deletedAt: Date }
   | { type: "ZeroTask"; id: string }
-  | { type: "IncreaseActionedCount" }
-  | { type: "UpdateCurrentListStatus" }
-  | { type: "CheckPostponedTasks" }
-  | { type: "ClearZero" }
-  | { type: "CleanList"; list: ListType }
-  | { type: "PatchTask"; id: string; additionalStatus?: AdditionalStatus };
+  | { type: "Cleanup"; now: Date };
