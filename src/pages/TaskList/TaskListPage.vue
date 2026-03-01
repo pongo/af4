@@ -51,14 +51,10 @@ function load() {
   return data;
 }
 
-watch(
-  () => route.params.id,
-  () => {
-    state.value = load();
-    stateHistory.clear();
-  },
-  { immediate: true },
-);
+watch(id, () => {
+  state.value = load();
+  stateHistory.clear();
+});
 
 function undo(id: string) {
   console.log(stateHistory.last.value.timestamp, stateHistory.last.value.snapshot);
