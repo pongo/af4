@@ -4,6 +4,7 @@ import { useTaskListLabels } from "@/app/composables/useTaskListLabels";
 import { nanoid } from "nanoid";
 import { ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
+import { db } from "@/app/db";
 
 const route = useRoute();
 const router = useRouter();
@@ -26,7 +27,7 @@ function add() {
     },
     system: system.value,
   };
-  localStorage.setItem(`af4-${id}`, JSON.stringify(newState));
+  db.saveTaskList(newState);
   addTaskListLabel(name.value, id);
 
   router.push(`/tl/${id}`);

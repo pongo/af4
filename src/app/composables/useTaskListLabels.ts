@@ -1,10 +1,6 @@
 import { assert } from "smart-invariant";
 import { computed, readonly, ref } from "vue";
-
-export type TaskListLabel = {
-  id: string;
-  name: string;
-};
+import { db, type TaskListLabel } from "@/app/db";
 
 const taskListLabels = ref<TaskListLabel[]>(load());
 const taskListLabelsMap = computed(
@@ -44,7 +40,7 @@ function navigateListLabel(currentId: string, options: NavigateListLabelOptions)
 
 function addTaskListLabel(name: string, id: string) {
   taskListLabels.value.push({ id, name });
-  localStorage.setItem("af4-lists", JSON.stringify(taskListLabels.value));
+  db.saveTaskListLabels(taskListLabels.value);
 }
 
 function getTaskListLabel(id: string) {
@@ -52,7 +48,5 @@ function getTaskListLabel(id: string) {
 }
 
 function load() {
-  const lists = localStorage.getItem("af4-lists");
-  if (lists == null) return [];
-  return JSON.parse(lists) as TaskListLabel[];
+  return db.getTaskListLabels();
 }

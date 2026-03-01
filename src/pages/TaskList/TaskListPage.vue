@@ -9,13 +9,13 @@ import { assert } from "smart-invariant";
 import { af4 as makeAf4 } from "@/app/model/af4";
 import { simple as makeSimple } from "@/app/model/simple";
 import { nanoid } from "nanoid";
+import { db } from "@/app/db";
 
 const af4 = makeAf4({ generateId: nanoid, now: () => new Date() });
 const simple = makeSimple({ generateId: nanoid, now: () => new Date() });
 
 const route = useRoute();
 const id = computed(() => route.params.id as string);
-const localStorageKey = computed(() => `af4-${id.value}`);
 const state = ref<TaskList>(load());
 const stateHistory = useDebouncedRefHistory(state, {
   capacity: 10,
@@ -27,7 +27,7 @@ const stateHistory = useDebouncedRefHistory(state, {
 watch(
   state,
   (newState) => {
-    localStorage.setItem(localStorageKey.value, JSON.stringify(newState));
+    db.saveTaskList(newState);
   },
   { deep: true },
 );
@@ -45,25 +45,10 @@ function dispatch(state: TaskList, action: UserAction): void {
 }
 
 function load() {
-  const savedState = localStorage.getItem(localStorageKey.value);
-  if (!savedState) {
-    throw new Error("No state found");
-  }
-
-  const data: TaskList = parse(savedState);
+  const data = db.getTaskList(id.value);
   // data.tasks = data.tasks.filter((task) => task.list !== "deleted");
   dispatch(data, { type: "Cleanup", now: new Date() });
   return data;
-}
-
-function parse(data: string): TaskList {
-  const dateKeys = new Set(["createdAt", "postponedUntil", "completedAt", "deletedAt"]);
-  return JSON.parse(data, (key, value) => {
-    if (dateKeys.has(key)) {
-      return new Date(value);
-    }
-    return value;
-  }) as TaskList;
 }
 
 watch(
