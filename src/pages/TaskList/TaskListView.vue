@@ -229,7 +229,11 @@ function bindHotkeys() {
     return false;
   });
 
-  hotkeys("ctrl+c", (): false => {
+  hotkeys("ctrl+c", () => {
+    // if there is a selection, do not intercept
+    if (window.getSelection()?.toString()) return true;
+
+    // copy focused task title
     const focusedTask = taskListRef.value?.getFocusedTask();
     if (focusedTask !== undefined) {
       navigator.clipboard.writeText(focusedTask.title);
