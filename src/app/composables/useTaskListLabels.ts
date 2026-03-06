@@ -42,6 +42,7 @@ export function useTaskListLabels() {
     navigateToNextList,
     navigateListByIndex,
     ensureLoaded,
+    updateTaskListLabels,
     reorderLabels,
     renameTaskListLabel,
   };
@@ -64,14 +65,14 @@ function navigateListByIndex(index: number): string | undefined {
   return taskListLabels.value[index].id;
 }
 
-async function updateTaskListLabels() {
-  taskListLabels.value = await db.getTaskListLabels();
-}
-
 async function renameTaskListLabel(id: string, name: string) {
   await db.updateTaskListLabel(id, name);
 }
 
 function getTaskListLabel(id: string) {
   return taskListLabelsMap.value.get(id);
+}
+
+export async function updateTaskListLabels() {
+  taskListLabels.value = await db.getTaskListLabels();
 }

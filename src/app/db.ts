@@ -46,6 +46,7 @@ export const db = {
     // IndexedDB supports structured clone, so we can save the object directly.
     // This preserves Date objects.
     await idb.put("tasklists_data", taskList);
+    notifyChange("tasklists_data");
   },
 
   async getTaskList(id: string): Promise<TaskList> {
@@ -87,6 +88,7 @@ export const db = {
     const idb = await dbPromise;
     await idb.put("tasklists_data", taskList);
     await addTaskListLabel(name, taskList.id);
+    notifyChange("tasklists_data");
   },
 
   /**

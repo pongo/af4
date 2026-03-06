@@ -11,7 +11,8 @@ declare module "vue-router" {
   }
 }
 
-const { taskListLabels, getTaskListLabel, ensureLoaded } = useTaskListLabels();
+const { taskListLabels, getTaskListLabel, ensureLoaded, updateTaskListLabels } =
+  useTaskListLabels();
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -72,6 +73,12 @@ router.beforeEach(async (to) => {
   if (to.name === "TaskList") {
     await ensureLoaded();
     const id = to.params.id as string;
+
+    if (!getTaskListLabel(id)) {
+      // It might be a newly created list, try to reload labels
+      await updateTaskListLabels();
+    }
+
     if (!getTaskListLabel(id)) {
       return `/tl/new/${id}`;
     }
