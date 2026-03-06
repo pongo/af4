@@ -2,7 +2,7 @@
 import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import type { TaskList, UserAction } from "@/app/types";
-import TaskListView from "@/pages/TaskList/TaskListView.vue";
+import TaskListMain from "./ui/TaskListMain.vue";
 import { useDebouncedRefHistory } from "@vueuse/core";
 import { klona } from "klona";
 import { assert } from "smart-invariant";
@@ -71,5 +71,5 @@ function redo(id: string) {
 </script>
 
 <template>
-  <TaskListView :state="state" @undo="undo" @redo="redo" />
+  <TaskListMain :state="state" @undo="undo" @redo="redo" />
 </template>

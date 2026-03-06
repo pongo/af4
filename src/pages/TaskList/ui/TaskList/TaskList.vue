@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch, type ComponentPublicInstance } from "vue";
 import TaskListItem from "./TaskListItem.vue";
-import { useTaskListNavigation } from "../lib/useTaskListNavigation.ts";
+import { useTaskListNavigation } from "./useTaskListNavigation.ts";
 import type { ListType, TaskList } from "@/app/types.ts";
 import TaskListHelp from "./TaskListHelp.vue";
 import MyKbd from "@/components/MyKbd.vue";
