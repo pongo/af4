@@ -246,7 +246,24 @@ onMounted(() => {
   // }
 });
 onUnmounted(() => {
-  hotkeys.unbind();
+  hotkeys.unbind("space, c, n");
+  hotkeys.unbind("up, w, j");
+  hotkeys.unbind("down, s, k");
+  hotkeys.unbind("home");
+  hotkeys.unbind("end");
+  hotkeys.unbind("pageup, pgup");
+  hotkeys.unbind("pagedown, pgdown");
+  hotkeys.unbind("x, d");
+  hotkeys.unbind("z");
+  hotkeys.unbind("r");
+  hotkeys.unbind("shift+r");
+  hotkeys.unbind("shift+right");
+  hotkeys.unbind("ctrl+z");
+  hotkeys.unbind("ctrl+shift+z");
+  hotkeys.unbind("'");
+  hotkeys.unbind("ctrl+c");
+  hotkeys.unbind("v");
+  hotkeys.unbind("e, enter, f2");
 });
 </script>
 

@@ -4,6 +4,9 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { ref } from "vue";
 import { useRouter } from "vue-router";
+import { useNavigationHotkeys } from "@/app/composables/useNavigationHotkeys";
+
+useNavigationHotkeys();
 
 const router = useRouter();
 let loadingTimer: ReturnType<typeof setTimeout>;
