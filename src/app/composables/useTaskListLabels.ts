@@ -37,6 +37,7 @@ export function useTaskListLabels() {
     navigateListLabel,
     ensureLoaded,
     reorderLabels,
+    renameTaskListLabel,
   };
 }
 
@@ -69,6 +70,11 @@ function navigateListLabel(currentId: string, options: NavigateListLabelOptions)
 
 async function addTaskListLabel(name: string, id: string) {
   await db.addTaskListLabel(name, id);
+  taskListLabels.value = await db.getTaskListLabels();
+}
+
+async function renameTaskListLabel(id: string, name: string) {
+  await db.updateTaskListLabel(id, name);
   taskListLabels.value = await db.getTaskListLabels();
 }
 

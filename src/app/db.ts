@@ -111,6 +111,18 @@ export const db = {
     await tx.done;
   },
 
+  async updateTaskListLabel(id: string, name: string): Promise<void> {
+    const idb = await dbPromise;
+    const tx = idb.transaction("tasklists_meta", "readwrite");
+    const store = tx.objectStore("tasklists_meta");
+    const label = await store.get(id);
+    if (label) {
+      label.name = name;
+      await store.put(label);
+    }
+    await tx.done;
+  },
+
   async deleteTaskList(id: string): Promise<void> {
     const idb = await dbPromise;
     const tx = idb.transaction(["tasklists_meta", "tasklists_data"], "readwrite");

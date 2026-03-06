@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { MoreHorizontal, Trash2 } from "lucide-vue-next";
+import { MoreHorizontal, Pencil, Trash2 } from "lucide-vue-next";
 
 import {
   DropdownMenu,
@@ -21,7 +21,8 @@ import { useTaskListLabels } from "@/app/composables/useTaskListLabels";
 import { useSortable } from "@vueuse/integrations/useSortable";
 import { nextTick, useTemplateRef } from "vue";
 
-const { taskListLabels, removeTaskListLabel, reorderLabels } = useTaskListLabels();
+const { taskListLabels, removeTaskListLabel, reorderLabels, renameTaskListLabel } =
+  useTaskListLabels();
 const { isMobile } = useSidebar();
 const router = useRouter();
 const route = useRoute();
@@ -50,6 +51,13 @@ async function handleDelete(id: string, name: string) {
     if (route.params.id === id) {
       router.push("/");
     }
+  }
+}
+
+async function handleRename(id: string, currentName: string) {
+  const newName = window.prompt("Enter new list name:", currentName);
+  if (newName !== null && newName.trim() !== "" && newName !== currentName) {
+    await renameTaskListLabel(id, newName.trim());
   }
 }
 </script>
@@ -81,6 +89,10 @@ async function handleDelete(id: string, name: string) {
             :side="isMobile ? 'bottom' : 'right'"
             :align="isMobile ? 'end' : 'start'"
           >
+            <DropdownMenuItem @click="handleRename(item.id, item.name)">
+              <Pencil class="text-muted-foreground" />
+              <span>Rename</span>
+            </DropdownMenuItem>
             <DropdownMenuItem @click="handleDelete(item.id, item.name)">
               <Trash2 class="text-muted-foreground" />
               <span>Delete</span>
