@@ -32,6 +32,7 @@ export function useTaskListLabels() {
   return {
     taskListLabels: readonly(taskListLabels),
     addTaskListLabel,
+    removeTaskListLabel,
     getTaskListLabel,
     navigateListLabel,
     ensureLoaded,
@@ -62,6 +63,11 @@ function navigateListLabel(currentId: string, options: NavigateListLabelOptions)
 
 async function addTaskListLabel(name: string, id: string) {
   await db.addTaskListLabel(name, id);
+  taskListLabels.value = await db.getTaskListLabels();
+}
+
+async function removeTaskListLabel(id: string) {
+  await db.deleteTaskList(id);
   taskListLabels.value = await db.getTaskListLabels();
 }
 

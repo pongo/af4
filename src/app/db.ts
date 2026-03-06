@@ -94,4 +94,12 @@ export const db = {
     // Use the index to get them sorted by position
     return await idb.getAllFromIndex("tasklists_meta", "position");
   },
+
+  async deleteTaskList(id: string): Promise<void> {
+    const idb = await dbPromise;
+    const tx = idb.transaction(["tasklists_meta", "tasklists_data"], "readwrite");
+    await tx.objectStore("tasklists_meta").delete(id);
+    await tx.objectStore("tasklists_data").delete(id);
+    await tx.done;
+  },
 };

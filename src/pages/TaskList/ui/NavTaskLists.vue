@@ -17,16 +17,29 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { type TaskListLabel } from "@/app/db";
-import { RouterLink } from "vue-router";
+import { RouterLink, useRoute, useRouter } from "vue-router";
+import { useTaskListLabels } from "@/app/composables/useTaskListLabels";
 
 defineProps<{
   taskListLabels: Readonly<TaskListLabel[]>;
 }>();
 
 const { isMobile } = useSidebar();
+const { removeTaskListLabel } = useTaskListLabels();
+const router = useRouter();
+const route = useRoute();
 
 function changeTitle(name: string) {
   document.title = name;
+}
+
+async function handleDelete(id: string, name: string) {
+  if (confirm(`Are you sure you want to delete "${name}"?`)) {
+    await removeTaskListLabel(id);
+    if (route.params.id === id) {
+      router.push("/");
+    }
+  }
 }
 </script>
 
@@ -52,7 +65,7 @@ function changeTitle(name: string) {
             :side="isMobile ? 'bottom' : 'right'"
             :align="isMobile ? 'end' : 'start'"
           >
-            <DropdownMenuItem>
+            <DropdownMenuItem @click="handleDelete(item.id, item.name)">
               <Trash2 class="text-muted-foreground" />
               <span>Delete</span>
             </DropdownMenuItem>
