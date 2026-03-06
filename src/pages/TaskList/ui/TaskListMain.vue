@@ -9,10 +9,6 @@ import { af4 as makeAf4 } from "@/app/model/af4";
 import { simple as makeSimple } from "@/app/model/simple";
 import { toast } from "vue3-toastify";
 import { itemIconPosToggle } from "@/app/lib/toggles";
-import { useTaskListLabels } from "@/app/composables/useTaskListLabels.ts";
-import { useRouter } from "vue-router";
-import { assert } from "smart-invariant";
-import { createKeybindingsHandler } from "tinykeys";
 import { useDailyCleanup } from "@/app/composables/useDailyCleanup.ts";
 
 const props = defineProps<{ state: TTaskList }>();
@@ -40,9 +36,6 @@ useDailyCleanup(() => {
 
 const newTodoFormRef = useTemplateRef("newTodoForm");
 const taskListRef = useTemplateRef("taskList");
-
-const { navigateListLabel } = useTaskListLabels();
-const router = useRouter();
 
 function handleAddTodo(
   title: string,
@@ -99,19 +92,6 @@ function notify(message: string) {
     // type: "success",
   });
 }
-
-const tinykeysHandler = createKeybindingsHandler({
-  "Alt+([0-9])": (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    const num = parseInt(event.key, 10);
-    const index = (num === 0 ? 10 : num) - 1;
-    assert(index >= 0 && index <= 9);
-    const nextId = navigateListLabel(props.state.id, { index });
-    if (nextId === undefined) return;
-    router.replace(`/tl/${nextId}`);
-  },
-});
 
 function bindHotkeys() {
   hotkeys("space, c, n", (): false => {
@@ -241,16 +221,6 @@ function bindHotkeys() {
     return false;
   });
 
-  hotkeys("q,a", (event, handler): false => {
-    const nextId = navigateListLabel(props.state.id, {
-      direction: handler.key === "q" ? "up" : "down",
-    });
-    if (nextId !== undefined) {
-      router.replace(`/tl/${nextId}`);
-    }
-    return false;
-  });
-
   hotkeys("v", (): false => {
     const focusedItem = taskListRef.value?.getFocusedItem();
     focusedItem?.openFirstLink();
@@ -287,7 +257,6 @@ function getFocusedTaskId(event: KeyboardEvent) {
 
 onMounted(() => {
   bindHotkeys();
-  window.addEventListener("keydown", tinykeysHandler);
 
   // if (props.state.tasks.length === 0) {
   //   newTodoFormRef.value?.focus();
@@ -295,7 +264,6 @@ onMounted(() => {
 });
 onUnmounted(() => {
   hotkeys.unbind();
-  window.removeEventListener("keydown", tinykeysHandler);
 });
 </script>
 

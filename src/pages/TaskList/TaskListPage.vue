@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import { useRoute } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import type { TaskList, UserAction } from "@/app/types";
 import TaskListMain from "./ui/TaskListMain.vue";
 import { useDebouncedRefHistory } from "@vueuse/core";
@@ -10,12 +10,52 @@ import { af4 as makeAf4 } from "@/app/model/af4";
 import { simple as makeSimple } from "@/app/model/simple";
 import { nanoid } from "nanoid";
 import { db } from "@/app/db";
+import hotkeys from "hotkeys-js";
+import { createKeybindingsHandler } from "tinykeys";
+import { onMounted, onUnmounted } from "vue";
+import { useTaskListLabels } from "@/app/composables/useTaskListLabels.ts";
+
+const { navigateListLabel } = useTaskListLabels();
 
 const af4 = makeAf4({ generateId: nanoid, now: () => new Date() });
 const simple = makeSimple({ generateId: nanoid, now: () => new Date() });
 
 const route = useRoute();
+const router = useRouter();
 const id = computed(() => route.params.id as string);
+
+const tinykeysHandler = createKeybindingsHandler({
+  "Alt+([0-9])": (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const num = parseInt(event.key, 10);
+    const index = (num === 0 ? 10 : num) - 1;
+    assert(index >= 0 && index <= 9);
+    const nextId = navigateListLabel(id.value, { index });
+    if (nextId === undefined) return;
+    router.replace(`/tl/${nextId}`);
+  },
+});
+
+onMounted(() => {
+  window.addEventListener("keydown", tinykeysHandler);
+
+  hotkeys("q,a", (event, handler): false => {
+    const nextId = navigateListLabel(id.value, {
+      direction: handler.key === "q" ? "up" : "down",
+    });
+    if (nextId !== undefined) {
+      router.replace(`/tl/${nextId}`);
+    }
+    return false;
+  });
+});
+
+onUnmounted(() => {
+  window.removeEventListener("keydown", tinykeysHandler);
+  hotkeys.unbind("q,a");
+});
+
 const state = ref<TaskList>(load());
 const stateHistory = useDebouncedRefHistory(state, {
   capacity: 10,
