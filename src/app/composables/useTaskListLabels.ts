@@ -1,8 +1,8 @@
 import { assert } from "smart-invariant";
-import { computed, readonly, ref } from "vue";
+import { computed, shallowRef } from "vue";
 import { db, type TaskListLabel } from "@/app/db";
 
-const taskListLabels = ref<TaskListLabel[]>([]);
+const taskListLabels = shallowRef<TaskListLabel[]>([]);
 const taskListLabelsMap = computed(
   () => new Map(taskListLabels.value.map((list) => [list.id, list])),
 );
