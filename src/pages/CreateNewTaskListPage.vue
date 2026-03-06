@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { SystemType, TaskList } from "@/app/types";
-import { useTaskListLabels } from "@/app/composables/useTaskListLabels";
 import { nanoid } from "nanoid";
 import { ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
@@ -8,7 +7,6 @@ import { db } from "@/app/db";
 
 const route = useRoute();
 const router = useRouter();
-const { updateTaskListLabels } = useTaskListLabels();
 
 const system = ref<SystemType>("simple");
 const name = ref<string>("");
@@ -31,7 +29,6 @@ async function add() {
       system: system.value,
     };
     await db.addTaskList(name.value, newState);
-    await updateTaskListLabels();
 
     await router.push(`/tl/${id}`);
   } catch (e) {

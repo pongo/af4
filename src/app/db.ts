@@ -10,6 +10,12 @@ export type TaskListLabel = {
 const DB_NAME = "af4-db";
 const DB_VERSION = 1;
 
+const changeChannel = new BroadcastChannel("af4-db-changes");
+
+function notifyChange(storeName: string) {
+  changeChannel.postMessage({ type: "change", storeName });
+}
+
 const dbPromise = openDB(DB_NAME, DB_VERSION, {
   upgrade(db) {
     if (!db.objectStoreNames.contains("tasklists_meta")) {
@@ -74,6 +80,7 @@ export const db = {
       await store.put(label);
     }
     await tx.done;
+    notifyChange("tasklists_meta");
   },
 
   async addTaskList(name: string, taskList: TaskList): Promise<void> {
@@ -105,6 +112,7 @@ export const db = {
       }
     }
     await tx.done;
+    notifyChange("tasklists_meta");
   },
 
   async updateTaskListLabel(id: string, name: string): Promise<void> {
@@ -117,6 +125,7 @@ export const db = {
       await store.put(label);
     }
     await tx.done;
+    notifyChange("tasklists_meta");
   },
 
   async deleteTaskList(id: string): Promise<void> {
@@ -125,6 +134,8 @@ export const db = {
     await tx.objectStore("tasklists_meta").delete(id);
     await tx.objectStore("tasklists_data").delete(id);
     await tx.done;
+    notifyChange("tasklists_meta");
+    notifyChange("tasklists_data");
   },
 };
 
@@ -135,4 +146,5 @@ async function addTaskListLabel(name: string, id: string): Promise<void> {
   const position = labels.length > 0 ? labels[labels.length - 1].position + 1 : 0;
   const newLabel = { id, name, position };
   await idb.put("tasklists_meta", newLabel);
+  notifyChange("tasklists_meta");
 }

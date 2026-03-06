@@ -22,8 +22,7 @@ import { useSortable } from "@vueuse/integrations/useSortable";
 import { nextTick, useTemplateRef } from "vue";
 import { db } from "@/app/db";
 
-const { taskListLabels, updateTaskListLabels, reorderLabels, renameTaskListLabel } =
-  useTaskListLabels();
+const { taskListLabels, reorderLabels, renameTaskListLabel } = useTaskListLabels();
 const { isMobile } = useSidebar();
 const router = useRouter();
 const route = useRoute();
@@ -49,7 +48,6 @@ function changeTitle(name: string) {
 async function handleDelete(id: string, name: string) {
   if (confirm(`Are you sure you want to delete "${name}"?`)) {
     await db.deleteTaskList(id);
-    await updateTaskListLabels();
     if (route.params.id === id) {
       router.push("/");
     }

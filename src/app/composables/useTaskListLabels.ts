@@ -24,13 +24,20 @@ async function ensureLoaded() {
   return loadPromise;
 }
 
+// Subscribe to database changes
+const changeChannel = new BroadcastChannel("af4-db-changes");
+changeChannel.onmessage = (event) => {
+  if (event.data.type === "change" && event.data.storeName === "tasklists_meta") {
+    updateTaskListLabels();
+  }
+};
+
 // Initial load
 ensureLoaded();
 
 export function useTaskListLabels() {
   return {
     taskListLabels,
-    updateTaskListLabels,
     getTaskListLabel,
     navigateToNextList,
     navigateListByIndex,
@@ -42,7 +49,6 @@ export function useTaskListLabels() {
 
 async function reorderLabels(orderedIds: string[]) {
   await db.reorderTaskListLabels(orderedIds);
-  updateTaskListLabels();
 }
 
 function navigateToNextList(currentId: string, direction: "up" | "down"): string | undefined {
@@ -64,7 +70,6 @@ async function updateTaskListLabels() {
 
 async function renameTaskListLabel(id: string, name: string) {
   await db.updateTaskListLabel(id, name);
-  updateTaskListLabels();
 }
 
 function getTaskListLabel(id: string) {
