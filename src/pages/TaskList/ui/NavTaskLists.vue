@@ -16,18 +16,29 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { type TaskListLabel } from "@/app/db";
 import { RouterLink, useRoute, useRouter } from "vue-router";
 import { useTaskListLabels } from "@/app/composables/useTaskListLabels";
+import { useSortable } from "@vueuse/integrations/useSortable";
+import { nextTick, useTemplateRef } from "vue";
 
-defineProps<{
-  taskListLabels: Readonly<TaskListLabel[]>;
-}>();
-
+const { taskListLabels, removeTaskListLabel, reorderLabels } = useTaskListLabels();
 const { isMobile } = useSidebar();
-const { removeTaskListLabel } = useTaskListLabels();
 const router = useRouter();
 const route = useRoute();
+
+const el = useTemplateRef("el");
+
+useSortable(el, taskListLabels, {
+  animation: 150,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onEnd: async (event: any) => {
+    if (event.oldIndex === event.newIndex) return;
+    await nextTick();
+    const ids = taskListLabels.value.map((item) => item.id);
+    reorderLabels(ids);
+  },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+} as any);
 
 function changeTitle(name: string) {
   document.title = name;
@@ -46,11 +57,16 @@ async function handleDelete(id: string, name: string) {
 <template>
   <SidebarGroup class="group-data-[collapsible=icon]:hidden">
     <SidebarGroupLabel class="select-none">Lists</SidebarGroupLabel>
-    <SidebarMenu>
-      <SidebarMenuItem v-for="item in taskListLabels" :key="item.id">
+    <SidebarMenu ref="el">
+      <SidebarMenuItem
+        v-for="item in taskListLabels"
+        :key="item.id"
+        :data-id="item.id"
+        class="group/item"
+      >
         <SidebarMenuButton as-child :is-active="item.id === $route.params.id">
           <RouterLink :to="`/tl/${item.id}`" :title="item.name" @click="changeTitle(item.name)">
-            <span>{{ item.name }}</span>
+            <span class="truncate">{{ item.name }}</span>
           </RouterLink>
         </SidebarMenuButton>
         <DropdownMenu>

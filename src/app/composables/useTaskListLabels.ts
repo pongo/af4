@@ -30,13 +30,19 @@ ensureLoaded();
 
 export function useTaskListLabels() {
   return {
-    taskListLabels: readonly(taskListLabels),
+    taskListLabels,
     addTaskListLabel,
     removeTaskListLabel,
     getTaskListLabel,
     navigateListLabel,
     ensureLoaded,
+    reorderLabels,
   };
+}
+
+async function reorderLabels(orderedIds: string[]) {
+  await db.reorderTaskListLabels(orderedIds);
+  taskListLabels.value = await db.getTaskListLabels();
 }
 
 type NavigateListLabelOptions = {

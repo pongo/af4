@@ -95,6 +95,22 @@ export const db = {
     return await idb.getAllFromIndex("tasklists_meta", "position");
   },
 
+  async reorderTaskListLabels(orderedIds: string[]): Promise<void> {
+    const idb = await dbPromise;
+    const tx = idb.transaction("tasklists_meta", "readwrite");
+    const store = tx.objectStore("tasklists_meta");
+
+    for (let i = 0; i < orderedIds.length; i++) {
+      const id = orderedIds[i];
+      const label = await store.get(id);
+      if (label) {
+        label.position = i;
+        await store.put(label);
+      }
+    }
+    await tx.done;
+  },
+
   async deleteTaskList(id: string): Promise<void> {
     const idb = await dbPromise;
     const tx = idb.transaction(["tasklists_meta", "tasklists_data"], "readwrite");

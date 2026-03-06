@@ -10,18 +10,15 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { useTaskListLabels } from "@/app/composables/useTaskListLabels";
 import { RouterLink } from "vue-router";
 
 const props = defineProps<SidebarProps>();
-
-const { taskListLabels } = useTaskListLabels();
 </script>
 
 <template>
   <Sidebar class="border-r-0" v-bind="props">
     <SidebarContent>
-      <NavTaskLists :taskListLabels="taskListLabels" />
+      <NavTaskLists />
     </SidebarContent>
     <SidebarFooter>
       <SidebarMenu>
