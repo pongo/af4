@@ -1,11 +1,32 @@
 import { assert } from "smart-invariant";
-import { computed, readonly, ref } from "vue";
+import { computed, readonly, ref, toRaw } from "vue";
 import { db, type TaskListLabel } from "@/app/db";
 
-const taskListLabels = ref<TaskListLabel[]>(load());
+const taskListLabels = ref<TaskListLabel[]>([]);
 const taskListLabelsMap = computed(
   () => new Map(taskListLabels.value.map((list) => [list.id, list])),
 );
+
+let isLoaded = false;
+let loadPromise: Promise<void> | null = null;
+async function ensureLoaded() {
+  if (isLoaded) return;
+  if (loadPromise) return loadPromise;
+
+  loadPromise = (async () => {
+    try {
+      taskListLabels.value = await db.getTaskListLabels();
+      isLoaded = true;
+    } finally {
+      loadPromise = null;
+    }
+  })();
+
+  return loadPromise;
+}
+
+// Initial load
+ensureLoaded();
 
 export function useTaskListLabels() {
   return {
@@ -13,6 +34,7 @@ export function useTaskListLabels() {
     addTaskListLabel,
     getTaskListLabel,
     navigateListLabel,
+    ensureLoaded,
   };
 }
 
@@ -38,15 +60,20 @@ function navigateListLabel(currentId: string, options: NavigateListLabelOptions)
   }
 }
 
-function addTaskListLabel(name: string, id: string) {
-  taskListLabels.value.push({ id, name });
-  db.saveTaskListLabels(taskListLabels.value);
+async function addTaskListLabel(name: string, id: string) {
+  await ensureLoaded();
+  const position =
+    taskListLabels.value.length > 0
+      ? Math.max(...taskListLabels.value.map((l) => l.position)) + 1
+      : 0;
+  const newLabel = { id, name, position };
+  taskListLabels.value.push(newLabel);
+  // Sort just in case something went wrong with position tracking
+  taskListLabels.value.sort((a, b) => a.position - b.position);
+  // Using toRaw to ensure we don't pass Vue Proxies to IndexedDB
+  await db.saveTaskListLabels(toRaw(taskListLabels.value).map((l) => toRaw(l)));
 }
 
 function getTaskListLabel(id: string) {
   return taskListLabelsMap.value.get(id);
-}
-
-function load() {
-  return db.getTaskListLabels();
 }

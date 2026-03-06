@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, ref, toRaw, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import type { TaskList, UserAction } from "@/app/types";
 import TaskListMain from "./ui/TaskListMain.vue";
@@ -56,7 +56,7 @@ onUnmounted(() => {
   hotkeys.unbind("q,a");
 });
 
-const state = ref<TaskList>(load());
+const state = ref<TaskList | null>(null);
 const stateHistory = useDebouncedRefHistory(state, {
   capacity: 10,
   deep: true,
@@ -67,7 +67,9 @@ const stateHistory = useDebouncedRefHistory(state, {
 watch(
   state,
   (newState) => {
-    db.saveTaskList(newState);
+    if (newState) {
+      db.saveTaskList(toRaw(newState));
+    }
   },
   { deep: true },
 );
@@ -84,19 +86,27 @@ function dispatch(state: TaskList, action: UserAction): void {
   throw new Error("Unknown system");
 }
 
-function load() {
-  const data = db.getTaskList(id.value);
-  // data.tasks = data.tasks.filter((task) => task.list !== "deleted");
-  dispatch(data, { type: "Cleanup", now: new Date() });
-  return data;
+async function load() {
+  try {
+    const data = await db.getTaskList(id.value);
+    dispatch(data, { type: "Cleanup", now: new Date() });
+    state.value = data;
+    stateHistory.clear();
+  } catch (e) {
+    console.error("Failed to load task list:", e);
+    // Handle error, maybe redirect or show message
+  }
 }
 
+// Initial load
+load();
+
 watch(id, () => {
-  state.value = load();
-  stateHistory.clear();
+  load();
 });
 
 function undo(id: string) {
+  if (!state.value || !stateHistory.last.value) return;
   console.log(stateHistory.last.value.timestamp, stateHistory.last.value.snapshot);
   assert(id === state.value.id);
   assert(id === (stateHistory.last.value.snapshot as TaskList).id);
@@ -104,6 +114,7 @@ function undo(id: string) {
 }
 
 function redo(id: string) {
+  if (!state.value || !stateHistory.last.value) return;
   assert(id === state.value.id);
   assert(id === (stateHistory.last.value.snapshot as TaskList).id);
   stateHistory.redo();
@@ -111,5 +122,5 @@ function redo(id: string) {
 </script>
 
 <template>
-  <TaskListMain :state="state" @undo="undo" @redo="redo" />
+  <TaskListMain v-if="state" :state="state" @undo="undo" @redo="redo" />
 </template>

@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from "vue-router";
 import { useTaskListLabels } from "@/app/composables/useTaskListLabels";
 import TaskListPage from "@/pages/TaskList/TaskListPage.vue";
 
-const { taskListLabels, getTaskListLabel } = useTaskListLabels();
+const { taskListLabels, getTaskListLabel, ensureLoaded } = useTaskListLabels();
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -28,7 +28,9 @@ const router = createRouter({
     },
     {
       path: "/tl",
-      redirect() {
+      component: { render: () => null },
+      async beforeEnter() {
+        await ensureLoaded();
         if (taskListLabels.value.length > 0) {
           return `/tl/${taskListLabels.value[0].id}`;
         }
@@ -53,7 +55,8 @@ const router = createRouter({
         document.title = list.name;
         return { name: list.name };
       },
-      beforeEnter(to) {
+      async beforeEnter(to) {
+        await ensureLoaded();
         if (!getTaskListLabel(to.params.id as string)) {
           return `/tl/new/${to.params.id}`;
         }
