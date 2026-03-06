@@ -9,7 +9,7 @@ export function useNavigationHotkeys() {
   const router = useRouter();
   const route = useRoute();
   const currentId = computed(() => route.params.id as string);
-  const { navigateListLabel } = useTaskListLabels();
+  const { navigateToNextList, navigateListByIndex } = useTaskListLabels();
 
   const tinykeysHandler = createKeybindingsHandler({
     "Alt+([0-9])": (event) => {
@@ -19,8 +19,7 @@ export function useNavigationHotkeys() {
       const index = (num === 0 ? 10 : num) - 1;
       assert(index >= 0 && index <= 9);
 
-      // currentId doesn't matter for index-based navigation
-      const nextId = navigateListLabel("", { index });
+      const nextId = navigateListByIndex(index);
       if (nextId === undefined) return;
       router.replace(`/tl/${nextId}`);
     },
@@ -32,9 +31,7 @@ export function useNavigationHotkeys() {
     hotkeys("q,a", (event, handler): false => {
       if (!currentId.value) return false;
 
-      const nextId = navigateListLabel(currentId.value, {
-        direction: handler.key === "q" ? "up" : "down",
-      });
+      const nextId = navigateToNextList(currentId.value, handler.key === "q" ? "up" : "down");
       if (nextId !== undefined) {
         router.replace(`/tl/${nextId}`);
       }
