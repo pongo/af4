@@ -9,7 +9,10 @@ const taskListLabelsMap = computed(
 // Subscribe to database changes
 const changeChannel = new BroadcastChannel("af4-db-changes");
 changeChannel.onmessage = (event) => {
-  if (event.data.type === "change" && event.data.storeName === "tasklists_meta") {
+  if (
+    (event.data.type === "change" || event.data.type === "delete") &&
+    event.data.storeName === "tasklists_meta"
+  ) {
     updateTaskListLabels();
   }
 };

@@ -12,8 +12,8 @@ const DB_VERSION = 1;
 
 const changeChannel = new BroadcastChannel("af4-db-changes");
 
-function notifyChange(storeName: string) {
-  changeChannel.postMessage({ type: "change", storeName });
+function notifyChange(storeName: string, type: "change" | "delete" = "change", id?: string) {
+  changeChannel.postMessage({ type, storeName, id });
 }
 
 const dbPromise = openDB(DB_NAME, DB_VERSION, {
@@ -136,8 +136,8 @@ export const db = {
     await tx.objectStore("tasklists_meta").delete(id);
     await tx.objectStore("tasklists_data").delete(id);
     await tx.done;
-    notifyChange("tasklists_meta");
-    notifyChange("tasklists_data");
+    notifyChange("tasklists_meta", "delete", id);
+    notifyChange("tasklists_data", "delete", id);
   },
 };
 
