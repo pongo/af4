@@ -11,8 +11,7 @@ declare module "vue-router" {
   }
 }
 
-const { taskListLabels, getTaskListLabel, ensureLoaded, updateTaskListLabels } =
-  useTaskListLabels();
+const { taskListLabels, getTaskListLabel, updateTaskListLabels } = useTaskListLabels();
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -40,7 +39,6 @@ const router = createRouter({
       path: "/tl",
       component: { render: () => null },
       async beforeEnter() {
-        await ensureLoaded();
         if (taskListLabels.value.length > 0) {
           return `/tl/${taskListLabels.value[0].id}`;
         }
@@ -71,7 +69,6 @@ const router = createRouter({
 
 router.beforeEach(async (to) => {
   if (to.name === "TaskList") {
-    await ensureLoaded();
     const id = to.params.id as string;
 
     if (!getTaskListLabel(id)) {

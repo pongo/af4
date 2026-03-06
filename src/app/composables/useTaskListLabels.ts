@@ -6,24 +6,6 @@ const taskListLabelsMap = computed(
   () => new Map(taskListLabels.value.map((list) => [list.id, list])),
 );
 
-let isLoaded = false;
-let loadPromise: Promise<void> | null = null;
-async function ensureLoaded() {
-  if (isLoaded) return;
-  if (loadPromise) return loadPromise;
-
-  loadPromise = (async () => {
-    try {
-      taskListLabels.value = await db.getTaskListLabels();
-      isLoaded = true;
-    } finally {
-      loadPromise = null;
-    }
-  })();
-
-  return loadPromise;
-}
-
 // Subscribe to database changes
 const changeChannel = new BroadcastChannel("af4-db-changes");
 changeChannel.onmessage = (event) => {
@@ -32,16 +14,12 @@ changeChannel.onmessage = (event) => {
   }
 };
 
-// Initial load
-ensureLoaded();
-
 export function useTaskListLabels() {
   return {
     taskListLabels,
     getTaskListLabel,
     navigateToNextList,
     navigateListByIndex,
-    ensureLoaded,
     updateTaskListLabels,
     reorderLabels,
     renameTaskListLabel,
