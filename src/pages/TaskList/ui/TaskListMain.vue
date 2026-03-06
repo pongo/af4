@@ -4,29 +4,12 @@ import NewTodoForm from "./NewTodoForm.vue";
 import TaskList from "./TaskList/TaskList.vue";
 import hotkeys from "hotkeys-js";
 import type { TaskList as TTaskList, UserAction } from "@/app/types";
-import { nanoid } from "nanoid";
-import { af4 as makeAf4 } from "@/app/model/af4";
-import { simple as makeSimple } from "@/app/model/simple";
 import { toast } from "vue3-toastify";
 import { itemIconPosToggle } from "@/app/lib/toggles";
 import { useDailyCleanup } from "@/app/composables/useDailyCleanup.ts";
+import { dispatch } from "@/app/model/dispatch";
 
 const props = defineProps<{ state: TTaskList }>();
-
-const af4 = makeAf4({ generateId: nanoid, now: () => new Date() });
-const simple = makeSimple({ generateId: nanoid, now: () => new Date() });
-
-function dispatch(state: TTaskList, action: UserAction): void {
-  if (state.system === undefined || state.system === "af4") {
-    af4(state, action);
-    return;
-  }
-  if (state.system === "simple") {
-    simple(state, action);
-    return;
-  }
-  throw new Error("Unknown system");
-}
 
 useDailyCleanup(() => {
   const now = new Date();
