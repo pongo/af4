@@ -8,7 +8,7 @@ const route = useRoute();
 const id = computed(() => route.params.id as string);
 
 // Data is preloaded and cleaned up by the router's beforeEnter guard
-const state = (route.meta.taskListData as TaskList) || null;
+const state = computed(() => (route.meta.taskListData as TaskList) || null);
 </script>
 
 <template>

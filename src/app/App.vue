@@ -10,6 +10,7 @@ let loadingTimer: ReturnType<typeof setTimeout>;
 const isLoading = ref(false);
 
 router.beforeEach(() => {
+  clearTimeout(loadingTimer);
   loadingTimer = setTimeout(() => {
     isLoading.value = true;
   }, 200);
