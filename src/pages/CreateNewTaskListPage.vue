@@ -8,7 +8,7 @@ import { db } from "@/app/db";
 
 const route = useRoute();
 const router = useRouter();
-const { addTaskListLabel } = useTaskListLabels();
+const { updateTaskListLabels } = useTaskListLabels();
 
 const system = ref<SystemType>("simple");
 const name = ref<string>("");
@@ -30,8 +30,8 @@ async function add() {
       },
       system: system.value,
     };
-    await db.saveTaskList(newState);
-    await addTaskListLabel(name.value, id);
+    await db.addTaskList(name.value, newState);
+    await updateTaskListLabels();
 
     await router.push(`/tl/${id}`);
   } catch (e) {

@@ -76,14 +76,10 @@ export const db = {
     await tx.done;
   },
 
-  async addTaskListLabel(name: string, id: string): Promise<TaskListLabel> {
+  async addTaskList(name: string, taskList: TaskList): Promise<void> {
     const idb = await dbPromise;
-    const labels = await this.getTaskListLabels();
-    // labels are sorted by position
-    const position = labels.length > 0 ? labels[labels.length - 1].position + 1 : 0;
-    const newLabel = { id, name, position };
-    await idb.put("tasklists_meta", newLabel);
-    return newLabel;
+    await idb.put("tasklists_data", taskList);
+    await addTaskListLabel(name, taskList.id);
   },
 
   /**
@@ -131,3 +127,12 @@ export const db = {
     await tx.done;
   },
 };
+
+async function addTaskListLabel(name: string, id: string): Promise<void> {
+  const idb = await dbPromise;
+  const labels = await db.getTaskListLabels();
+  // labels are sorted by position
+  const position = labels.length > 0 ? labels[labels.length - 1].position + 1 : 0;
+  const newLabel = { id, name, position };
+  await idb.put("tasklists_meta", newLabel);
+}

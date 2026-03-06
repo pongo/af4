@@ -1,4 +1,3 @@
-import { assert } from "smart-invariant";
 import { computed, shallowRef } from "vue";
 import { db, type TaskListLabel } from "@/app/db";
 
@@ -31,8 +30,7 @@ ensureLoaded();
 export function useTaskListLabels() {
   return {
     taskListLabels,
-    addTaskListLabel,
-    removeTaskListLabel,
+    updateTaskListLabels,
     getTaskListLabel,
     navigateToNextList,
     navigateListByIndex,
@@ -44,7 +42,7 @@ export function useTaskListLabels() {
 
 async function reorderLabels(orderedIds: string[]) {
   await db.reorderTaskListLabels(orderedIds);
-  taskListLabels.value = await db.getTaskListLabels();
+  updateTaskListLabels();
 }
 
 function navigateToNextList(currentId: string, direction: "up" | "down"): string | undefined {
@@ -60,19 +58,13 @@ function navigateListByIndex(index: number): string | undefined {
   return taskListLabels.value[index].id;
 }
 
-async function addTaskListLabel(name: string, id: string) {
-  await db.addTaskListLabel(name, id);
+async function updateTaskListLabels() {
   taskListLabels.value = await db.getTaskListLabels();
 }
 
 async function renameTaskListLabel(id: string, name: string) {
   await db.updateTaskListLabel(id, name);
-  taskListLabels.value = await db.getTaskListLabels();
-}
-
-async function removeTaskListLabel(id: string) {
-  await db.deleteTaskList(id);
-  taskListLabels.value = await db.getTaskListLabels();
+  updateTaskListLabels();
 }
 
 function getTaskListLabel(id: string) {
