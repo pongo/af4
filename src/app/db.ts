@@ -58,25 +58,37 @@ export const db = {
   async saveTaskListLabels(labels: TaskListLabel[]): Promise<void> {
     const idb = await dbPromise;
     const tx = idb.transaction("tasklists_meta", "readwrite");
-    // Clear and put all to maintain order/position if needed, but we have position field.
-    // Better to put each one.
-    // However, if some were removed, we should handle that.
     const store = tx.objectStore("tasklists_meta");
+
+    // Deletion of labels not present in the new list
     const existingIds = await store.getAllKeys();
     const newIds = new Set(labels.map((l) => l.id));
-
     for (const id of existingIds) {
       if (!newIds.has(id as string)) {
         await store.delete(id);
       }
     }
 
+    // Update/Add all labels
     for (const label of labels) {
       await store.put(label);
     }
     await tx.done;
   },
 
+  async addTaskListLabel(name: string, id: string): Promise<TaskListLabel> {
+    const idb = await dbPromise;
+    const labels = await this.getTaskListLabels();
+    // labels are sorted by position
+    const position = labels.length > 0 ? labels[labels.length - 1].position + 1 : 0;
+    const newLabel = { id, name, position };
+    await idb.put("tasklists_meta", newLabel);
+    return newLabel;
+  },
+
+  /**
+   * Returns labels sorted by position
+   */
   async getTaskListLabels(): Promise<TaskListLabel[]> {
     const idb = await dbPromise;
     // Use the index to get them sorted by position

@@ -1,5 +1,5 @@
 import { assert } from "smart-invariant";
-import { computed, readonly, ref, toRaw } from "vue";
+import { computed, readonly, ref } from "vue";
 import { db, type TaskListLabel } from "@/app/db";
 
 const taskListLabels = ref<TaskListLabel[]>([]);
@@ -61,17 +61,8 @@ function navigateListLabel(currentId: string, options: NavigateListLabelOptions)
 }
 
 async function addTaskListLabel(name: string, id: string) {
-  await ensureLoaded();
-  const position =
-    taskListLabels.value.length > 0
-      ? Math.max(...taskListLabels.value.map((l) => l.position)) + 1
-      : 0;
-  const newLabel = { id, name, position };
-  taskListLabels.value.push(newLabel);
-  // Sort just in case something went wrong with position tracking
-  taskListLabels.value.sort((a, b) => a.position - b.position);
-  // Using toRaw to ensure we don't pass Vue Proxies to IndexedDB
-  await db.saveTaskListLabels(toRaw(taskListLabels.value).map((l) => toRaw(l)));
+  await db.addTaskListLabel(name, id);
+  taskListLabels.value = await db.getTaskListLabels();
 }
 
 function getTaskListLabel(id: string) {
