@@ -3,10 +3,10 @@ import "@/app/styles/main.css";
 import { createApp } from "vue";
 import App from "@/app/App.vue";
 import router from "@/app/router.ts";
-import { useTaskListLabels } from "./app/composables/useTaskListLabels.ts";
+import { db } from "@/app/db.ts";
 
 async function bootstrap() {
-  await useTaskListLabels().updateTaskListLabels();
+  await db.updateTaskListLabels();
 
   const app = createApp(App);
 

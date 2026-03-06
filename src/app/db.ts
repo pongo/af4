@@ -1,5 +1,7 @@
 import type { TaskList } from "@/app/types";
-import { openDB } from "idb";
+import { useBroadcastChannel } from "@vueuse/core";
+import { openDB, type IDBPDatabase } from "idb";
+import { shallowRef, watch } from "vue";
 
 export type TaskListLabel = {
   id: string;
@@ -10,10 +12,32 @@ export type TaskListLabel = {
 const DB_NAME = "af4-db";
 const DB_VERSION = 1;
 
-const changeChannel = new BroadcastChannel("af4-db-changes");
+export const taskListLabels = shallowRef<TaskListLabel[]>([]);
+
+export type dbChangedData = {
+  storeName: string;
+  type: "change" | "delete";
+  id?: string;
+};
+
+const { data: dbChangedData, post: postMessage } = useBroadcastChannel<
+  dbChangedData,
+  dbChangedData
+>({
+  name: "af4-db-changes",
+});
+
+watch(dbChangedData, async () => {
+  if (dbChangedData.value) {
+    const data = db.dbChangedData.value;
+    if ((data.type === "change" || data.type === "delete") && data.storeName === "tasklists_meta") {
+      await db.updateTaskListLabels();
+    }
+  }
+});
 
 function notifyChange(storeName: string, type: "change" | "delete" = "change", id?: string) {
-  changeChannel.postMessage({ type, storeName, id });
+  postMessage({ type, storeName, id });
 }
 
 const dbPromise = openDB(DB_NAME, DB_VERSION, {
@@ -41,12 +65,14 @@ const dbPromise = openDB(DB_NAME, DB_VERSION, {
 });
 
 export const db = {
+  dbChangedData,
+
   async saveTaskList(taskList: TaskList): Promise<void> {
     const idb = await dbPromise;
     // IndexedDB supports structured clone, so we can save the object directly.
     // This preserves Date objects.
     await idb.put("tasklists_data", taskList);
-    notifyChange("tasklists_data");
+    notifyChange("tasklists_data", "change", taskList.id);
   },
 
   async getTaskList(id: string): Promise<TaskList> {
@@ -81,13 +107,14 @@ export const db = {
       await store.put(label);
     }
     await tx.done;
+    await db.updateTaskListLabels();
     notifyChange("tasklists_meta");
   },
 
   async addTaskList(name: string, taskList: TaskList): Promise<void> {
     const idb = await dbPromise;
     await idb.put("tasklists_data", taskList);
-    await addTaskListLabel(name, taskList.id);
+    await addTaskListLabel(idb, name, taskList.id);
     notifyChange("tasklists_data");
   },
 
@@ -114,6 +141,7 @@ export const db = {
       }
     }
     await tx.done;
+    await db.updateTaskListLabels();
     notifyChange("tasklists_meta");
   },
 
@@ -127,6 +155,7 @@ export const db = {
       await store.put(label);
     }
     await tx.done;
+    await db.updateTaskListLabels();
     notifyChange("tasklists_meta");
   },
 
@@ -136,13 +165,21 @@ export const db = {
     await tx.objectStore("tasklists_meta").delete(id);
     await tx.objectStore("tasklists_data").delete(id);
     await tx.done;
+    await db.updateTaskListLabels();
     notifyChange("tasklists_meta", "delete", id);
     notifyChange("tasklists_data", "delete", id);
   },
+
+  async updateTaskListLabels(): Promise<void> {
+    taskListLabels.value = await db.getTaskListLabels();
+  },
 };
 
-async function addTaskListLabel(name: string, id: string): Promise<void> {
-  const idb = await dbPromise;
+async function addTaskListLabel(
+  idb: IDBPDatabase<unknown>,
+  name: string,
+  id: string,
+): Promise<void> {
   const labels = await db.getTaskListLabels();
   // labels are sorted by position
   const position = labels.length > 0 ? labels[labels.length - 1].position + 1 : 0;

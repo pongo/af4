@@ -1,21 +1,9 @@
-import { computed, shallowRef } from "vue";
-import { db, type TaskListLabel } from "@/app/db";
+import { computed } from "vue";
+import { db, taskListLabels } from "@/app/db";
 
-const taskListLabels = shallowRef<TaskListLabel[]>([]);
 const taskListLabelsMap = computed(
   () => new Map(taskListLabels.value.map((list) => [list.id, list])),
 );
-
-// Subscribe to database changes
-const changeChannel = new BroadcastChannel("af4-db-changes");
-changeChannel.onmessage = (event) => {
-  if (
-    (event.data.type === "change" || event.data.type === "delete") &&
-    event.data.storeName === "tasklists_meta"
-  ) {
-    updateTaskListLabels();
-  }
-};
 
 export function useTaskListLabels() {
   return {
@@ -23,7 +11,6 @@ export function useTaskListLabels() {
     getTaskListLabel,
     navigateToNextList,
     navigateListByIndex,
-    updateTaskListLabels,
     reorderLabels,
     renameTaskListLabel,
   };
@@ -52,8 +39,4 @@ async function renameTaskListLabel(id: string, name: string) {
 
 function getTaskListLabel(id: string) {
   return taskListLabelsMap.value.get(id);
-}
-
-export async function updateTaskListLabels() {
-  taskListLabels.value = await db.getTaskListLabels();
 }

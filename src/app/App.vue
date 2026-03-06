@@ -23,17 +23,6 @@ router.afterEach(() => {
   clearTimeout(loadingTimer);
   isLoading.value = false;
 });
-
-const changeChannel = new BroadcastChannel("af4-db-changes");
-changeChannel.onmessage = (event) => {
-  if (
-    event.data.type === "delete" &&
-    event.data.storeName === "tasklists_meta" &&
-    event.data.id === router.currentRoute.value.params.id
-  ) {
-    router.push("/");
-  }
-};
 </script>
 
 <template>
