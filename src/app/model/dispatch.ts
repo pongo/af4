@@ -2,6 +2,7 @@ import { af4 as makeAf4 } from "@/app/model/af4";
 import { simple as makeSimple } from "@/app/model/simple";
 import { nanoid } from "nanoid";
 import type { TaskList, UserAction } from "@/app/types";
+import { assertUnreachable } from "@/lib/utils.ts";
 
 const af4 = makeAf4({ generateId: nanoid, now: () => new Date() });
 const simple = makeSimple({ generateId: nanoid, now: () => new Date() });
@@ -16,6 +17,6 @@ export function dispatch(state: TaskList, action: UserAction): void {
       simple(state, action);
       break;
     default:
-      throw new Error(`Unknown system: ${state.system as string}`);
+      assertUnreachable("Unknown system: ", state.system);
   }
 }
