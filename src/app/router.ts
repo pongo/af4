@@ -38,7 +38,7 @@ const router = createRouter({
     {
       path: "/tl",
       component: { render: () => null },
-      async beforeEnter() {
+      beforeEnter() {
         if (taskListLabels.value.length > 0) {
           return `/tl/${taskListLabels.value[0].id}`;
         }

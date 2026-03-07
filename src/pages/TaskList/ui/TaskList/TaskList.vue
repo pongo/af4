@@ -2,11 +2,12 @@
 import { computed, nextTick, ref, watch, type ComponentPublicInstance } from "vue";
 import TaskListItem from "./TaskListItem.vue";
 import { useTaskListNavigation } from "./useTaskListNavigation.ts";
-import type { ListType, TaskList } from "@/app/types.ts";
+import type { TaskList } from "@/app/types.ts";
 import TaskListHelp from "./TaskListHelp.vue";
 import MyKbd from "@/components/MyKbd.vue";
 import NextButton from "./NextButton.vue";
 import { globalFocusedItem } from "@/app/lib/focusedItem.ts";
+import { assert } from "smart-invariant";
 
 const props = defineProps<{ state: TaskList }>();
 
@@ -21,11 +22,11 @@ const currentTasks = computed(() =>
   }),
 );
 
-type TaskListItem = InstanceType<typeof TaskListItem>;
-const taskItems = ref<TaskListItem[]>([]);
+type TTaskListItem = InstanceType<typeof TaskListItem>;
+const taskItems = ref<TTaskListItem[]>([]);
 function setTaskItemRef(el: Element | ComponentPublicInstance | null, index: number) {
   if (el) {
-    taskItems.value[index] = el as unknown as TaskListItem;
+    taskItems.value[index] = el as unknown as TTaskListItem;
   } else {
     taskItems.value.splice(index, 1);
   }
@@ -34,17 +35,9 @@ function setTaskItemRef(el: Element | ComponentPublicInstance | null, index: num
 const { focusedIndex, navigate } = useTaskListNavigation(currentTasks, taskItems);
 
 const focusedTask = computed(() => {
-  return currentTasks.value?.[focusedIndex.value];
-});
-
-const countByLists = computed(() => {
-  return props.state.tasks.reduce(
-    (acc, task) => {
-      acc[task.list] = (acc[task.list] || 0) + 1;
-      return acc;
-    },
-    {} as Record<ListType, number>,
-  );
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  assert(currentTasks.value != null);
+  return currentTasks.value[focusedIndex.value];
 });
 
 const currentListName = computed(() => {
@@ -61,9 +54,10 @@ const currentListName = computed(() => {
 });
 
 watch(focusedIndex, () => {
-  nextTick(() => {
+  void nextTick(() => {
     const task = focusedTask.value;
-    if (!task) return;
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    assert(task != undefined);
     if (task.id !== globalFocusedItem.value?.id) {
       console.log("!!!!", task, globalFocusedItem.value);
       globalFocusedItem.value = task;
@@ -85,7 +79,8 @@ defineExpose({
   navigate,
   getFocusedIndex: () => focusedIndex.value,
   getFocusedTask: () => focusedTask.value,
-  getFocusedItem: (): TaskListItem | undefined => taskItems.value?.[focusedIndex.value],
+  // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+  getFocusedItem: (): TTaskListItem | undefined => taskItems.value?.[focusedIndex.value],
 });
 </script>
 
@@ -108,10 +103,10 @@ defineExpose({
     <TaskListItem
       v-for="(item, index) in currentTasks"
       :key="item.id"
+      :ref="(el) => setTaskItemRef(el, index)"
       :state="item"
       :focused="focusedIndex === index"
       @focus="focusedIndex = index"
-      :ref="(el) => setTaskItemRef(el, index)"
     />
     <div
       v-if="state.system !== 'simple'"

@@ -29,6 +29,7 @@ export function tomorrow(now: Date) {
   return new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
 export function findTask<T extends Task>(tasklist: TaskList, id: string): T {
   const task = tasklist.tasks.find((t) => t.id === id);
   assert(task, `Task with id ${id} should exist`);
@@ -45,9 +46,11 @@ export function markOldTasksAsDeleted(tasklist: TaskList, now: Date) {
   tasklist.tasks.forEach((task) => {
     if (task.list !== tasklist.current.list) return;
 
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (task.status === "completed" && task.completedAt === undefined) {
       task.completedAt = thresholdDate;
     }
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (task.status === "deleted" && task.deletedAt === undefined) {
       task.deletedAt = thresholdDate;
     }

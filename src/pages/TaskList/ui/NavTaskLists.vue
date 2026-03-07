@@ -36,7 +36,7 @@ useSortable(el, taskListLabels, {
     if (event.oldIndex === event.newIndex) return;
     await nextTick();
     const ids = taskListLabels.value.map((item) => item.id);
-    reorderLabels(ids);
+    await reorderLabels(ids);
   },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 } as any);
@@ -49,7 +49,7 @@ async function handleDelete(id: string, name: string) {
   if (confirm(`Are you sure you want to delete "${name}"?`)) {
     await db.deleteTaskList(id);
     if (route.params.id === id) {
-      router.push("/");
+      void router.push("/");
     }
   }
 }

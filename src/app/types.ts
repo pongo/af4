@@ -2,7 +2,7 @@ export type SystemType = "af4" | "simple";
 
 export type TaskStatus = "new" | "postponed" | "completed" | "deleted";
 
-type BaseTask = {
+interface BaseTask {
   id: string;
   title: string;
   createdAt: Date;
@@ -11,7 +11,7 @@ type BaseTask = {
   deletedAt?: Date;
   list: ListType;
   zero?: boolean;
-};
+}
 export type PostponedTask = BaseTask & {
   status: "postponed";
   postponedUntil: Date;
@@ -34,12 +34,12 @@ export type Task = NewTask | PostponedTask | CompletedTask | DeletedTask;
 
 export type ListType = "open" | "open-new" | "closed" | "review" | "deleted";
 
-export type BaseCurrentList = {
+export interface BaseCurrentList {
   actionedCount: number;
   showNext: boolean;
   willBeMarkedForReview?: boolean;
   restoreFocus?: boolean;
-};
+}
 
 type CurrentOpenList = BaseCurrentList & {
   list: "open";
@@ -66,12 +66,12 @@ export type CurrentList =
   | CurrentReviewList
   | CurrentDeletedList;
 
-export type TaskList = {
+export interface TaskList {
   id: string;
   tasks: Task[];
   current: CurrentList;
   system?: SystemType;
-};
+}
 
 export type UserAction =
   | { type: "Next" }

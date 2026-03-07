@@ -17,4 +17,4 @@ async function bootstrap() {
   app.mount("#app");
 }
 
-bootstrap();
+bootstrap().catch(console.error);

@@ -1,24 +1,25 @@
 import type { TaskList } from "@/app/types";
 import { useBroadcastChannel } from "@vueuse/core";
 import { openDB, type IDBPDatabase } from "idb";
+import { assert } from "smart-invariant";
 import { shallowRef, watch } from "vue";
 
-export type TaskListLabel = {
+export interface TaskListLabel {
   id: string;
   name: string;
   position: number;
-};
+}
 
 const DB_NAME = "af4-db";
 const DB_VERSION = 1;
 
 export const taskListLabels = shallowRef<TaskListLabel[]>([]);
 
-export type dbChangedData = {
+export interface dbChangedData {
   storeName: string;
   type: "change" | "delete";
   id?: string;
-};
+}
 
 const { data: dbChangedData, post: postMessage } = useBroadcastChannel<
   dbChangedData,
@@ -28,11 +29,11 @@ const { data: dbChangedData, post: postMessage } = useBroadcastChannel<
 });
 
 watch(dbChangedData, async () => {
-  if (dbChangedData.value) {
-    const data = db.dbChangedData.value;
-    if ((data.type === "change" || data.type === "delete") && data.storeName === "tasklists_meta") {
-      await db.updateTaskListLabels();
-    }
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  assert(db.dbChangedData.value != undefined);
+  const data = db.dbChangedData.value;
+  if (data.storeName === "tasklists_meta") {
+    await db.updateTaskListLabels();
   }
 });
 
@@ -55,7 +56,9 @@ const dbPromise = openDB(DB_NAME, DB_VERSION, {
   },
   blocking() {
     console.warn("This tab is blocking a database upgrade. Closing...");
-    dbPromise.then((db) => db.close());
+    void dbPromise.then((db) => {
+      db.close();
+    });
     alert("Application updated in another tab. This tab will now reload.");
     location.reload();
   },
@@ -175,11 +178,7 @@ export const db = {
   },
 };
 
-async function addTaskListLabel(
-  idb: IDBPDatabase<unknown>,
-  name: string,
-  id: string,
-): Promise<void> {
+async function addTaskListLabel(idb: IDBPDatabase, name: string, id: string): Promise<void> {
   const labels = await db.getTaskListLabels();
   // labels are sorted by position
   const position = labels.length > 0 ? labels[labels.length - 1].position + 1 : 0;

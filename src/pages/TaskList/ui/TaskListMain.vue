@@ -25,7 +25,7 @@ function handleAddTodo(
   { postponed = false, origId }: { postponed?: boolean; origId?: string },
 ) {
   dispatch(props.state, getAction());
-  nextTick(() => {
+  void nextTick(() => {
     newTodoFormRef.value?.focus();
   });
 
@@ -36,6 +36,7 @@ function handleAddTodo(
       } else {
         notify("Задача добавлена в открытый список");
       }
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     } else if (props.state.current.list === "open" && props.state.current.actionedCount > 0) {
       notify("Задача появится после перехода из закрытого списка");
     }
@@ -60,7 +61,7 @@ const emit = defineEmits<{ undo: [string]; redo: [string] }>();
 
 function next() {
   dispatch(props.state, { type: "Next" });
-  nextTick(() => {
+  void nextTick(() => {
     taskListRef.value?.navigate("home");
   });
 }
@@ -199,7 +200,7 @@ function bindHotkeys() {
     // copy focused task title
     const focusedTask = taskListRef.value?.getFocusedTask();
     if (focusedTask !== undefined) {
-      navigator.clipboard.writeText(focusedTask.title);
+      void navigator.clipboard.writeText(focusedTask.title);
     }
     return false;
   });
@@ -230,7 +231,7 @@ function focusTask() {
 }
 
 function getFocusedTaskId(event: KeyboardEvent) {
-  const id = (event?.target as HTMLElement)?.dataset.id;
+  const id = (event.target as HTMLElement).dataset.id;
   if (id !== undefined) {
     return id;
   }
@@ -271,12 +272,12 @@ onUnmounted(() => {
   <div _class="mx-auto max-w-4xl p-6">
     <NewTodoForm
       ref="newTodoForm"
-      @add-todo="handleAddTodo"
-      @focus-task="focusTask"
       placeholder="Press <space>, <c> or <n> to add a new task"
       class="mb-4"
+      @add-todo="handleAddTodo"
+      @focus-task="focusTask"
     />
 
-    <TaskList :state="state" ref="taskList" @next="next()" />
+    <TaskList ref="taskList" :state="state" @next="next()" />
   </div>
 </template>

@@ -7,13 +7,15 @@ const af4 = makeAf4({ generateId: nanoid, now: () => new Date() });
 const simple = makeSimple({ generateId: nanoid, now: () => new Date() });
 
 export function dispatch(state: TaskList, action: UserAction): void {
-  if (state.system === undefined || state.system === "af4") {
-    af4(state, action);
-    return;
+  switch (state.system) {
+    case undefined:
+    case "af4":
+      af4(state, action);
+      break;
+    case "simple":
+      simple(state, action);
+      break;
+    default:
+      throw new Error(`Unknown system: ${state.system as string}`);
   }
-  if (state.system === "simple") {
-    simple(state, action);
-    return;
-  }
-  throw new Error(`Unknown system: ${state.system}`);
 }

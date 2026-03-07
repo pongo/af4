@@ -171,7 +171,7 @@ export function af4({ generateId, now }: { generateId: () => string; now: () => 
     }
   };
 
-  function createTask(title: string, tasklist: TaskList): Task {
+  function createTask(title: string, _tasklist: TaskList): Task {
     // TODO: это точно нужно? как оно должно работать?
     // const list: ListType =
     // tasklist.current.list === "open" && tasklist.current.actionedCount > 0 ? "open-new" : "open";

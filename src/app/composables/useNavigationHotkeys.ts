@@ -21,7 +21,7 @@ export function useNavigationHotkeys() {
 
       const nextId = navigateListByIndex(index);
       if (nextId === undefined) return;
-      router.replace(`/tl/${nextId}`);
+      void router.replace(`/tl/${nextId}`);
     },
   });
 
@@ -33,7 +33,7 @@ export function useNavigationHotkeys() {
 
       const nextId = navigateToNextList(currentId.value, handler.key === "q" ? "up" : "down");
       if (nextId !== undefined) {
-        router.replace(`/tl/${nextId}`);
+        void router.replace(`/tl/${nextId}`);
       }
       return false;
     });

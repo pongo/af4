@@ -65,9 +65,10 @@ class Navigation {
 
     // но если мы уже находимся на самой первой видимой задаче, то
     // сперва прокручиваем страницу, а затем заново вызываем эту процедуру
-    const focusedHeight = this.taskItems.value?.[this.focusedIndex.value]?.$el?.offsetHeight ?? 0;
+    const focusedHeight: number =
+      this.taskItems.value?.[this.focusedIndex.value]?.$el?.offsetHeight ?? 0;
     window.scrollBy({ top: -window.innerHeight + focusedHeight });
-    nextTick(() => {
+    void nextTick(() => {
       this.pageup(true);
     });
   }
@@ -91,7 +92,7 @@ class Navigation {
 
     const focusedHeight = this.taskItems.value?.[this.focusedIndex.value]?.$el?.offsetHeight ?? 0;
     window.scrollBy({ top: window.innerHeight - focusedHeight });
-    nextTick(() => {
+    void nextTick(() => {
       this.pagedown(true);
     });
   }

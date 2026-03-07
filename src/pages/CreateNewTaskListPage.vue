@@ -17,7 +17,7 @@ async function add() {
 
   isSubmitting.value = true;
   try {
-    const id = ((route.params.id as string) ?? "").trim() || nanoid();
+    const id = ((route.params.id as string) || "").trim() || nanoid();
     const newState: TaskList = {
       id,
       tasks: [],
@@ -38,7 +38,7 @@ async function add() {
 }
 
 function returnHome() {
-  router.push("/tl");
+  void router.push("/tl");
 }
 
 const vFocus = {
@@ -49,12 +49,12 @@ const vFocus = {
 </script>
 
 <template>
-  <form @submit.prevent="add" class="flex flex-col gap-2">
+  <form class="flex flex-col gap-2" @submit.prevent="add">
     <input
-      type="text"
-      placeholder="List name"
       v-model="name"
       v-focus
+      type="text"
+      placeholder="List name"
       required
       autocomplete="off"
       class="flex-1 rounded-md border border-neutral-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-neutral-500 focus:outline-none"
@@ -64,9 +64,9 @@ const vFocus = {
       <label for="system">
         <span class="mr-2 text-sm font-medium text-gray-700 select-none">List type</span>
         <select
-          name="system"
           id="system"
           v-model="system"
+          name="system"
           class="flex-1 rounded-md border border-neutral-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-neutral-500 focus:outline-none"
           required
         >

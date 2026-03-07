@@ -29,7 +29,7 @@ const handleSubmit = (event?: KeyboardEvent | MouseEvent) => {
   if (!newTodo.value.trim()) return;
 
   emit("add-todo", newTodo.value, {
-    postponed: event?.shiftKey || postponed.value,
+    postponed: event?.shiftKey ?? postponed.value,
     origId: origId.value,
   });
   reset();
@@ -74,20 +74,20 @@ const { shiftKey } = useShiftKey(inputRef);
   <div class="flex gap-2">
     <input
       ref="input"
-      type="text"
       v-model="newTodo"
+      type="text"
+      :placeholder="newTodoFormFocused ? 'Press <space> to return to the task' : placeholder"
+      class="flex-1 rounded-md border border-neutral-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-neutral-500 focus:outline-none"
       @keyup.enter="handleSubmit"
       @keyup.esc="reset"
       @keydown.space="focusTaskIfEmpty"
-      :placeholder="newTodoFormFocused ? 'Press <space> to return to the task' : placeholder"
-      class="flex-1 rounded-md border border-neutral-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-neutral-500 focus:outline-none"
       @focus="newTodoFormFocused = true"
       @blur="newTodoFormFocused = false"
     />
     <button
-      @click="handleSubmit"
       class="rounded-md border border-neutral-300 bg-white px-4 py-2 text-neutral-500 transition-colors hover:bg-neutral-50 focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2 focus:outline-none active:text-red-500 active:ring-red-500"
       tabindex="-1"
+      @click="handleSubmit"
     >
       <CalendarCheck v-if="postponed || shiftKey" class="h-5 w-5" />
       <Plus v-else class="h-5 w-5" />

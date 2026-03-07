@@ -180,7 +180,7 @@ describe("AF4 demo", () => {
       review: 0,
       deleted: 0,
     });
-    expect(findTask(tasklist, "Comments")?.status).toEqual("completed");
+    expect(findTask(tasklist, "Comments").status).toEqual("completed");
 
     // actual = af4({ generateId: () => "W8zqE-4u4bp6W4v_K3Zfn", now })(tasklist, {
     //   type: "ReaddTask",
@@ -230,6 +230,7 @@ describe("AF4 demo", () => {
     af4({ generateId: () => newId, now })(tasklist, {
       type: "ReaddTask",
       id,
+      title,
     });
   }
 

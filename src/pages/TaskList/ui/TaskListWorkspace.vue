@@ -23,23 +23,31 @@ const stateHistory = useDebouncedRefHistory(state, {
 
 watch(
   state,
-  (newState) => {
-    if (newState) {
-      db.saveTaskList(toRaw(newState));
-    }
+  async (newState) => {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    assert(newState != null);
+    await db.saveTaskList(toRaw(newState));
   },
   { deep: true },
 );
 
 function undo(id: string) {
-  if (!state.value || !stateHistory.last.value) return;
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  assert(state.value != null);
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  assert(stateHistory.last.value != null);
+
   assert(id === state.value.id);
   assert(id === (stateHistory.last.value.snapshot as TaskList).id);
   stateHistory.undo();
 }
 
 function redo(id: string) {
-  if (!state.value || !stateHistory.last.value) return;
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  assert(state.value != null);
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  assert(stateHistory.last.value != null);
+
   assert(id === state.value.id);
   assert(id === (stateHistory.last.value.snapshot as TaskList).id);
   stateHistory.redo();

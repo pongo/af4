@@ -23,7 +23,7 @@ const props = defineProps<SidebarProps>();
     <SidebarFooter>
       <SidebarMenu>
         <SidebarMenuItem>
-          <SidebarMenuButton asChild class="select-none">
+          <SidebarMenuButton as-child class="select-none">
             <RouterLink to="/tl/new">
               <Plus />
               <span>New List</span>
