@@ -9,7 +9,7 @@ import {
   tomorrow,
 } from "./utils.ts";
 
-export function simple({ generateId, now }: { generateId: () => string; now: () => Date }) {
+export function makeSimple({ generateId, now }: { generateId: () => string; now: () => Date }) {
   return (tasklist: TaskList, action: UserAction): void => {
     console.log("action", action);
 

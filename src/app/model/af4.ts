@@ -18,7 +18,7 @@ import {
   tomorrow,
 } from "./utils.ts";
 
-export function af4({ generateId, now }: { generateId: () => string; now: () => Date }) {
+export function makeAf4({ generateId, now }: { generateId: () => string; now: () => Date }) {
   return (tasklist: TaskList, action: UserAction): void => {
     console.log("action", action);
 

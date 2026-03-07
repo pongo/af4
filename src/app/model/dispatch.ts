@@ -1,5 +1,5 @@
-import { af4 as makeAf4 } from "@/app/model/af4";
-import { simple as makeSimple } from "@/app/model/simple";
+import { makeAf4 } from "@/app/model/af4";
+import { makeSimple } from "@/app/model/simple";
 import { nanoid } from "nanoid";
 import type { TaskList, UserAction } from "@/app/types";
 import { assertUnreachable } from "@/lib/utils.ts";

@@ -1,7 +1,7 @@
 import { nanoid } from "nanoid";
 import { describe, expect, it } from "vitest";
 import type { PostponedTask, TaskList } from "../types.ts";
-import { af4 } from "./af4.ts";
+import { makeAf4 } from "./af4.ts";
 import { findTask } from "./utils.ts";
 
 function createTaskList(): TaskList {
@@ -140,7 +140,7 @@ describe("AF4 demo", () => {
     //   .mockImplementationOnce(() => "FIILFjcxymdmvXqSkl25J") // 1st call
     //   .mockImplementationOnce(() => "jhEyypUJWpvxSd9UcTWxO"); // 2nd call
 
-    af4({ generateId: () => "FIILFjcxymdmvXqSkl25J", now })(tasklist, {
+    makeAf4({ generateId: () => "FIILFjcxymdmvXqSkl25J", now })(tasklist, {
       type: "AddTask",
       title: "Autopager?",
     });
@@ -227,7 +227,7 @@ describe("AF4 demo", () => {
   });
 
   function readd(id: string, newId: string, title?: string) {
-    af4({ generateId: () => newId, now })(tasklist, {
+    makeAf4({ generateId: () => newId, now })(tasklist, {
       type: "ReaddTask",
       id,
       title,
@@ -235,14 +235,14 @@ describe("AF4 demo", () => {
   }
 
   function complete(id: string) {
-    af4({ generateId: () => "", now })(tasklist, {
+    makeAf4({ generateId: () => "", now })(tasklist, {
       type: "CompleteTask",
       id,
     });
   }
 
   it("page 42: переходит на закрытый список", () => {
-    af4({ generateId: () => "", now })(tasklist, { type: "Next" });
+    makeAf4({ generateId: () => "", now })(tasklist, { type: "Next" });
     expect(tasklist.current.list).toBe("closed");
 
     complete("Buy Guillotine");
@@ -251,7 +251,7 @@ describe("AF4 demo", () => {
   });
 
   it("page 97: переход с закрытого списка на открытый (60-96 пропускаем)", () => {
-    af4({ generateId: () => "", now })(tasklist, { type: "Next" });
+    makeAf4({ generateId: () => "", now })(tasklist, { type: "Next" });
     expect(tasklist.current.list).toBe("open");
     expect(tasklist.current.actionedCount).toBe(0);
 
@@ -259,7 +259,7 @@ describe("AF4 demo", () => {
   });
 
   it("page 224: переход на закрытый список", () => {
-    af4({ generateId: () => "", now })(tasklist, { type: "Next" });
+    makeAf4({ generateId: () => "", now })(tasklist, { type: "Next" });
     expect(tasklist.current.list).toBe("closed");
     expect(tasklist.current.actionedCount).toBe(0);
     expect(tasksCountByLists(tasklist)).toEqual({
@@ -272,7 +272,7 @@ describe("AF4 demo", () => {
   });
 
   it("page 234: отмечаем как review", () => {
-    af4({ generateId: () => "", now })(tasklist, { type: "Next" });
+    makeAf4({ generateId: () => "", now })(tasklist, { type: "Next" });
     expect(tasklist.current).toStrictEqual({
       actionedCount: 0,
       list: "open",
@@ -291,7 +291,7 @@ describe("AF4 demo", () => {
   });
 
   it("page 302: переход в review", () => {
-    af4({ generateId: () => "", now })(tasklist, { type: "Next" });
+    makeAf4({ generateId: () => "", now })(tasklist, { type: "Next" });
     expect(tasklist.current.list).toBe("review");
     expect(tasklist.current.actionedCount).toBe(0);
 
@@ -302,7 +302,7 @@ describe("AF4 demo", () => {
   it("page 313: удаляем из review и переходим в closed", () => {
     expect(tasklist.tasks.length).toBe(90);
     expect(tasklist.tasks.filter((task) => task.list === "review").length).toBe(16);
-    af4({ generateId: () => "", now })(tasklist, { type: "Next" });
+    makeAf4({ generateId: () => "", now })(tasklist, { type: "Next" });
     expect(tasklist.current).toStrictEqual({
       actionedCount: 0,
       list: "closed",
@@ -343,7 +343,7 @@ describe("Postponed tasks", () => {
   it("should move postponed task to open when time comes", () => {
     const tasklist = createTaskList();
     const now = new Date("2025-01-01T18:59:39.584Z");
-    af4({ generateId: () => "postponed-task", now: () => now })(tasklist, {
+    makeAf4({ generateId: () => "postponed-task", now: () => now })(tasklist, {
       type: "AddPostponedTask",
       title: "Postponed Task",
     });
@@ -364,7 +364,7 @@ describe("Postponed tasks", () => {
     // move time forward
     const postponedUntil = findTask<PostponedTask>(tasklist, "postponed-task").postponedUntil;
     const later = new Date(postponedUntil.getTime() + 1000);
-    af4({ generateId: () => "postponed-task", now: () => later })(tasklist, {
+    makeAf4({ generateId: () => "postponed-task", now: () => later })(tasklist, {
       type: "Cleanup",
       now: later,
     });
@@ -458,25 +458,25 @@ describe("Postponed tasks", () => {
     // });
 
     function addTask(id: string) {
-      af4({ generateId: () => id, now: () => new Date() })(tasklist, {
+      makeAf4({ generateId: () => id, now: () => new Date() })(tasklist, {
         type: "AddTask",
         title: id,
       });
     }
 
     function next(date: Date = new Date()) {
-      af4({ generateId: () => "", now: () => date })(tasklist, { type: "Next" });
+      makeAf4({ generateId: () => "", now: () => date })(tasklist, { type: "Next" });
     }
 
     function addPostponedTask(id: string, date: Date) {
-      af4({ generateId: () => id, now: () => date })(tasklist, {
+      makeAf4({ generateId: () => id, now: () => date })(tasklist, {
         type: "AddPostponedTask",
         title: id,
       });
     }
 
     function cleanup(date: Date) {
-      af4({ generateId: () => "postponed-task", now: () => date })(tasklist, {
+      makeAf4({ generateId: () => "postponed-task", now: () => date })(tasklist, {
         type: "Cleanup",
         now: date,
       });
