@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { MoreHorizontal, Trash2 } from "lucide-vue-next";
+import { MoreHorizontal, Pencil, Trash2 } from "lucide-vue-next";
 
 import {
   DropdownMenu,
@@ -16,28 +16,65 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import type { TaskListLabel } from "@/app/composables/useTaskListLabels";
-import { RouterLink } from "vue-router";
+import { RouterLink, useRoute, useRouter } from "vue-router";
+import { useTaskListLabels } from "@/app/composables/useTaskListLabels";
+import { useSortable } from "@vueuse/integrations/useSortable";
+import { nextTick, useTemplateRef } from "vue";
+import { db } from "@/app/db";
 
-defineProps<{
-  taskListLabels: Readonly<TaskListLabel[]>;
-}>();
-
+const { taskListLabels, reorderLabels, renameTaskListLabel } = useTaskListLabels();
 const { isMobile } = useSidebar();
+const router = useRouter();
+const route = useRoute();
+
+const el = useTemplateRef("el");
+
+useSortable(el, taskListLabels, {
+  animation: 150,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onEnd: async (event: any) => {
+    if (event.oldIndex === event.newIndex) return;
+    await nextTick();
+    const ids = taskListLabels.value.map((item) => item.id);
+    await reorderLabels(ids);
+  },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+} as any);
 
 function changeTitle(name: string) {
   document.title = name;
+}
+
+async function handleDelete(id: string, name: string) {
+  if (confirm(`Are you sure you want to delete "${name}"?`)) {
+    await db.deleteTaskList(id);
+    if (route.params.id === id) {
+      void router.push("/");
+    }
+  }
+}
+
+async function handleRename(id: string, currentName: string) {
+  const newName = window.prompt("Enter new list name:", currentName);
+  if (newName !== null && newName.trim() !== "" && newName !== currentName) {
+    await renameTaskListLabel(id, newName.trim());
+  }
 }
 </script>
 
 <template>
   <SidebarGroup class="group-data-[collapsible=icon]:hidden">
     <SidebarGroupLabel class="select-none">Lists</SidebarGroupLabel>
-    <SidebarMenu>
-      <SidebarMenuItem v-for="item in taskListLabels" :key="item.id">
+    <SidebarMenu ref="el">
+      <SidebarMenuItem
+        v-for="item in taskListLabels"
+        :key="item.id"
+        :data-id="item.id"
+        class="group/item"
+      >
         <SidebarMenuButton as-child :is-active="item.id === $route.params.id">
           <RouterLink :to="`/tl/${item.id}`" :title="item.name" @click="changeTitle(item.name)">
-            <span>{{ item.name }}</span>
+            <span class="truncate">{{ item.name }}</span>
           </RouterLink>
         </SidebarMenuButton>
         <DropdownMenu>
@@ -52,7 +89,11 @@ function changeTitle(name: string) {
             :side="isMobile ? 'bottom' : 'right'"
             :align="isMobile ? 'end' : 'start'"
           >
-            <DropdownMenuItem>
+            <DropdownMenuItem @click="handleRename(item.id, item.name)">
+              <Pencil class="text-muted-foreground" />
+              <span>Rename</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem @click="handleDelete(item.id, item.name)">
               <Trash2 class="text-muted-foreground" />
               <span>Delete</span>
             </DropdownMenuItem>

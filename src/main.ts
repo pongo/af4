@@ -3,9 +3,18 @@ import "@/app/styles/main.css";
 import { createApp } from "vue";
 import App from "@/app/App.vue";
 import router from "@/app/router.ts";
+import { db } from "@/app/db.ts";
 
-const app = createApp(App);
+async function bootstrap() {
+  await db.updateTaskListLabels();
 
-app.use(router);
+  const app = createApp(App);
 
-app.mount("#app");
+  app.use(router);
+
+  await router.isReady();
+
+  app.mount("#app");
+}
+
+bootstrap().catch(console.error);

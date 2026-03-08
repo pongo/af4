@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import type { Task } from "@/app/types";
 import { Asterisk, CalendarCheck, Check, CheckCheck, Zap } from "lucide-vue-next";
-import { computed, onMounted, ref, shallowRef, useTemplateRef, watch } from "vue";
+import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
 import MyKbd from "@/components/MyKbd.vue";
-import { newTodoFormFocused } from "./NewTodoForm.vue";
+import { newTodoFormFocused } from "../NewTodoForm.vue";
 import { itemIconPosToggle } from "@/app/lib/toggles";
 import { globalFocusedItem } from "@/app/lib/focusedItem";
 import { tw } from "@/lib/tw";
@@ -111,7 +111,7 @@ const cleanedTitle = computed(() => {
   return props.state.title.replace(reImportant, "").trim();
 });
 
-function ellipsis(str: string, truncateLen: number, ellipsisChars: string = "&hellip;"): string {
+function ellipsis(str: string, truncateLen: number, ellipsisChars = "&hellip;"): string {
   return str.length <= truncateLen
     ? str
     : str.substring(0, truncateLen - ellipsisChars.length) + ellipsisChars;
@@ -160,6 +160,7 @@ function edit() {
 <template>
   <div
     ref="item"
+    v-focus="focused"
     :data-id="state.id"
     :tabindex="focused ? 0 : -1"
     class="flex flex-row justify-between p-2 pb-1.5 text-black hover:bg-neutral-100 focus:inset-ring-2 focus:inset-ring-neutral-500 focus:outline-none"
@@ -173,7 +174,6 @@ function edit() {
       $emit('focus');
       globalFocusedItem = props.state;
     "
-    v-focus="focused"
   >
     <template v-if="isDivider">
       <XDivider
@@ -214,14 +214,16 @@ function edit() {
         </div>
       </div>
       <div class="w-full">
+        <!-- eslint-disable vue/no-v-html -->
         <span
-          v-html="titleWithLinks"
           :class="[
             state.status === 'deleted'
               ? 'text-neutral-400 line-through decoration-red-300 decoration-2'
               : undefined,
           ]"
+          v-html="titleWithLinks"
         />
+        <!-- eslint-enable -->
         <span v-if="focusedWithoutFocus" class="ml-2 text-neutral-400"><MyKbd>Space</MyKbd> </span>
       </div>
       <div v-if="ageDays > 1" class="ml-0.5 text-neutral-400">{{ ageDays }}</div>

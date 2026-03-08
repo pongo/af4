@@ -1,39 +1,44 @@
 <script setup lang="ts">
 import type { SystemType, TaskList } from "@/app/types";
-import { useTaskListLabels } from "@/app/composables/useTaskListLabels";
 import { nanoid } from "nanoid";
 import { ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
+import { db } from "@/app/db";
 
 const route = useRoute();
 const router = useRouter();
-const { addTaskListLabel } = useTaskListLabels();
 
 const system = ref<SystemType>("simple");
 const name = ref<string>("");
+const isSubmitting = ref(false);
 
-function add() {
-  if (name.value.trim() === "") return;
+async function add() {
+  if (name.value.trim() === "" || isSubmitting.value) return;
 
-  const id = ((route.params.id as string) ?? "").trim() || nanoid();
-  const newState: TaskList = {
-    id,
-    tasks: [],
-    current: {
-      list: "open",
-      actionedCount: 0,
-      showNext: false,
-    },
-    system: system.value,
-  };
-  localStorage.setItem(`af4-${id}`, JSON.stringify(newState));
-  addTaskListLabel(name.value, id);
+  isSubmitting.value = true;
+  try {
+    const id = ((route.params.id as string) || "").trim() || nanoid();
+    const newState: TaskList = {
+      id,
+      tasks: [],
+      current: {
+        list: "open",
+        actionedCount: 0,
+        showNext: false,
+      },
+      system: system.value,
+    };
+    await db.addTaskList(name.value, newState);
 
-  router.push(`/tl/${id}`);
+    await router.push(`/tl/${id}`);
+  } catch (e) {
+    console.error("Failed to create task list:", e);
+    isSubmitting.value = false;
+  }
 }
 
 function returnHome() {
-  router.push("/tl");
+  void router.push("/tl");
 }
 
 const vFocus = {
@@ -44,25 +49,24 @@ const vFocus = {
 </script>
 
 <template>
-  <form @submit.prevent="add" class="flex flex-col gap-2">
+  <form class="flex flex-col gap-2" @submit.prevent="add">
     <input
-      type="text"
-      placeholder="List name"
       v-model="name"
       v-focus
+      type="text"
+      placeholder="List name"
       required
       autocomplete="off"
       class="flex-1 rounded-md border border-neutral-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-neutral-500 focus:outline-none"
-      @keyup.enter="add"
       @keyup.esc="returnHome"
     />
     <div>
       <label for="system">
         <span class="mr-2 text-sm font-medium text-gray-700 select-none">List type</span>
         <select
-          name="system"
           id="system"
           v-model="system"
+          name="system"
           class="flex-1 rounded-md border border-neutral-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-neutral-500 focus:outline-none"
           required
         >
@@ -74,9 +78,10 @@ const vFocus = {
     </div>
     <button
       type="submit"
-      class="border-neutral-30 w-auto self-end rounded-md border bg-white px-4 py-2 text-neutral-500 shadow-sm hover:bg-neutral-50 active:text-red-500 active:ring-red-500"
+      :disabled="isSubmitting"
+      class="border-neutral-30 w-auto self-end rounded-md border bg-white px-4 py-2 text-neutral-500 shadow-sm hover:bg-neutral-50 active:text-red-500 active:ring-red-500 disabled:opacity-50"
     >
-      Create list
+      {{ isSubmitting ? "Creating..." : "Create list" }}
     </button>
   </form>
 </template>

@@ -2,7 +2,7 @@ export type SystemType = "af4" | "simple";
 
 export type TaskStatus = "new" | "postponed" | "completed" | "deleted";
 
-type BaseTask = {
+interface BaseTask {
   id: string;
   title: string;
   createdAt: Date;
@@ -11,8 +11,8 @@ type BaseTask = {
   deletedAt?: Date;
   list: ListType;
   zero?: boolean;
-};
-type PostponedTask = BaseTask & {
+}
+export type PostponedTask = BaseTask & {
   status: "postponed";
   postponedUntil: Date;
 };
@@ -26,7 +26,7 @@ export type DeletedTask = BaseTask & {
   status: "deleted";
   deletedAt: Date;
 };
-type NewTask = BaseTask & {
+export type NewTask = BaseTask & {
   status: "new";
 };
 
@@ -34,12 +34,12 @@ export type Task = NewTask | PostponedTask | CompletedTask | DeletedTask;
 
 export type ListType = "open" | "open-new" | "closed" | "review" | "deleted";
 
-export type BaseCurrentList = {
+export interface BaseCurrentList {
   actionedCount: number;
   showNext: boolean;
   willBeMarkedForReview?: boolean;
   restoreFocus?: boolean;
-};
+}
 
 type CurrentOpenList = BaseCurrentList & {
   list: "open";
@@ -66,12 +66,12 @@ export type CurrentList =
   | CurrentReviewList
   | CurrentDeletedList;
 
-export type TaskList = {
+export interface TaskList {
   id: string;
   tasks: Task[];
   current: CurrentList;
   system?: SystemType;
-};
+}
 
 export type UserAction =
   | { type: "Next" }
@@ -81,21 +81,5 @@ export type UserAction =
   | { type: "PostponeTask"; id: string; title?: string }
   | { type: "CompleteTask"; id: string }
   | { type: "DeleteTask"; id: string }
-  | { type: "ZeroTask"; id: string };
-
-export type TaskListAction =
-  | { type: "AddTask"; task: Task }
-  // | { type: "ReaddTask"; id: string }
-  | { type: "CompleteTask"; id: string; additionalStatus?: AdditionalStatus; completedAt: Date }
-  | { type: "ChangeCurrentList"; newCurrent: CurrentList }
-  | { type: "MoveAllTasks"; from: ListType; to: ListType }
-  | { type: "DeleteAllTasks"; from: ListType }
-  | { type: "DeleteAllDeletedTasks" }
-  | { type: "MarkDeleteTask"; id: string; deletedAt: Date }
   | { type: "ZeroTask"; id: string }
-  | { type: "IncreaseActionedCount" }
-  | { type: "UpdateCurrentListStatus" }
-  | { type: "CheckPostponedTasks" }
-  | { type: "ClearZero" }
-  | { type: "CleanList"; list: ListType }
-  | { type: "PatchTask"; id: string; additionalStatus?: AdditionalStatus };
+  | { type: "Cleanup"; now: Date };

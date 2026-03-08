@@ -1,47 +1,31 @@
 <script setup lang="ts">
 import { nextTick, onMounted, onUnmounted, useTemplateRef } from "vue";
-import NewTodoForm from "@/pages/TaskList/ui/NewTodoForm.vue";
-import TaskList from "@/pages/TaskList/ui/TaskList.vue";
+import NewTodoForm from "./NewTodoForm.vue";
+import TaskList from "./TaskList/TaskList.vue";
 import hotkeys from "hotkeys-js";
-import type { TaskListAction, TaskList as TTaskList, UserAction } from "@/app/types";
-import { nanoid } from "nanoid";
-import { af4 as makeAf4, applyActions as makeApplyActions } from "@/app/model/af4";
-import { simple as makeSimple } from "@/app/model/simple";
+import type { TaskList as TTaskList, UserAction } from "@/app/types";
 import { toast } from "vue3-toastify";
 import { itemIconPosToggle } from "@/app/lib/toggles";
-import { useTaskListLabels } from "@/app/composables/useTaskListLabels.ts";
-import { useRouter } from "vue-router";
-import { assert } from "smart-invariant";
-import { createKeybindingsHandler } from "tinykeys";
 import { useDailyCleanup } from "@/app/composables/useDailyCleanup.ts";
+import { dispatch } from "@/app/model/dispatch";
 
 const props = defineProps<{ state: TTaskList }>();
 
-const af4 = makeAf4({ generateId: nanoid, now: () => new Date() });
-const simple = makeSimple({ generateId: nanoid, now: () => new Date() });
-const applyActions = makeApplyActions({ generateId: nanoid, now: () => new Date() });
-
 useDailyCleanup(() => {
-  console.log("useDailyCleanup [TaskListView]", new Date());
-  applyActions(props.state, [
-    { type: "DeleteAllDeletedTasks" },
-    { type: "CheckPostponedTasks" },
-    { type: "CleanList", list: props.state.current.list },
-  ]);
+  const now = new Date();
+  console.log("useDailyCleanup [TaskListView]", now);
+  dispatch(props.state, { type: "Cleanup", now });
 });
 
 const newTodoFormRef = useTemplateRef("newTodoForm");
 const taskListRef = useTemplateRef("taskList");
 
-const { navigateListLabel } = useTaskListLabels();
-const router = useRouter();
-
 function handleAddTodo(
   title: string,
   { postponed = false, origId }: { postponed?: boolean; origId?: string },
 ) {
-  applyActions(props.state, actions());
-  nextTick(() => {
+  dispatch(props.state, getAction());
+  void nextTick(() => {
     newTodoFormRef.value?.focus();
   });
 
@@ -52,6 +36,7 @@ function handleAddTodo(
       } else {
         notify("Задача добавлена в открытый список");
       }
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     } else if (props.state.current.list === "open" && props.state.current.actionedCount > 0) {
       notify("Задача появится после перехода из закрытого списка");
     }
@@ -62,38 +47,21 @@ function handleAddTodo(
     notify("Задача добавлена на завтра");
   }
 
-  function actions() {
+  function getAction(): UserAction {
     if (postponed) {
-      if (origId !== undefined) {
-        return createActions(props.state, { type: "PostponeTask", id: origId, title });
-      }
-      return createActions(props.state, { type: "AddPostponedTask", title });
+      if (origId !== undefined) return { type: "PostponeTask", id: origId, title };
+      return { type: "AddPostponedTask", title };
     }
-
-    if (origId !== undefined) {
-      return createActions(props.state, { type: "ReaddTask", id: origId, title });
-    }
-    return createActions(props.state, { type: "AddTask", title });
+    if (origId !== undefined) return { type: "ReaddTask", id: origId, title };
+    return { type: "AddTask", title };
   }
 }
 
 const emit = defineEmits<{ undo: [string]; redo: [string] }>();
 
-function createActions(tasklist: TTaskList, action: UserAction): TaskListAction[] {
-  if (tasklist.system === undefined || tasklist.system === "af4") {
-    return af4(tasklist, action);
-  }
-  if (tasklist.system === "simple") {
-    return simple(tasklist, action);
-  }
-
-  throw new Error("Unknown system");
-}
-
 function next() {
-  const actions = createActions(props.state, { type: "Next" });
-  applyActions(props.state, actions);
-  nextTick(() => {
+  dispatch(props.state, { type: "Next" });
+  void nextTick(() => {
     taskListRef.value?.navigate("home");
   });
 }
@@ -108,19 +76,6 @@ function notify(message: string) {
     // type: "success",
   });
 }
-
-const tinykeysHandler = createKeybindingsHandler({
-  "Alt+([0-9])": (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    const num = parseInt(event.key, 10);
-    const index = (num === 0 ? 10 : num) - 1;
-    assert(index >= 0 && index <= 9);
-    const nextId = navigateListLabel(props.state.id, { index });
-    if (nextId === undefined) return;
-    router.replace(`/tl/${nextId}`);
-  },
-});
 
 function bindHotkeys() {
   hotkeys("space, c, n", (): false => {
@@ -162,8 +117,7 @@ function bindHotkeys() {
     const id = getFocusedTaskId(event);
     if (id === undefined) return false;
 
-    const actions = createActions(props.state, { type: "CompleteTask", id });
-    applyActions(props.state, actions);
+    dispatch(props.state, { type: "CompleteTask", id });
     return false;
   });
 
@@ -171,8 +125,7 @@ function bindHotkeys() {
     const id = getFocusedTaskId(event);
     if (id === undefined) return false;
 
-    const actions = createActions(props.state, { type: "DeleteTask", id });
-    applyActions(props.state, actions);
+    dispatch(props.state, { type: "DeleteTask", id });
     return false;
   });
 
@@ -180,8 +133,7 @@ function bindHotkeys() {
     const id = getFocusedTaskId(event);
     if (id === undefined) return false;
 
-    const actions = createActions(props.state, { type: "ZeroTask", id });
-    applyActions(props.state, actions);
+    dispatch(props.state, { type: "ZeroTask", id });
     return false;
   });
 
@@ -189,8 +141,7 @@ function bindHotkeys() {
     const id = getFocusedTaskId(event);
     if (id === undefined) return false;
 
-    const actions = createActions(props.state, { type: "ReaddTask", id });
-    applyActions(props.state, actions);
+    dispatch(props.state, { type: "ReaddTask", id });
     if (props.state.current.list !== "open") {
       notify("Задача заново добавлена в открытый список");
     }
@@ -217,8 +168,7 @@ function bindHotkeys() {
       return false;
     }
 
-    const actions = createActions(props.state, { type: "PostponeTask", id: focusedTask.id });
-    applyActions(props.state, actions);
+    dispatch(props.state, { type: "PostponeTask", id: focusedTask.id });
     notify("Задача отложена до завтра");
     return false;
   });
@@ -243,20 +193,14 @@ function bindHotkeys() {
     return false;
   });
 
-  hotkeys("ctrl+c", (): false => {
+  hotkeys("ctrl+c", () => {
+    // if there is a selection, do not intercept
+    if (window.getSelection()?.toString()) return true;
+
+    // copy focused task title
     const focusedTask = taskListRef.value?.getFocusedTask();
     if (focusedTask !== undefined) {
-      navigator.clipboard.writeText(focusedTask.title);
-    }
-    return false;
-  });
-
-  hotkeys("q,a", (event, handler): false => {
-    const nextId = navigateListLabel(props.state.id, {
-      direction: handler.key === "q" ? "up" : "down",
-    });
-    if (nextId !== undefined) {
-      router.replace(`/tl/${nextId}`);
+      void navigator.clipboard.writeText(focusedTask.title);
     }
     return false;
   });
@@ -287,7 +231,7 @@ function focusTask() {
 }
 
 function getFocusedTaskId(event: KeyboardEvent) {
-  const id = (event?.target as HTMLElement)?.dataset.id;
+  const id = (event.target as HTMLElement).dataset.id;
   if (id !== undefined) {
     return id;
   }
@@ -297,15 +241,30 @@ function getFocusedTaskId(event: KeyboardEvent) {
 
 onMounted(() => {
   bindHotkeys();
-  window.addEventListener("keydown", tinykeysHandler);
 
   // if (props.state.tasks.length === 0) {
   //   newTodoFormRef.value?.focus();
   // }
 });
 onUnmounted(() => {
-  hotkeys.unbind();
-  window.removeEventListener("keydown", tinykeysHandler);
+  hotkeys.unbind("space, c, n");
+  hotkeys.unbind("up, w, j");
+  hotkeys.unbind("down, s, k");
+  hotkeys.unbind("home");
+  hotkeys.unbind("end");
+  hotkeys.unbind("pageup, pgup");
+  hotkeys.unbind("pagedown, pgdown");
+  hotkeys.unbind("x, d");
+  hotkeys.unbind("z");
+  hotkeys.unbind("r");
+  hotkeys.unbind("shift+r");
+  hotkeys.unbind("shift+right");
+  hotkeys.unbind("ctrl+z");
+  hotkeys.unbind("ctrl+shift+z");
+  hotkeys.unbind("'");
+  hotkeys.unbind("ctrl+c");
+  hotkeys.unbind("v");
+  hotkeys.unbind("e, enter, f2");
 });
 </script>
 
@@ -313,12 +272,12 @@ onUnmounted(() => {
   <div _class="mx-auto max-w-4xl p-6">
     <NewTodoForm
       ref="newTodoForm"
-      @add-todo="handleAddTodo"
-      @focus-task="focusTask"
       placeholder="Press <space>, <c> or <n> to add a new task"
       class="mb-4"
+      @add-todo="handleAddTodo"
+      @focus-task="focusTask"
     />
 
-    <TaskList :state="state" ref="taskList" @next="next()" />
+    <TaskList ref="taskList" :state="state" @next="next()" />
   </div>
 </template>

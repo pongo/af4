@@ -1,6 +1,15 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { useTaskListLabels } from "@/app/composables/useTaskListLabels";
+import { db } from "@/app/db";
+import { dispatch } from "@/app/model/dispatch";
 import TaskListPage from "@/pages/TaskList/TaskListPage.vue";
+import type { TaskList } from "@/app/types";
+
+declare module "vue-router" {
+  interface RouteMeta {
+    taskListData?: TaskList;
+  }
+}
 
 const { taskListLabels, getTaskListLabel } = useTaskListLabels();
 
@@ -28,7 +37,8 @@ const router = createRouter({
     },
     {
       path: "/tl",
-      redirect() {
+      component: { render: () => null },
+      beforeEnter() {
         if (taskListLabels.value.length > 0) {
           return `/tl/${taskListLabels.value[0].id}`;
         }
@@ -53,14 +63,31 @@ const router = createRouter({
         document.title = list.name;
         return { name: list.name };
       },
-      beforeEnter(to) {
-        if (!getTaskListLabel(to.params.id as string)) {
-          return `/tl/new/${to.params.id}`;
-        }
-        return true;
-      },
     },
   ],
+});
+
+router.beforeEach(async (to) => {
+  if (to.name === "TaskList") {
+    const id = to.params.id as string;
+
+    if (!getTaskListLabel(id)) {
+      // It might be a newly created list, try to reload labels
+      await db.updateTaskListLabels();
+    }
+
+    if (!getTaskListLabel(id)) {
+      return `/tl/new/${id}`;
+    }
+    // Preload the data into the route meta to avoid flicker on remount
+    try {
+      const data = await db.getTaskList(id);
+      dispatch(data, { type: "Cleanup", now: new Date() });
+      to.meta.taskListData = data;
+    } catch (e) {
+      console.error("Failed to preload task list:", e);
+    }
+  }
 });
 
 export default router;

@@ -3,9 +3,9 @@ import { onMounted, onUnmounted } from "vue";
 const MINUTE = 60 * 1000;
 
 export function useDailyCleanup(runCleanup: () => void) {
-  let timeoutId: number | null = null;
-  let intervalId: number | null = null;
-  let checkMissedRunsIntervalId: number | null = null;
+  let timeoutId: ReturnType<typeof setTimeout> | null = null;
+  let intervalId: ReturnType<typeof setInterval> | null = null;
+  let checkMissedRunsIntervalId: ReturnType<typeof setInterval> | null = null;
   let lastRun = Date.now();
   let scheduledRunTime = getNextRunDate().getTime();
 
