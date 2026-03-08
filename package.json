@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite --port 5173",
-    "build": "npm run typecheck && npm run build-only && post-build.bat",
+    "build": "npm run typecheck && npm run build-only",
+    "deploy": "npm run typecheck && npm run build-only && post-build.bat",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest run",
