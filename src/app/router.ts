@@ -74,11 +74,12 @@ router.beforeEach(async (to) => {
     if (!getTaskListLabel(id)) {
       // It might be a newly created list, try to reload labels
       await db.updateTaskListLabels();
+
+      if (!getTaskListLabel(id)) {
+        return `/tl/new/${id}`;
+      }
     }
 
-    if (!getTaskListLabel(id)) {
-      return `/tl/new/${id}`;
-    }
     // Preload the data into the route meta to avoid flicker on remount
     try {
       const data = await db.getTaskList(id);

@@ -28,10 +28,9 @@ const { data: dbChangedData, post: postMessage } = useBroadcastChannel<
   name: "af4-db-changes",
 });
 
-watch(dbChangedData, async () => {
+watch(dbChangedData, async (data) => {
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-  assert(db.dbChangedData.value != undefined);
-  const data = db.dbChangedData.value;
+  assert(data != undefined);
   if (data.storeName === "tasklists_meta") {
     await db.updateTaskListLabels();
   }

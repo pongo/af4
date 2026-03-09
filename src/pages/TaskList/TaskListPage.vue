@@ -12,10 +12,10 @@ const id = computed(() => route.params.id as string);
 // Data is preloaded and cleaned up by the router's beforeEnter guard
 const state = computed(() => route.meta.taskListData ?? null);
 
-watch(db.dbChangedData, () => {
+watch(db.dbChangedData, (data) => {
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-  assert(db.dbChangedData.value != null);
-  const data = db.dbChangedData.value;
+  assert(data != null);
+
   if (data.id === id.value) {
     if (data.type === "delete" && data.storeName === "tasklists_meta") {
       void router.push("/");
