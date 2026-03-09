@@ -226,7 +226,7 @@ function edit() {
         <!-- eslint-enable -->
         <span v-if="focusedWithoutFocus" class="ml-2 text-neutral-400"><MyKbd>Space</MyKbd> </span>
       </div>
-      <div v-if="ageDays > 1" class="ml-0.5 text-neutral-400">{{ ageDays }}</div>
+      <div v-if="ageDays > 1" class="ml-0.5 text-neutral-400 select-none">{{ ageDays }}</div>
     </template>
   </div>
 </template>

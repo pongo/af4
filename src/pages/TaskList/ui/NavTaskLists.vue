@@ -63,7 +63,7 @@ async function handleRename(id: string, currentName: string) {
 </script>
 
 <template>
-  <SidebarGroup class="group-data-[collapsible=icon]:hidden">
+  <SidebarGroup class="select-none group-data-[collapsible=icon]:hidden">
     <SidebarGroupLabel class="select-none">Lists</SidebarGroupLabel>
     <SidebarMenu ref="el">
       <SidebarMenuItem

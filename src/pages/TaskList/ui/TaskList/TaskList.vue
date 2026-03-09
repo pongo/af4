@@ -110,7 +110,7 @@ defineExpose({
     />
     <div
       v-if="state.system !== 'simple'"
-      class="absolute top-14 -right-20 -translate-y-1/2 -rotate-90 transform text-sm whitespace-nowrap text-neutral-400"
+      class="absolute top-14 -right-20 -translate-y-1/2 -rotate-90 transform text-sm whitespace-nowrap text-neutral-400 select-none"
     >
       {{ currentListName }}
     </div>
