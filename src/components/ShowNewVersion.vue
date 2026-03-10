@@ -1,54 +1,59 @@
 <!-- eslint-disable @typescript-eslint/no-misused-promises -->
 <!-- eslint-disable @typescript-eslint/no-floating-promises -->
-<script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch } from "vue";
+<script lang="ts">
+import { ref, onMounted, onUnmounted } from "vue";
 
-const props = defineProps<{
-  initialVersion: string | null;
-  initialTag: string | null;
-}>();
-
-const { isNewVersionAvailable, newVersionDetails, error } = useVersionCheck();
-
-// Inline Composable for version checking
-function useVersionCheck() {
+export function useVersionCheck() {
   const isNewVersionAvailable = ref(false);
   const newVersionDetails = ref<string | null>(null);
-  const error = ref<string | null>(null);
+  const versionCheckError = ref<string | null>(null);
+  const initialVersion = ref<string | null>(null);
+  const initialTag = ref<string | null>(null);
+  const versionJsonPath = import.meta.env.BASE_URL + "version.json";
   let intervalId: number | undefined;
 
-  const checkVersion = async () => {
-    if (props.initialVersion === null || props.initialTag === null) {
+  async function fetchVersionJson() {
+    const response = await fetch(versionJsonPath);
+    if (!response.ok) {
+      throw new Error(
+        `Failed to fetch ${versionJsonPath}: ${response.status} ${response.statusText}`,
+      );
+    }
+    return await response.json();
+  }
+
+  async function fetchInitialVersion() {
+    try {
+      const data = await fetchVersionJson();
+      initialVersion.value = data.version;
+      initialTag.value = data.tag;
+    } catch (e) {
+      console.error("Failed to fetch initial version.json:", e);
+    }
+  }
+
+  async function checkVersion() {
+    if (initialVersion.value === null || initialTag.value === null) {
       return;
     }
 
     try {
-      const response = await fetch(import.meta.env.BASE_URL + "version.json");
-      if (!response.ok) {
-        throw new Error(`Failed to fetch version.json: ${response.status} ${response.statusText}`);
-      }
-      const currentData = await response.json();
-      error.value = null;
+      const currentData = await fetchVersionJson();
+      versionCheckError.value = null;
 
-      if (currentData.version !== props.initialVersion || currentData.tag !== props.initialTag) {
+      if (currentData.version !== initialVersion.value || currentData.tag !== initialTag.value) {
         isNewVersionAvailable.value = true;
         newVersionDetails.value = `${currentData.version} (${currentData.tag})`;
         if (intervalId) clearInterval(intervalId);
       }
     } catch (e: unknown) {
       console.error("Error checking for new version:", e);
-      if (e instanceof Error) {
-        error.value = e.message;
-      } else {
-        error.value = "Unknown error checking version";
-      }
+      versionCheckError.value = e instanceof Error ? e.message : "Unknown error checking version";
     }
-  };
+  }
 
-  onMounted(() => {
-    if (props.initialVersion !== null && props.initialTag !== null) {
-      checkVersion();
-    }
+  onMounted(async () => {
+    await fetchInitialVersion();
     intervalId = window.setInterval(checkVersion, 30_000);
   });
 
@@ -56,26 +61,20 @@ function useVersionCheck() {
     if (intervalId) clearInterval(intervalId);
   });
 
-  watch(
-    () => [props.initialVersion, props.initialTag],
-    ([newInitialVersion, newInitialTag], [oldInitialVersion, oldInitialTag]) => {
-      if (
-        newInitialVersion !== null &&
-        newInitialTag !== null &&
-        (oldInitialVersion === null || oldInitialTag === null)
-      ) {
-        checkVersion();
-      }
-    },
-  );
-
   return {
     isNewVersionAvailable,
     newVersionDetails,
-    error,
-    checkVersion, // Exposing checkVersion in case it's needed externally, though not currently used
+    versionCheckError
   };
 }
+</script>
+
+<script setup lang="ts">
+defineProps<{
+  isNewVersionAvailable: boolean;
+  newVersionDetails: string | null;
+  versionCheckError: string | null;
+}>();
 </script>
 
 <template>
@@ -93,11 +92,11 @@ function useVersionCheck() {
     </span>
   </div>
   <div
-    v-else-if="error"
+    v-else-if="versionCheckError"
     class="mb-4 flex w-full items-center justify-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-800"
     role="alert"
   >
     ❌
-    <span>Error checking for updates: {{ error }}</span>
+    <span>Error checking for updates: {{ versionCheckError }}</span>
   </div>
 </template>

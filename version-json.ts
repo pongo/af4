@@ -100,7 +100,7 @@ export default function versionJson(opts: Options = {}): Plugin {
   let initialVersionDetails: VersionDetails; // To store details from configResolved
 
   return {
-    name: "my app", // Original name, kept as is
+    name: "version-json", // Original name, kept as is
 
     configResolved(resolvedConfig) {
       viteConfig = resolvedConfig;
@@ -160,7 +160,7 @@ export default function versionJson(opts: Options = {}): Plugin {
       writeFileSync(outPath, payload, "utf-8");
       // Use this.info if available, otherwise console.log as a fallback
       const logger = typeof this.info === "function" ? this : console;
-      logger.info(`📦  wrote ${viteConfig.build.outDir}/${outFile}`);
+      logger.info(`wrote ${viteConfig.build.outDir}/${outFile}`);
     },
   };
 }
