@@ -19,9 +19,11 @@ watch(db.dbChangedData, (data) => {
   if (data.id === id.value) {
     if (data.type === "delete" && data.storeName === "tasklists_meta") {
       void router.push("/");
+      return;
     }
     if (data.type === "change" && data.storeName === "tasklists_data") {
       router.go(0);
+      return;
     }
   }
 });
