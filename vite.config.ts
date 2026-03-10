@@ -5,10 +5,11 @@ import vue from "@vitejs/plugin-vue";
 // import vueDevTools from "vite-plugin-vue-devtools";
 
 import tailwindcss from "@tailwindcss/vite";
+import versionJson from "./version-json";
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [tailwindcss(), vue()],
+  plugins: [tailwindcss(), vue(), versionJson()],
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
