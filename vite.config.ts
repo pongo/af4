@@ -5,7 +5,7 @@ import vue from "@vitejs/plugin-vue";
 // import vueDevTools from "vite-plugin-vue-devtools";
 import { githubPagesSpa } from "@sctg/vite-plugin-github-pages-spa";
 import tailwindcss from "@tailwindcss/vite";
-import versionJson from "./version-json";
+import versionJson from "./vite-plugins/version-json";
 
 // https://vite.dev/config/
 export default defineConfig({
