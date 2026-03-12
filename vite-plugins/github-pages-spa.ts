@@ -11,7 +11,7 @@
  * @version 0.1.1
  */
 
-import type { Plugin as VitePlugin, PluginOption, ResolvedConfig } from "vite";
+import type { Plugin as VitePlugin, ResolvedConfig } from "vite";
 import { resolve } from "node:path";
 import { writeFileSync, mkdirSync, existsSync } from "node:fs";
 
@@ -36,6 +36,12 @@ export interface GitHubPagesSpaOptions {
    * @default true
    */
   injectScript?: boolean;
+
+  /**
+   * The title to use in the default 404.html file (ignored if custom404Html is provided)
+   * @default "404 - Page Not Found"
+   */
+  title?: string;
 }
 
 /**
@@ -48,8 +54,13 @@ export interface GitHubPagesSpaOptions {
  * @param options Configuration options for the plugin
  * @returns A Vite plugin
  */
-export function githubPagesSpa(options: GitHubPagesSpaOptions = {}): any {
-  const { verbose = true, injectScript = true, custom404Html } = options;
+export function githubPagesSpa(options: GitHubPagesSpaOptions = {}): VitePlugin {
+  const {
+    verbose = true,
+    injectScript = true,
+    custom404Html,
+    title = "404 - Page Not Found",
+  } = options;
 
   let config: ResolvedConfig;
 
@@ -115,15 +126,14 @@ export function githubPagesSpa(options: GitHubPagesSpaOptions = {}): any {
       const urlPath = urlBase.pathname;
       const pathSegmentsToKeep = urlPath.split("/").filter(Boolean).length;
 
-      let fileContent = custom404Html;
-
-      if (!fileContent) {
-        fileContent = `<!DOCTYPE html>
+      const fileContent =
+        custom404Html ??
+        `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>404 - Page Not Found</title>
+    <title>${title}</title>
     <script type="text/javascript">
         // Single Page Apps for GitHub Pages
         // MIT License
@@ -163,7 +173,6 @@ export function githubPagesSpa(options: GitHubPagesSpaOptions = {}): any {
     <p><a href="/">Click here if you are not redirected automatically</a></p>
 </body>
 </html>`;
-      }
 
       const filePath = resolve(distPath, "404.html");
 

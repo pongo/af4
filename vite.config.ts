@@ -9,7 +9,7 @@ import { githubPagesSpa } from "./vite-plugins/github-pages-spa";
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [tailwindcss(), vue(), versionJson(), githubPagesSpa()],
+  plugins: [tailwindcss(), vue(), versionJson(), githubPagesSpa({ title: "AF4" })],
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
