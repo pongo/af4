@@ -31,8 +31,9 @@ async function add() {
     await db.addTaskList(name.value, newState);
 
     await router.push(`/tl/${id}`);
-  } catch (e) {
+  } catch (e: unknown) {
     console.error("Failed to create task list:", e);
+    alert("Failed to create task list: " + (e as Error).message);
     isSubmitting.value = false;
   }
 }
