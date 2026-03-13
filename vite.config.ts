@@ -16,4 +16,7 @@ export default defineConfig({
     },
   },
   base: "/af4/",
+  build: {
+    sourcemap: true,
+  },
 });
