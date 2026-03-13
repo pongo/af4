@@ -177,6 +177,18 @@ export const db = {
   },
 };
 
+export async function requestPersistentStorage(): Promise<void> {
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  if (navigator.storage?.persist) {
+    const isPersisted = await navigator.storage.persisted();
+    console.log(`Persisted storage granted: ${isPersisted}`);
+    if (!isPersisted) {
+      const granted = await navigator.storage.persist();
+      console.log(`Persisted storage request result: ${granted}`);
+    }
+  }
+}
+
 async function addTaskListLabel(idb: IDBPDatabase, name: string, id: string): Promise<void> {
   const labels = await db.getTaskListLabels();
   // labels are sorted by position

@@ -3,7 +3,7 @@ import type { SystemType, TaskList } from "@/app/types";
 import { nanoid } from "nanoid";
 import { ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { db } from "@/app/db";
+import { db, requestPersistentStorage } from "@/app/db";
 
 const route = useRoute();
 const router = useRouter();
@@ -29,7 +29,7 @@ async function add() {
       system: system.value,
     };
     await db.addTaskList(name.value, newState);
-
+    await requestPersistentStorage();
     await router.push(`/tl/${id}`);
   } catch (e: unknown) {
     console.error("Failed to create task list:", e);
