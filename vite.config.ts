@@ -5,11 +5,10 @@ import vue from "@vitejs/plugin-vue";
 // import vueDevTools from "vite-plugin-vue-devtools";
 import tailwindcss from "@tailwindcss/vite";
 import versionJson from "./vite-plugins/version-json";
-import { githubPagesSpa } from "./vite-plugins/github-pages-spa";
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [tailwindcss(), vue(), versionJson(), githubPagesSpa({ title: "AF4" })],
+  plugins: [tailwindcss(), vue(), versionJson()],
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
