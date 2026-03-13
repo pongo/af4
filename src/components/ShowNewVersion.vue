@@ -64,7 +64,7 @@ export function useVersionCheck() {
   return {
     isNewVersionAvailable,
     newVersionDetails,
-    versionCheckError
+    versionCheckError,
   };
 }
 </script>
@@ -80,7 +80,7 @@ defineProps<{
 <template>
   <div
     v-if="isNewVersionAvailable"
-    class="mb-4 flex w-full items-center justify-center gap-2 rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm font-medium text-yellow-800"
+    class="fixed top-4 left-4 z-9999 flex max-w-56 items-center gap-2 rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm font-medium text-yellow-800 shadow-lg"
     role="alert"
   >
     ⚠️
@@ -93,7 +93,7 @@ defineProps<{
   </div>
   <div
     v-else-if="versionCheckError"
-    class="mb-4 flex w-full items-center justify-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-800"
+    class="fixed top-4 left-4 z-9999 flex max-w-56 items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-800 shadow-lg"
     role="alert"
   >
     ❌
