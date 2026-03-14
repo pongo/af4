@@ -27,7 +27,7 @@ watch(
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     assert(newState != null);
     try {
-      await db.saveTaskList(toRaw(newState));
+      await db.saveTaskList(klona(newState));
     } catch (e: unknown) {
       console.error("Failed to save task list: ", e);
       alert("Failed to save task list: " + (e as Error).message);
