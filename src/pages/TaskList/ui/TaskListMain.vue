@@ -2,7 +2,7 @@
 import { nextTick, onMounted, onUnmounted, useTemplateRef } from "vue";
 import NewTodoForm from "./NewTodoForm.vue";
 import TaskList from "./TaskList/TaskList.vue";
-import hotkeys from "hotkeys-js";
+import hotkeys, { type KeyHandler } from "hotkeys-js";
 import type { TaskList as TTaskList, UserAction } from "@/app/types";
 import { toast } from "vue3-toastify";
 import { itemIconPosToggle } from "@/app/lib/toggles";
@@ -77,43 +77,50 @@ function notify(message: string) {
   });
 }
 
+const boundKeys = new Set<string>();
+
+function bindKey(keys: string, callback: KeyHandler) {
+  boundKeys.add(keys);
+  hotkeys(keys, callback);
+}
+
 function bindHotkeys() {
-  hotkeys("space, c, n", (): false => {
+  bindKey("space, c, n", (): false => {
     newTodoFormRef.value?.focus();
     return false;
   });
 
-  hotkeys("up, w, j", (): false => {
+  bindKey("up, w, j", (): false => {
     taskListRef.value?.navigate("up");
     return false;
   });
 
-  hotkeys("down, s, k", (): false => {
+  bindKey("down, s, k", (): false => {
     taskListRef.value?.navigate("down");
     return false;
   });
 
-  hotkeys("home", (): false => {
+  bindKey("home", (): false => {
     taskListRef.value?.navigate("home");
     return false;
   });
 
-  hotkeys("end", (): false => {
+  bindKey("end", (): false => {
     taskListRef.value?.navigate("end");
     return false;
   });
 
-  hotkeys("pageup, pgup", (): false => {
+  bindKey("pageup, pgup", (): false => {
     taskListRef.value?.navigate("pageup");
     return false;
   });
 
-  hotkeys("pagedown, pgdown", (): false => {
+  bindKey("pagedown, pgdown", (): false => {
     taskListRef.value?.navigate("pagedown");
     return false;
   });
 
-  hotkeys("x, d", (event): false => {
+  bindKey("x, d", (event): false => {
     const id = getFocusedTaskId(event);
     if (id === undefined) return false;
 
@@ -121,7 +128,7 @@ function bindHotkeys() {
     return false;
   });
 
-  hotkeys("delete, backspace", (event): false => {
+  bindKey("delete, backspace", (event): false => {
     const id = getFocusedTaskId(event);
     if (id === undefined) return false;
 
@@ -129,7 +136,7 @@ function bindHotkeys() {
     return false;
   });
 
-  hotkeys("z", (event): false => {
+  bindKey("z", (event): false => {
     const id = getFocusedTaskId(event);
     if (id === undefined) return false;
 
@@ -137,7 +144,7 @@ function bindHotkeys() {
     return false;
   });
 
-  hotkeys("r", (event): false => {
+  bindKey("r", (event): false => {
     const id = getFocusedTaskId(event);
     if (id === undefined) return false;
 
@@ -148,7 +155,7 @@ function bindHotkeys() {
     return false;
   });
 
-  hotkeys("shift+r", (): false => {
+  bindKey("shift+r", (): false => {
     const focusedTask = taskListRef.value?.getFocusedTask();
     if (focusedTask === undefined) return false;
 
@@ -156,7 +163,7 @@ function bindHotkeys() {
     return false;
   });
 
-  hotkeys("f, h, shift+f, shift+h", (event: KeyboardEvent): false => {
+  bindKey("f, h, shift+f, shift+h", (event: KeyboardEvent): false => {
     const focusedTask = taskListRef.value?.getFocusedTask();
     if (focusedTask === undefined) return false;
 
@@ -173,27 +180,27 @@ function bindHotkeys() {
     return false;
   });
 
-  hotkeys("shift+right", (): false => {
+  bindKey("shift+right", (): false => {
     next();
     return false;
   });
 
-  hotkeys("ctrl+z", (): false => {
+  bindKey("ctrl+z", (): false => {
     emit("undo", props.state.id);
     return false;
   });
 
-  hotkeys("ctrl+shift+z", (): false => {
+  bindKey("ctrl+shift+z", (): false => {
     emit("redo", props.state.id);
     return false;
   });
 
-  hotkeys("'", (): false => {
+  bindKey("'", (): false => {
     itemIconPosToggle.next();
     return false;
   });
 
-  hotkeys("ctrl+c", () => {
+  bindKey("ctrl+c", () => {
     // if there is a selection, do not intercept
     if (window.getSelection()?.toString()) return true;
 
@@ -205,13 +212,13 @@ function bindHotkeys() {
     return false;
   });
 
-  hotkeys("v", (): false => {
+  bindKey("v", (): false => {
     const focusedItem = taskListRef.value?.getFocusedItem();
     focusedItem?.openFirstLink();
     return false;
   });
 
-  hotkeys("e, enter, f2", (): false => {
+  bindKey("e, enter, f2", (): false => {
     const focusedItem = taskListRef.value?.getFocusedItem();
     const focusedTask = taskListRef.value?.getFocusedTask();
     if (focusedItem === undefined || focusedTask === undefined) return false;
@@ -224,6 +231,13 @@ function bindHotkeys() {
     // applyActions(props.state, actions);
     return false;
   });
+}
+
+function unbindHotkeys() {
+  for (const keys of boundKeys) {
+    hotkeys.unbind(keys);
+  }
+  boundKeys.clear();
 }
 
 function focusTask() {
@@ -241,30 +255,10 @@ function getFocusedTaskId(event: KeyboardEvent) {
 
 onMounted(() => {
   bindHotkeys();
-
-  // if (props.state.tasks.length === 0) {
-  //   newTodoFormRef.value?.focus();
-  // }
 });
+
 onUnmounted(() => {
-  hotkeys.unbind("space, c, n");
-  hotkeys.unbind("up, w, j");
-  hotkeys.unbind("down, s, k");
-  hotkeys.unbind("home");
-  hotkeys.unbind("end");
-  hotkeys.unbind("pageup, pgup");
-  hotkeys.unbind("pagedown, pgdown");
-  hotkeys.unbind("x, d");
-  hotkeys.unbind("z");
-  hotkeys.unbind("r");
-  hotkeys.unbind("shift+r");
-  hotkeys.unbind("shift+right");
-  hotkeys.unbind("ctrl+z");
-  hotkeys.unbind("ctrl+shift+z");
-  hotkeys.unbind("'");
-  hotkeys.unbind("ctrl+c");
-  hotkeys.unbind("v");
-  hotkeys.unbind("e, enter, f2");
+  unbindHotkeys();
 });
 </script>
 
