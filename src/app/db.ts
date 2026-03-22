@@ -90,29 +90,6 @@ export const db = {
     return savedState as TaskList;
   },
 
-  async saveTaskListLabels(labels: TaskListLabel[]): Promise<void> {
-    const idb = await dbPromise;
-    const tx = idb.transaction("tasklists_meta", "readwrite");
-    const store = tx.objectStore("tasklists_meta");
-
-    // Deletion of labels not present in the new list
-    const existingIds = await store.getAllKeys();
-    const newIds = new Set(labels.map((l) => l.id));
-    for (const id of existingIds) {
-      if (!newIds.has(id as string)) {
-        await store.delete(id);
-      }
-    }
-
-    // Update/Add all labels
-    for (const label of labels) {
-      await store.put(label);
-    }
-    await tx.done;
-    await db.updateTaskListLabels();
-    notifyChange("tasklists_meta");
-  },
-
   async addTaskList(name: string, taskList: TaskList): Promise<void> {
     const idb = await dbPromise;
     await idb.put("tasklists_data", taskList);
