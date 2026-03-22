@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
-import { useTaskListLabels } from "@/app/composables/useTaskListLabels";
+import { taskListLabelsStore } from "@/app/lib/taskListLabelsStore";
 import { db } from "@/app/db";
 import { dispatch } from "@/app/model/dispatch";
 import TaskListPage from "@/pages/TaskListPage/TaskListPage.vue";
@@ -11,7 +11,7 @@ declare module "vue-router" {
   }
 }
 
-const { taskListLabels, getTaskListLabel } = useTaskListLabels();
+const { taskListLabels, getTaskListLabel } = taskListLabelsStore();
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),

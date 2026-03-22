@@ -5,7 +5,7 @@ const taskListLabelsMap = computed(
   () => new Map(taskListLabels.value.map((list) => [list.id, list])),
 );
 
-export function useTaskListLabels() {
+export function taskListLabelsStore() {
   return {
     taskListLabels,
     getTaskListLabel,

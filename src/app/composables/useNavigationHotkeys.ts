@@ -3,13 +3,13 @@ import { useRouter, useRoute } from "vue-router";
 import { assert } from "smart-invariant";
 import hotkeys from "hotkeys-js";
 import { createKeybindingsHandler } from "tinykeys";
-import { useTaskListLabels } from "./useTaskListLabels";
+import { taskListLabelsStore } from "../lib/taskListLabelsStore";
 
 export function useNavigationHotkeys() {
   const router = useRouter();
   const route = useRoute();
   const currentId = computed(() => route.params.id as string);
-  const { navigateToNextList, navigateListByIndex } = useTaskListLabels();
+  const { navigateToNextList, navigateListByIndex } = taskListLabelsStore();
 
   const tinykeysHandler = createKeybindingsHandler({
     "Alt+([0-9])": (event) => {
