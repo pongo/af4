@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from "vue-router";
 import { useTaskListLabels } from "@/app/composables/useTaskListLabels";
 import { db } from "@/app/db";
 import { dispatch } from "@/app/model/dispatch";
-import TaskListPage from "@/pages/TaskList/TaskListPage.vue";
+import TaskListPage from "@/pages/TaskListPage/TaskListPage.vue";
 import type { TaskList } from "@/app/types";
 
 declare module "vue-router" {
