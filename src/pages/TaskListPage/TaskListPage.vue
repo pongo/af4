@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import TaskListWorkspace from "./TaskListWorkspace/TaskListWorkspace.vue";
+import TaskListWatcher from "./TaskListWatcher/TaskListWatcher.vue";
 import { db } from "@/app/db.ts";
 import { assert } from "smart-invariant";
 
@@ -30,5 +30,5 @@ watch(db.dbChangedData, (data) => {
 </script>
 
 <template>
-  <TaskListWorkspace v-if="state" :key="id" :initial-data="state" />
+  <TaskListWatcher v-if="state" :key="id" :initial-data="state" />
 </template>
