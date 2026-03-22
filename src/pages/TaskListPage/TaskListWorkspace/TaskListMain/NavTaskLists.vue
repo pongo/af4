@@ -17,10 +17,10 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { RouterLink, useRoute, useRouter } from "vue-router";
-import { useTaskListLabels } from "@/app/composables/useTaskListLabels";
+import { useTaskListLabels } from "@/app/composables/useTaskListLabels.ts";
 import { useSortable } from "@vueuse/integrations/useSortable";
 import { nextTick, useTemplateRef } from "vue";
-import { db } from "@/app/db";
+import { db } from "@/app/db.ts";
 
 const { taskListLabels, reorderLabels, renameTaskListLabel } = useTaskListLabels();
 const { isMobile } = useSidebar();

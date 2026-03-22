@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import TaskListWorkspace from "../TaskList/ui/TaskListWorkspace.vue";
+import TaskListWorkspace from "./TaskListWorkspace/TaskListWorkspace.vue";
 import { db } from "@/app/db.ts";
 import { assert } from "smart-invariant";
 
