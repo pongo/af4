@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import type { Task } from "@/app/types";
+import type { Task } from "@/app/types.ts";
 import { Asterisk, CalendarCheck, Check, CheckCheck, Zap } from "lucide-vue-next";
 import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
 import MyKbd from "@/components/MyKbd.vue";
-import { newTodoFormFocused } from "../NewTodoForm.vue";
-import { itemIconPosToggle } from "@/app/lib/toggles";
-import { globalFocusedItem } from "@/app/lib/focusedItem";
-import { tw } from "@/lib/tw";
+import { newTodoFormFocused } from "../NewTodoForm/NewTodoForm.vue";
+import { itemIconPosToggle } from "@/app/lib/toggles.ts";
+import { globalFocusedItem } from "@/app/lib/focusedItem.ts";
+import { tw } from "@/lib/tw.ts";
 import Autolinker, { HtmlTag } from "autolinker";
 import { YYYYMMDD } from "@/lib/YYYYMMDD.ts";
 import XDivider from "@/components/XDivider.vue";

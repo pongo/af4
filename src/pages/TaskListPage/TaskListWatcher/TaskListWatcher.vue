@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { ref, toRaw, watch } from "vue";
-import type { TaskList } from "@/app/types";
-import TaskListMain from "./TaskListMain.vue";
+import { ref, watch } from "vue";
+import type { TaskList } from "@/app/types.ts";
+import TaskListMain from "@/pages/TaskListPage/TaskListWatcher/TaskListMain/TaskListMain.vue";
 import { useDebouncedRefHistory } from "@vueuse/core";
 import { klona } from "klona";
 import { assert } from "smart-invariant";
-import { db } from "@/app/db";
+import { db } from "@/app/db.ts";
 
 const props = defineProps<{
   initialData: TaskList;

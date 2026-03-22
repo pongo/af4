@@ -1,6 +1,6 @@
 import { nextTick, ref, type Ref, type ShallowRef } from "vue";
 import TaskListItem from "./TaskListItem.vue";
-import type { Task } from "@/app/types";
+import type { Task } from "@/app/types.ts";
 
 type TaskListItem = InstanceType<typeof TaskListItem>;
 
@@ -147,18 +147,18 @@ function getVisibleIndices(taskItems: TaskListItem[] | null) {
 /* function scrollToFocusedItem() {
   const focusedElement = itemRefs.value[focusedIndex.value];
   if (!focusedElement || !containerRef.value) return;
-  
+
   const containerRect = containerRef.value.getBoundingClientRect();
   const elementRect = focusedElement.getBoundingClientRect();
-  
+
   // Проверяем, виден ли элемент полностью
-  const isVisible = elementRect.top >= containerRect.top && 
+  const isVisible = elementRect.top >= containerRect.top &&
                    elementRect.bottom <= containerRect.bottom;
-  
+
   if (!isVisible) {
-    focusedElement.scrollIntoView({ 
-      behavior: 'smooth', 
-      block: 'nearest' 
+    focusedElement.scrollIntoView({
+      behavior: 'smooth',
+      block: 'nearest'
     });
   }
 } */

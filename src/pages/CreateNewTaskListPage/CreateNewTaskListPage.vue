@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import type { SystemType, TaskList } from "@/app/types";
+import type { SystemType, TaskList } from "@/app/types.ts";
 import { nanoid } from "nanoid";
 import { ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { db, requestPersistentStorage } from "@/app/db";
+import { db, requestPersistentStorage } from "@/app/db.ts";
 
 const route = useRoute();
 const router = useRouter();
