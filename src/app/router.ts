@@ -48,7 +48,7 @@ const router = createRouter({
     {
       path: "/tl/new/:id?",
       name: "CreateNewTaskList",
-      component: () => import("@/pages/CreateNewTaskListPage.vue"),
+      component: () => import("@/pages/CreateNewTaskListPage/CreateNewTaskListPage.vue"),
       beforeEnter() {
         document.title = "New list";
       },
