@@ -36,7 +36,7 @@ export function findTask<T extends Task>(tasklist: TaskList, id: string): T {
   return task as T;
 }
 
-export function DeleteAllDeletedTasks(tasklist: TaskList) {
+export function deleteAllDeletedTasks(tasklist: TaskList) {
   tasklist.tasks = tasklist.tasks.filter((t) => t.list !== "deleted");
 }
 

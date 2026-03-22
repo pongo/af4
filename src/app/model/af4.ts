@@ -10,7 +10,7 @@ import type {
 } from "../types.ts";
 import {
   completeTask,
-  DeleteAllDeletedTasks,
+  deleteAllDeletedTasks,
   findTask,
   markDeleteTask,
   markOldTasksAsDeleted,
@@ -118,10 +118,10 @@ export function makeAf4({ generateId, now }: { generateId: () => string; now: ()
       }
 
       case "Cleanup": {
-        DeleteAllDeletedTasks(tasklist);
-        CheckPostponedTasks(tasklist, action.now);
+        deleteAllDeletedTasks(tasklist);
+        checkPostponedTasks(tasklist, action.now);
         markOldTasksAsDeleted(tasklist, action.now);
-        DeleteAllDeletedTasks(tasklist);
+        deleteAllDeletedTasks(tasklist);
         break;
       }
     }
@@ -190,7 +190,7 @@ export function makeAf4({ generateId, now }: { generateId: () => string; now: ()
     };
   }
 
-  function CheckPostponedTasks(tasklist: TaskList, now: Date) {
+  function checkPostponedTasks(tasklist: TaskList, now: Date) {
     const newTasks: Task[] = tasklist.tasks
       .filter((task) => task.status === "postponed" && task.postponedUntil <= now)
       .map((task) => ({
@@ -215,7 +215,7 @@ export function makeAf4({ generateId, now }: { generateId: () => string; now: ()
   function changeCurrentList(tasklist: TaskList, newCurrent: CurrentList, now: () => Date) {
     tasklist.current = newCurrent;
     if (newCurrent.list === "open") {
-      CheckPostponedTasks(tasklist, now());
+      checkPostponedTasks(tasklist, now());
       moveNewTasksToOpen(tasklist);
     }
   }
@@ -239,7 +239,7 @@ function clearZero(tasklist: TaskList) {
 
 function cleanList(tasklist: TaskList, now: Date) {
   markOldTasksAsDeleted(tasklist, now);
-  DeleteAllDeletedTasks(tasklist);
+  deleteAllDeletedTasks(tasklist);
 }
 
 function updateCurrentListStatus(tasklist: TaskList) {
