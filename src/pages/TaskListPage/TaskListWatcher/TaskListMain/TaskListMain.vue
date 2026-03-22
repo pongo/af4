@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { nextTick, onMounted, onUnmounted, useTemplateRef } from "vue";
-import NewTodoForm from "./NewTodoForm.vue";
+import NewTodoForm from "./NewTodoForm/NewTodoForm.vue";
 import TaskList from "./TaskList/TaskList.vue";
 import hotkeys, { type KeyHandler } from "hotkeys-js";
 import type { TaskList as TTaskList, UserAction } from "@/app/types.ts";
