@@ -25,24 +25,41 @@ interface ParsedBinding {
   options: BindOptions;
 }
 
-const defaultFilter: Filter = (event) => {
-  const target = event.target as HTMLElement;
-  const { tagName } = target;
-  let flag = true;
-  const isInput =
-    tagName === "INPUT" &&
-    !["checkbox", "radio", "range", "button", "file", "reset", "submit", "color"].includes(
-      (target as HTMLInputElement).type,
-    );
+const NON_TEXT_INPUT_TYPES = new Set([
+  "checkbox",
+  "radio",
+  "range",
+  "button",
+  "file",
+  "reset",
+  "submit",
+  "color",
+]);
 
-  if (
-    target.isContentEditable ||
-    ((isInput || tagName === "TEXTAREA" || tagName === "SELECT") &&
-      !(target as HTMLInputElement | HTMLTextAreaElement).readOnly)
-  ) {
-    flag = false;
+const defaultFilter: Filter = (event) => {
+  const target = event.target;
+
+  if (!(target instanceof HTMLElement)) {
+    return true;
   }
-  return flag;
+
+  if (target.isContentEditable) {
+    return false;
+  }
+
+  if (target instanceof HTMLInputElement) {
+    return target.readOnly || NON_TEXT_INPUT_TYPES.has(target.type);
+  }
+
+  if (target instanceof HTMLTextAreaElement) {
+    return target.readOnly;
+  }
+
+  if (target instanceof HTMLSelectElement) {
+    return false;
+  }
+
+  return true;
 };
 
 const keyAliases: Record<string, string> = {
