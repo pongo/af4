@@ -120,7 +120,6 @@ export class KeysHandlerBuilder {
       mainKey = keyAliases[mainKey];
     }
 
-    // In hotkeys-js, sometimes key names can be mapped to multiple things, but here let's just use exact lowercased key.
     return [{ ctrl, shift, alt, meta, key: mainKey, handler, options }];
   }
 
