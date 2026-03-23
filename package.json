@@ -9,7 +9,7 @@
     "deploy": "npm run typecheck && npm run build-only && post-build.bat",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest run",
+    "test:watch": "vitest",
     "build-only": "vite build",
     "typecheck": "vue-tsc --build",
     "lint:oxlint": "oxlint . --fix -D correctness --ignore-path .gitignore",

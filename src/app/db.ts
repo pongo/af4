@@ -15,15 +15,15 @@ const DB_VERSION = 1;
 
 export const taskListLabels = shallowRef<TaskListLabel[]>([]);
 
-export interface dbChangedData {
+export interface DBChangeEvent {
   storeName: string;
   type: "change" | "delete";
   id?: string;
 }
 
 const { data: dbChangedData, post: postMessage } = useBroadcastChannel<
-  dbChangedData,
-  dbChangedData
+  DBChangeEvent,
+  DBChangeEvent
 >({
   name: "af4-db-changes",
 });

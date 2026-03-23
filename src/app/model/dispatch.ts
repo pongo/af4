@@ -4,8 +4,9 @@ import { nanoid } from "nanoid";
 import type { TaskList, UserAction } from "@/app/types";
 import { assertUnreachable } from "@/lib/utils.ts";
 
-const af4 = makeAf4({ generateId: nanoid, now: () => new Date() });
-const simple = makeSimple({ generateId: nanoid, now: () => new Date() });
+const now = () => new Date();
+const af4 = makeAf4({ generateId: nanoid, now });
+const simple = makeSimple({ generateId: nanoid, now });
 
 export function dispatch(state: TaskList, action: UserAction): void {
   switch (state.system) {

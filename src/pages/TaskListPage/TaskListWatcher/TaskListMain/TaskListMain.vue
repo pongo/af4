@@ -3,13 +3,13 @@ import { nextTick, onMounted, onUnmounted, useTemplateRef } from "vue";
 import NewTodoForm from "./NewTodoForm/NewTodoForm.vue";
 import TaskList from "./TaskList/TaskList.vue";
 import hotkeys, { type KeyHandler } from "hotkeys-js";
-import type { TaskList as TTaskList, UserAction } from "@/app/types.ts";
+import type { TaskList as TaskListState, UserAction } from "@/app/types.ts";
 import { toast } from "vue3-toastify";
 import { itemIconPosToggle } from "@/app/lib/toggles.ts";
 import { useDailyCleanup } from "@/app/composables/useDailyCleanup.ts";
 import { dispatch } from "@/app/model/dispatch.ts";
 
-const props = defineProps<{ state: TTaskList }>();
+const props = defineProps<{ state: TaskListState }>();
 
 useDailyCleanup(() => {
   const now = new Date();

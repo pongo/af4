@@ -1,7 +1,7 @@
 import type { TaskList, UserAction, Task, AdditionalStatus } from "../types.ts";
 import {
   completeTask,
-  DeleteAllDeletedTasks,
+  deleteAllDeletedTasks,
   findTask,
   markDeleteTask,
   markOldTasksAsDeleted,
@@ -63,10 +63,10 @@ export function makeSimple({ generateId, now }: { generateId: () => string; now:
       }
 
       case "Cleanup": {
-        DeleteAllDeletedTasks(tasklist);
+        deleteAllDeletedTasks(tasklist);
         CheckPostponedTasks(tasklist, action.now);
         markOldTasksAsDeleted(tasklist, action.now);
-        DeleteAllDeletedTasks(tasklist);
+        deleteAllDeletedTasks(tasklist);
         break;
       }
     }
