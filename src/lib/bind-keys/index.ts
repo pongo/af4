@@ -1,7 +1,7 @@
 /**
  * Returns an array of strings representing digits from "0" to "9".
  * Useful for binding numeric keys.
- * 
+ *
  * @returns {string[]} An array containing ["0", "1", ..., "9"].
  */
 export function digits(): string[] {
@@ -10,11 +10,11 @@ export function digits(): string[] {
 
 /**
  * Prepends a modifier key to each key in the provided array.
- * 
+ *
  * @param modifier - The modifier key to add (e.g., "ctrl", "alt", "shift").
  * @param keys - An array of keys to be modified.
  * @returns {string[]} A new array with keys prefixed by the modifier.
- * 
+ *
  * @example
  * withModifier("alt", ["1", "2"]) // returns ["alt+1", "alt+2"]
  */
@@ -112,15 +112,15 @@ const keyAliases: Record<string, string> = {
 /**
  * Creates a new instance of KeysHandlerBuilder.
  * This is the primary entry point for the library.
- * 
- * @returns {KeysHandlerBuilder} A new builder instance.
- * 
+ *
+ * @returns A new builder instance.
+ *
  * @example
  * const handler = keysHandlerFactory()
  *   .add("ctrl+s", (e) => save())
  *   .build();
  */
-export function keysHandlerFactory() {
+export function keysHandlerFactory(): KeysHandlerBuilder {
   return new KeysHandlerBuilder();
 }
 
@@ -132,14 +132,14 @@ export class KeysHandlerBuilder {
 
   /**
    * Adds a new key binding to the builder.
-   * 
+   *
    * @param keys - A single key combo string or an array of key combo strings.
    *               Combos use "+" to separate modifiers (e.g., "ctrl+shift+a").
    * @param handler - The function to execute when the keys are pressed.
    * @param options - Optional configuration for this specific binding.
-   * @returns {KeysHandlerBuilder} The builder instance for chaining.
+   * @returns The builder instance for chaining.
    */
-  add(keys: string | string[], handler: Handler, options: BindOptions = {}) {
+  add(keys: string | string[], handler: Handler, options: BindOptions = {}): this {
     const keyArray = Array.isArray(keys) ? keys : [keys];
 
     for (const k of keyArray) {
@@ -175,8 +175,8 @@ export class KeysHandlerBuilder {
 
   /**
    * Compiled the added bindings into a single event handler function.
-   * 
-   * @returns {(event: KeyboardEvent) => void} A function that should be attached to a "keydown" event listener.
+   *
+   * @returns A function that should be attached to a "keydown" event listener.
    */
   build(): (event: KeyboardEvent) => void {
     return (event: KeyboardEvent) => {
