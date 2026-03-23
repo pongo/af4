@@ -1,6 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
 import { keysHandlerFactory, digits, withModifier } from "./index";
-import { JSDOM } from "jsdom";
 
 describe("bind-keys", () => {
   it("binds a single key", () => {
@@ -69,9 +68,6 @@ describe("bind-keys", () => {
   });
 
   it("filters input elements effectively", () => {
-    const dom = new JSDOM();
-    const { document } = dom.window;
-
     const handler = vi.fn();
     const bound = keysHandlerFactory()
       .add("y", handler, { filterInput: true })
@@ -82,15 +78,15 @@ describe("bind-keys", () => {
     input.type = "text";
     
     // Simulate event from an input element
-    const event1 = new dom.window.KeyboardEvent("keydown", { key: "y" });
-    Object.defineProperty(event1, 'target', { value: input, enumerable: true });
+    const event1 = new KeyboardEvent("keydown", { key: "y" });
+    Object.defineProperty(event1, "target", { value: input, enumerable: true });
     
-    bound(event1 as unknown as KeyboardEvent);
+    bound(event1);
     expect(handler).toHaveBeenCalledTimes(0);
 
     // ReadOnly input
     input.readOnly = true;
-    bound(event1 as unknown as KeyboardEvent);
+    bound(event1);
     expect(handler).toHaveBeenCalledTimes(1);
   });
 

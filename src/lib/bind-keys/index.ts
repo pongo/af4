@@ -6,10 +6,8 @@ export function withModifier(modifier: string, keys: string[]): string[] {
   return keys.map((key) => `${modifier}+${key}`);
 }
 
-export type Filter = (event: KeyboardEvent) => boolean;
-
 export interface BindOptions {
-  filterInput?: boolean | Filter;
+  filterInput?: boolean;
   prevent?: boolean;
 }
 
@@ -36,7 +34,7 @@ const NON_TEXT_INPUT_TYPES = new Set([
   "color",
 ]);
 
-const defaultFilter: Filter = (event) => {
+function defaultFilter(event: KeyboardEvent): boolean {
   const target = event.target;
 
   if (!(target instanceof HTMLElement)) {
@@ -60,7 +58,7 @@ const defaultFilter: Filter = (event) => {
   }
 
   return true;
-};
+}
 
 const keyAliases: Record<string, string> = {
   up: "arrowup",
@@ -135,14 +133,8 @@ export class KeysHandlerBuilder {
           binding.meta === event.metaKey &&
           binding.key === keyLower
         ) {
-          if (binding.options.filterInput) {
-            const filterFn =
-              typeof binding.options.filterInput === "function"
-                ? binding.options.filterInput
-                : defaultFilter;
-            if (!filterFn(event)) {
-              continue;
-            }
+          if (binding.options.filterInput && !defaultFilter(event)) {
+            continue;
           }
 
           if (binding.options.prevent) {
