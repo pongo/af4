@@ -1,16 +1,45 @@
+/**
+ * Returns an array of strings representing digits from "0" to "9".
+ * Useful for binding numeric keys.
+ * 
+ * @returns {string[]} An array containing ["0", "1", ..., "9"].
+ */
 export function digits(): string[] {
   return Array.from({ length: 10 }, (_, i) => i.toString());
 }
 
+/**
+ * Prepends a modifier key to each key in the provided array.
+ * 
+ * @param modifier - The modifier key to add (e.g., "ctrl", "alt", "shift").
+ * @param keys - An array of keys to be modified.
+ * @returns {string[]} A new array with keys prefixed by the modifier.
+ * 
+ * @example
+ * withModifier("alt", ["1", "2"]) // returns ["alt+1", "alt+2"]
+ */
 export function withModifier(modifier: string, keys: string[]): string[] {
   return keys.map((key) => `${modifier}+${key}`);
 }
 
+/**
+ * Options for key binding behavior.
+ */
 export interface BindOptions {
+  /**
+   * If true, the handler will not trigger if the event target is a text input,
+   * textarea, or contentEditable element (unless it's read-only).
+   */
   filterInput?: boolean;
+  /**
+   * If true, calls `preventDefault()` and `stopPropagation()` on the event.
+   */
   prevent?: boolean;
 }
 
+/**
+ * Function signature for key event handlers.
+ */
 export type Handler = (event: KeyboardEvent) => void;
 
 interface ParsedBinding {
@@ -80,13 +109,36 @@ const keyAliases: Record<string, string> = {
   tab: "tab",
 };
 
+/**
+ * Creates a new instance of KeysHandlerBuilder.
+ * This is the primary entry point for the library.
+ * 
+ * @returns {KeysHandlerBuilder} A new builder instance.
+ * 
+ * @example
+ * const handler = keysHandlerFactory()
+ *   .add("ctrl+s", (e) => save())
+ *   .build();
+ */
 export function keysHandlerFactory() {
   return new KeysHandlerBuilder();
 }
 
+/**
+ * Builder class for creating keyboard event handlers with multiple bindings.
+ */
 export class KeysHandlerBuilder {
   private bindings: ParsedBinding[] = [];
 
+  /**
+   * Adds a new key binding to the builder.
+   * 
+   * @param keys - A single key combo string or an array of key combo strings.
+   *               Combos use "+" to separate modifiers (e.g., "ctrl+shift+a").
+   * @param handler - The function to execute when the keys are pressed.
+   * @param options - Optional configuration for this specific binding.
+   * @returns {KeysHandlerBuilder} The builder instance for chaining.
+   */
   add(keys: string | string[], handler: Handler, options: BindOptions = {}) {
     const keyArray = Array.isArray(keys) ? keys : [keys];
 
@@ -121,6 +173,11 @@ export class KeysHandlerBuilder {
     return [{ ctrl, shift, alt, meta, key: mainKey, handler, options }];
   }
 
+  /**
+   * Compiled the added bindings into a single event handler function.
+   * 
+   * @returns {(event: KeyboardEvent) => void} A function that should be attached to a "keydown" event listener.
+   */
   build(): (event: KeyboardEvent) => void {
     return (event: KeyboardEvent) => {
       const keyLower = event.key.toLowerCase();
