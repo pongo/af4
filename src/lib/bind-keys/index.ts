@@ -128,7 +128,7 @@ export function keysHandlerFactory(): KeysHandlerBuilder {
  * Builder class for creating keyboard event handlers with multiple bindings.
  */
 export class KeysHandlerBuilder {
-  private bindings: ParsedBinding[] = [];
+  #bindings: ParsedBinding[] = [];
 
   /**
    * Adds a new key binding to the builder.
@@ -144,12 +144,12 @@ export class KeysHandlerBuilder {
 
     for (const k of keyArray) {
       if (!k) continue;
-      this.bindings.push(...this.parseKey(k, handler, options));
+      this.#bindings.push(...this.#parseKey(k, handler, options));
     }
     return this;
   }
 
-  private parseKey(combo: string, handler: Handler, options: BindOptions): ParsedBinding[] {
+  #parseKey(combo: string, handler: Handler, options: BindOptions): ParsedBinding[] {
     const parts = combo.split("+").map((p) => p.trim().toLowerCase());
 
     let ctrl = false;
@@ -179,10 +179,12 @@ export class KeysHandlerBuilder {
    * @returns A function that should be attached to a "keydown" event listener.
    */
   build(): (event: KeyboardEvent) => void {
+    const bindings = this.#bindings;
+
     return (event: KeyboardEvent) => {
       const keyLower = event.key.toLowerCase();
 
-      for (const binding of this.bindings) {
+      for (const binding of bindings) {
         if (
           binding.ctrl === event.ctrlKey &&
           binding.shift === event.shiftKey &&
