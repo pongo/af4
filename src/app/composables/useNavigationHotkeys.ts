@@ -10,32 +10,40 @@ export function useNavigationHotkeys() {
   const currentId = computed(() => route.params.id as string);
   const { navigateToNextList, navigateListByIndex } = taskListLabelsStore();
 
+  function navigateByDirection(direction: "up" | "down") {
+    if (!currentId.value) return;
+    navigateToId(navigateToNextList(currentId.value, direction));
+  }
+
+  function navigateToId(id: string | undefined) {
+    if (id !== undefined) {
+      void router.replace(`/tl/${id}`);
+    }
+  }
+
   const bindKeysHandler = keysHandlerFactory()
     .add(
-      Array.from({ length: 10 }, (_, i) => `Alt+${i}`),
+      // [ 'Alt+0', 'Alt+1', 'Alt+2', ... ]
+      Array.from({ length: 10 }, (_, i) => `alt+${i}`),
       (event) => {
         const num = parseInt(event.key, 10);
         const index = (num === 0 ? 10 : num) - 1;
         assert(index >= 0 && index <= 9);
-
-        const nextId = navigateListByIndex(index);
-        if (nextId === undefined) return;
-        void router.replace(`/tl/${nextId}`);
+        navigateToId(navigateListByIndex(index));
       },
       { prevent: true },
     )
     .add(
-      "q, a",
-      (event) => {
-        if (!currentId.value) return;
-
-        const nextId = navigateToNextList(
-          currentId.value,
-          event.key.toLowerCase() === "q" ? "up" : "down",
-        );
-        if (nextId !== undefined) {
-          void router.replace(`/tl/${nextId}`);
-        }
+      "q",
+      () => {
+        navigateByDirection("up");
+      },
+      { filterInput: true, prevent: true },
+    )
+    .add(
+      "a",
+      () => {
+        navigateByDirection("down");
       },
       { filterInput: true, prevent: true },
     )
