@@ -79,21 +79,21 @@ function notify(message: string) {
 
 const bindKeysHandler = keysHandlerFactory()
   .add(
-    "space, c, n",
+    ["space", "c", "n"],
     () => {
       newTodoFormRef.value?.focus();
     },
     { filterInput: true, prevent: true },
   )
   .add(
-    "up, w, j",
+    ["up", "w", "j"],
     () => {
       taskListRef.value?.navigate("up");
     },
     { filterInput: true, prevent: true },
   )
   .add(
-    "down, s, k",
+    ["down", "s", "k"],
     () => {
       taskListRef.value?.navigate("down");
     },
@@ -114,21 +114,21 @@ const bindKeysHandler = keysHandlerFactory()
     { filterInput: true, prevent: true },
   )
   .add(
-    "pageup, pgup",
+    ["pageup", "pgup"],
     () => {
       taskListRef.value?.navigate("pageup");
     },
     { filterInput: true, prevent: true },
   )
   .add(
-    "pagedown, pgdown",
+    ["pagedown", "pgdown"],
     () => {
       taskListRef.value?.navigate("pagedown");
     },
     { filterInput: true, prevent: true },
   )
   .add(
-    "x, d",
+    ["x", "d"],
     (event) => {
       const id = getFocusedTaskId(event);
       if (id === undefined) return;
@@ -138,7 +138,7 @@ const bindKeysHandler = keysHandlerFactory()
     { filterInput: true, prevent: true },
   )
   .add(
-    "delete, backspace",
+    ["delete", "backspace"],
     (event) => {
       const id = getFocusedTaskId(event);
       if (id === undefined) return;
@@ -183,7 +183,7 @@ const bindKeysHandler = keysHandlerFactory()
     { filterInput: true, prevent: true },
   )
   .add(
-    "f, h, shift+f, shift+h",
+    ["f", "h", "shift+f", "shift+h"],
     (event: KeyboardEvent) => {
       const focusedTask = taskListRef.value?.getFocusedTask();
       if (focusedTask === undefined) return;
@@ -252,7 +252,7 @@ const bindKeysHandler = keysHandlerFactory()
     { filterInput: true, prevent: true },
   )
   .add(
-    "e, enter, f2",
+    ["e", "enter", "f2"],
     () => {
       const focusedItem = taskListRef.value?.getFocusedItem();
       const focusedTask = taskListRef.value?.getFocusedTask();

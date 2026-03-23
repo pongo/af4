@@ -31,11 +31,11 @@ describe("bind-keys", () => {
     expect(handler).toHaveBeenCalledTimes(1);
   });
 
-  it("handles array and comma separated keys", () => {
+  it("handles multiple keys as an array", () => {
     const handler = vi.fn();
     const bound = keysHandlerFactory()
       .add(["ctrl+c", "ctrl+v"], handler)
-      .add("space, enter", handler)
+      .add(["space", "enter"], handler)
       .build();
 
     bound(new KeyboardEvent("keydown", { key: "c", ctrlKey: true }));

@@ -81,9 +81,7 @@ export class KeysHandlerBuilder {
   private bindings: ParsedBinding[] = [];
 
   add(keys: string | string[], handler: Handler, options: BindOptions = {}) {
-    const keyArray = Array.isArray(keys) 
-      ? keys 
-      : keys.split(',').map(k => k.trim());
+    const keyArray = Array.isArray(keys) ? keys : [keys];
     
     for (const k of keyArray) {
       if (!k) continue;
