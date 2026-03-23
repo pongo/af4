@@ -2,10 +2,10 @@
  * Returns an array of strings representing digits from "0" to "9".
  * Useful for binding numeric keys.
  *
- * @returns {string[]} An array containing ["0", "1", ..., "9"].
+ * @returns An array containing ["0", "1", ..., "9"].
  */
-export function digits(): string[] {
-  return Array.from({ length: 10 }, (_, i) => i.toString());
+export function digits(): BaseKey[] {
+  return Array.from({ length: 10 }, (_, i) => i.toString() as BaseKey);
 }
 
 /**
@@ -13,13 +13,16 @@ export function digits(): string[] {
  *
  * @param modifier - The modifier key to add (e.g., "ctrl", "alt", "shift").
  * @param keys - An array of keys to be modified.
- * @returns {string[]} A new array with keys prefixed by the modifier.
+ * @returns A new array with keys prefixed by the modifier.
  *
  * @example
  * withModifier("alt", ["1", "2"]) // returns ["alt+1", "alt+2"]
  */
-export function withModifier(modifier: string, keys: string[]): string[] {
-  return keys.map((key) => `${modifier}+${key}`);
+export function withModifier<M extends CombinedModifier, K extends BaseKey>(
+  modifier: M,
+  keys: K[],
+): `${M}+${K}`[] {
+  return keys.map((key) => `${modifier}+${key}`) as `${M}+${K}`[];
 }
 
 /**
@@ -64,7 +67,7 @@ const NON_TEXT_INPUT_TYPES = new Set([
   "color",
 ]);
 
-const KEY_ALIASES = new Map<string, string>([
+const CODE_TO_KEY_ENTRIES = [
   ["up", "arrowup"],
   ["down", "arrowdown"],
   ["left", "arrowleft"],
@@ -82,10 +85,11 @@ const KEY_ALIASES = new Map<string, string>([
   ["esc", "escape"],
   ["escape", "escape"],
   ["tab", "tab"],
-]);
+] as const;
 
-const CODE_TO_KEY = new Map<string, string>([
-  // Letters
+const KEY_ALIASES = new Map<string, string>(CODE_TO_KEY_ENTRIES);
+
+const KEY_ALIASES_ENTRIES = [
   ["KeyA", "a"],
   ["KeyB", "b"],
   ["KeyC", "c"],
@@ -182,7 +186,26 @@ const CODE_TO_KEY = new Map<string, string>([
   ["F10", "f10"],
   ["F11", "f11"],
   ["F12", "f12"],
-]);
+] as const;
+
+const CODE_TO_KEY = new Map<string, string>(KEY_ALIASES_ENTRIES);
+
+type CodeKeyValue = (typeof CODE_TO_KEY_ENTRIES)[number][0];
+type AliasKeyName = (typeof KEY_ALIASES_ENTRIES)[number][1];
+
+export type BaseKey = CodeKeyValue | AliasKeyName;
+export type Modifier = "ctrl" | "shift" | "alt" | "meta" | "cmd" | "win";
+
+export type KeyCombo =
+  | BaseKey
+  | `${Modifier}+${BaseKey}`
+  | `${Modifier}+${Modifier}+${BaseKey}`
+  | `${Modifier}+${Modifier}+${Modifier}+${BaseKey}`;
+
+export type CombinedModifier =
+  | Modifier
+  | `${Modifier}+${Modifier}`
+  | `${Modifier}+${Modifier}+${Modifier}`;
 
 /**
  * Returns the English key name associated with the physical key pressed,
@@ -257,7 +280,7 @@ export class KeysHandlerBuilder {
    * @param options - Optional configuration for this specific binding.
    * @returns The builder instance for chaining.
    */
-  add(keys: string | string[], handler: Handler, options: BindOptions = {}): this {
+  add(keys: KeyCombo | readonly KeyCombo[], handler: Handler, options: BindOptions = {}): this {
     const keyArray = Array.isArray(keys) ? keys : [keys];
     for (const k of keyArray) {
       if (!k) continue;
