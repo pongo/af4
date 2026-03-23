@@ -203,4 +203,32 @@ describe("bind-keys", () => {
       "ctrl+shift+2",
     ]);
   });
+
+  it("handles different keyboard layouts (e.g., Russian)", () => {
+    const handler = vi.fn();
+    const bound = keysHandlerFactory().add("q", handler).build();
+
+    // Russian 'й' is on the same physical key as 'q'
+    const event = new KeyboardEvent("keydown", {
+      key: "й",
+      code: "KeyQ",
+    });
+
+    bound(event);
+    expect(handler).toHaveBeenCalledTimes(1);
+  });
+
+  it("handles punctuation in non-English layouts (e.g., Russian 'э' for Quote)", () => {
+    const handler = vi.fn();
+    const bound = keysHandlerFactory().add("'", handler).build();
+
+    // Russian 'э' is on the same physical key as "'"
+    const event = new KeyboardEvent("keydown", {
+      key: "э",
+      code: "Quote",
+    });
+
+    bound(event);
+    expect(handler).toHaveBeenCalledTimes(1);
+  });
 });

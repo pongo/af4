@@ -48,6 +48,7 @@ interface ParsedBinding {
   alt: boolean;
   meta: boolean;
   key: string;
+  code?: string;
   handler: Handler;
   options: BindOptions;
 }
@@ -62,6 +63,20 @@ const NON_TEXT_INPUT_TYPES = new Set([
   "submit",
   "color",
 ]);
+
+const PUNCTUATION_CODES: Record<string, string> = {
+  "-": "Minus",
+  "=": "Equal",
+  "[": "BracketLeft",
+  "]": "BracketRight",
+  "\\": "Backslash",
+  ";": "Semicolon",
+  "'": "Quote",
+  ",": "Comma",
+  ".": "Period",
+  "/": "Slash",
+  "`": "Backquote",
+};
 
 function defaultFilter(event: KeyboardEvent): boolean {
   const target = event.target;
@@ -170,7 +185,18 @@ export class KeysHandlerBuilder {
       mainKey = keyAliases[mainKey];
     }
 
-    return [{ ctrl, shift, alt, meta, key: mainKey, handler, options }];
+    let code: string | undefined;
+    if (mainKey.length === 1) {
+      if (mainKey >= "a" && mainKey <= "z") {
+        code = `Key${mainKey.toUpperCase()}`;
+      } else if (mainKey >= "0" && mainKey <= "9") {
+        code = `Digit${mainKey}`;
+      } else if (PUNCTUATION_CODES[mainKey]) {
+        code = PUNCTUATION_CODES[mainKey];
+      }
+    }
+
+    return [{ ctrl, shift, alt, meta, key: mainKey, code, handler, options }];
   }
 
   /**
@@ -185,12 +211,15 @@ export class KeysHandlerBuilder {
       const keyLower = event.key.toLowerCase();
 
       for (const binding of bindings) {
+        const keyMatch = binding.key === keyLower;
+        const codeMatch = binding.code && binding.code === event.code;
+
         if (
           binding.ctrl === event.ctrlKey &&
           binding.shift === event.shiftKey &&
           binding.alt === event.altKey &&
           binding.meta === event.metaKey &&
-          binding.key === keyLower
+          (keyMatch || codeMatch)
         ) {
           if (binding.options.filterInput && !defaultFilter(event)) {
             continue;
