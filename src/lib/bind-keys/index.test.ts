@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { keysHandlerFactory, digits, withModifier } from "./index";
+import { keysHandlerFactory, digits, withModifier, getLayoutIndependentKey } from "./index";
 
 describe("bind-keys", () => {
   it("binds a single key", () => {
@@ -230,5 +230,60 @@ describe("bind-keys", () => {
 
     bound(event);
     expect(handler).toHaveBeenCalledTimes(1);
+  });
+
+  describe("getLayoutIndependentKey", () => {
+    it("returns English letters for various layouts", () => {
+      expect(getLayoutIndependentKey(new KeyboardEvent("keydown", { code: "KeyQ" }))).toBe("q");
+      expect(getLayoutIndependentKey(new KeyboardEvent("keydown", { code: "KeyA" }))).toBe("a");
+      expect(getLayoutIndependentKey(new KeyboardEvent("keydown", { code: "KeyM" }))).toBe("m");
+    });
+
+    it("returns top-row digits", () => {
+      expect(getLayoutIndependentKey(new KeyboardEvent("keydown", { code: "Digit1" }))).toBe("1");
+      expect(getLayoutIndependentKey(new KeyboardEvent("keydown", { code: "Digit0" }))).toBe("0");
+    });
+
+    it("returns numpad keys", () => {
+      expect(getLayoutIndependentKey(new KeyboardEvent("keydown", { code: "Numpad1" }))).toBe("1");
+      expect(getLayoutIndependentKey(new KeyboardEvent("keydown", { code: "NumpadAdd" }))).toBe(
+        "+",
+      );
+      expect(getLayoutIndependentKey(new KeyboardEvent("keydown", { code: "NumpadEnter" }))).toBe(
+        "enter",
+      );
+    });
+
+    it("returns punctuation and symbols", () => {
+      expect(getLayoutIndependentKey(new KeyboardEvent("keydown", { code: "BracketLeft" }))).toBe(
+        "[",
+      );
+      expect(getLayoutIndependentKey(new KeyboardEvent("keydown", { code: "Quote" }))).toBe("'");
+      expect(getLayoutIndependentKey(new KeyboardEvent("keydown", { code: "Slash" }))).toBe("/");
+    });
+
+    it("returns special keys", () => {
+      expect(getLayoutIndependentKey(new KeyboardEvent("keydown", { code: "Space" }))).toBe(" ");
+      expect(getLayoutIndependentKey(new KeyboardEvent("keydown", { code: "Enter" }))).toBe(
+        "enter",
+      );
+      expect(getLayoutIndependentKey(new KeyboardEvent("keydown", { code: "ArrowUp" }))).toBe(
+        "arrowup",
+      );
+      expect(getLayoutIndependentKey(new KeyboardEvent("keydown", { code: "Escape" }))).toBe(
+        "escape",
+      );
+    });
+
+    it("returns function keys", () => {
+      expect(getLayoutIndependentKey(new KeyboardEvent("keydown", { code: "F1" }))).toBe("f1");
+      expect(getLayoutIndependentKey(new KeyboardEvent("keydown", { code: "F12" }))).toBe("f12");
+    });
+
+    it("returns undefined for unknown codes", () => {
+      expect(
+        getLayoutIndependentKey(new KeyboardEvent("keydown", { code: "UnknownCode" })),
+      ).toBeUndefined();
+    });
   });
 });
