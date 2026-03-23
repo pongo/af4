@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { keysHandlerFactory } from "./index";
+import { keysHandlerFactory, digits, withModifier } from "./index";
 import { JSDOM } from "jsdom";
 
 describe("bind-keys", () => {
@@ -93,4 +93,14 @@ describe("bind-keys", () => {
     bound(event1 as unknown as KeyboardEvent);
     expect(handler).toHaveBeenCalledTimes(1);
   });
+
+  it("digits() returns 0-9", () => {
+    expect(digits()).toEqual(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]);
+  });
+
+  it("withModifier() combines modifier and keys", () => {
+    expect(withModifier("alt", ["a", "b"])).toEqual(["alt+a", "alt+b"]);
+    expect(withModifier("ctrl+shift", digits().slice(0, 3))).toEqual(["ctrl+shift+0", "ctrl+shift+1", "ctrl+shift+2"]);
+  });
 });
+

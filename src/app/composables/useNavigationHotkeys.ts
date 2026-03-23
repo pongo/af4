@@ -1,7 +1,7 @@
 import { computed, onMounted, onUnmounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { assert } from "smart-invariant";
-import { keysHandlerFactory } from "@/lib/bind-keys";
+import { keysHandlerFactory, digits, withModifier } from "@/lib/bind-keys";
 import { taskListLabelsStore } from "../lib/taskListLabelsStore";
 
 export function useNavigationHotkeys() {
@@ -23,8 +23,7 @@ export function useNavigationHotkeys() {
 
   const bindKeysHandler = keysHandlerFactory()
     .add(
-      // [ 'Alt+0', 'Alt+1', 'Alt+2', ... ]
-      Array.from({ length: 10 }, (_, i) => `alt+${i}`),
+      withModifier("alt", digits()),
       (event) => {
         const num = parseInt(event.key, 10);
         const index = (num === 0 ? 10 : num) - 1;

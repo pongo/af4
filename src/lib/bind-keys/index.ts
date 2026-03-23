@@ -1,4 +1,13 @@
+export function digits(): string[] {
+  return Array.from({ length: 10 }, (_, i) => i.toString());
+}
+
+export function withModifier(modifier: string, keys: string[]): string[] {
+  return keys.map(key => `${modifier}+${key}`);
+}
+
 export type Filter = (event: KeyboardEvent) => boolean;
+
 
 export interface BindOptions {
   filterInput?: boolean | Filter;
