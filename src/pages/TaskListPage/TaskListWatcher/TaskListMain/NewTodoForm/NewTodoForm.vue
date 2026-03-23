@@ -29,7 +29,7 @@ const handleSubmit = (event?: KeyboardEvent | MouseEvent) => {
   if (!newTodo.value.trim()) return;
 
   emit("add-todo", newTodo.value, {
-    postponed: event?.shiftKey ?? postponed.value,
+    postponed: event?.shiftKey ? true : postponed.value,
     origId: origId.value,
   });
   reset();
