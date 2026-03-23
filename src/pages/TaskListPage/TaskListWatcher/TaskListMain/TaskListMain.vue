@@ -2,7 +2,7 @@
 import { nextTick, onMounted, onUnmounted, useTemplateRef } from "vue";
 import NewTodoForm from "./NewTodoForm/NewTodoForm.vue";
 import TaskList from "./TaskList/TaskList.vue";
-import hotkeys, { type KeyHandler } from "hotkeys-js";
+import { keysHandlerFactory } from "@/lib/bind-keys";
 import type { TaskList as TaskListState, UserAction } from "@/app/types.ts";
 import { toast } from "vue3-toastify";
 import { itemIconPosToggle } from "@/app/lib/toggles.ts";
@@ -77,167 +77,207 @@ function notify(message: string) {
   });
 }
 
-const boundKeys = new Set<string>();
-
-function bindKey(keys: string, callback: KeyHandler) {
-  boundKeys.add(keys);
-  hotkeys(keys, callback);
-}
+let bindKeysHandler: ((event: KeyboardEvent) => void) | undefined;
 
 function bindHotkeys() {
-  bindKey("space, c, n", (): false => {
-    newTodoFormRef.value?.focus();
-    return false;
-  });
+  bindKeysHandler = keysHandlerFactory()
+    .add(
+      "space, c, n",
+      () => {
+        newTodoFormRef.value?.focus();
+      },
+      { filterInput: true, prevent: true },
+    )
+    .add(
+      "up, w, j",
+      () => {
+        taskListRef.value?.navigate("up");
+      },
+      { filterInput: true, prevent: true },
+    )
+    .add(
+      "down, s, k",
+      () => {
+        taskListRef.value?.navigate("down");
+      },
+      { filterInput: true, prevent: true },
+    )
+    .add(
+      "home",
+      () => {
+        taskListRef.value?.navigate("home");
+      },
+      { filterInput: true, prevent: true },
+    )
+    .add(
+      "end",
+      () => {
+        taskListRef.value?.navigate("end");
+      },
+      { filterInput: true, prevent: true },
+    )
+    .add(
+      "pageup, pgup",
+      () => {
+        taskListRef.value?.navigate("pageup");
+      },
+      { filterInput: true, prevent: true },
+    )
+    .add(
+      "pagedown, pgdown",
+      () => {
+        taskListRef.value?.navigate("pagedown");
+      },
+      { filterInput: true, prevent: true },
+    )
+    .add(
+      "x, d",
+      (event) => {
+        const id = getFocusedTaskId(event);
+        if (id === undefined) return;
 
-  bindKey("up, w, j", (): false => {
-    taskListRef.value?.navigate("up");
-    return false;
-  });
+        dispatch(props.state, { type: "CompleteTask", id });
+      },
+      { filterInput: true, prevent: true },
+    )
+    .add(
+      "delete, backspace",
+      (event) => {
+        const id = getFocusedTaskId(event);
+        if (id === undefined) return;
 
-  bindKey("down, s, k", (): false => {
-    taskListRef.value?.navigate("down");
-    return false;
-  });
+        dispatch(props.state, { type: "DeleteTask", id });
+      },
+      { filterInput: true, prevent: true },
+    )
+    .add(
+      "z",
+      (event) => {
+        const id = getFocusedTaskId(event);
+        if (id === undefined) return;
 
-  bindKey("home", (): false => {
-    taskListRef.value?.navigate("home");
-    return false;
-  });
+        dispatch(props.state, { type: "ZeroTask", id });
+      },
+      { filterInput: true, prevent: true },
+    )
+    .add(
+      "r",
+      (event) => {
+        const id = getFocusedTaskId(event);
+        if (id === undefined) return;
 
-  bindKey("end", (): false => {
-    taskListRef.value?.navigate("end");
-    return false;
-  });
+        dispatch(props.state, { type: "ReaddTask", id });
+        if (props.state.current.list !== "open") {
+          notify("Задача заново добавлена в открытый список");
+        }
+      },
+      { filterInput: true, prevent: true },
+    )
+    .add(
+      "shift+r",
+      () => {
+        const focusedTask = taskListRef.value?.getFocusedTask();
+        if (focusedTask === undefined) return;
 
-  bindKey("pageup, pgup", (): false => {
-    taskListRef.value?.navigate("pageup");
-    return false;
-  });
+        newTodoFormRef.value?.focusWithText(focusedTask.title, {
+          origId: focusedTask.id,
+        });
+      },
+      { filterInput: true, prevent: true },
+    )
+    .add(
+      "f, h, shift+f, shift+h",
+      (event: KeyboardEvent) => {
+        const focusedTask = taskListRef.value?.getFocusedTask();
+        if (focusedTask === undefined) return;
 
-  bindKey("pagedown, pgdown", (): false => {
-    taskListRef.value?.navigate("pagedown");
-    return false;
-  });
+        if (event.shiftKey) {
+          newTodoFormRef.value?.focusWithText(focusedTask.title, {
+            postponed: true,
+            origId: focusedTask.id,
+          });
+          return;
+        }
 
-  bindKey("x, d", (event): false => {
-    const id = getFocusedTaskId(event);
-    if (id === undefined) return false;
+        dispatch(props.state, { type: "PostponeTask", id: focusedTask.id });
+        notify("Задача отложена до завтра");
+      },
+      { filterInput: true, prevent: true },
+    )
+    .add(
+      "shift+right",
+      () => {
+        next();
+      },
+      { filterInput: true, prevent: true },
+    )
+    .add(
+      "ctrl+z",
+      () => {
+        emit("undo", props.state.id);
+      },
+      { filterInput: true, prevent: true },
+    )
+    .add(
+      "ctrl+shift+z",
+      () => {
+        emit("redo", props.state.id);
+      },
+      { filterInput: true, prevent: true },
+    )
+    .add(
+      "'",
+      () => {
+        itemIconPosToggle.next();
+      },
+      { filterInput: true, prevent: true },
+    )
+    .add(
+      "ctrl+c",
+      (event) => {
+        if (window.getSelection()?.toString()) return;
 
-    dispatch(props.state, { type: "CompleteTask", id });
-    return false;
-  });
+        const focusedTask = taskListRef.value?.getFocusedTask();
+        if (focusedTask !== undefined) {
+          void navigator.clipboard.writeText(focusedTask.title);
+          event.preventDefault();
+          event.stopPropagation();
+        }
+      },
+      { filterInput: true },
+    )
+    .add(
+      "v",
+      () => {
+        const focusedItem = taskListRef.value?.getFocusedItem();
+        focusedItem?.openFirstLink();
+      },
+      { filterInput: true, prevent: true },
+    )
+    .add(
+      "e, enter, f2",
+      () => {
+        const focusedItem = taskListRef.value?.getFocusedItem();
+        const focusedTask = taskListRef.value?.getFocusedTask();
+        if (focusedItem === undefined || focusedTask === undefined) return;
 
-  bindKey("delete, backspace", (event): false => {
-    const id = getFocusedTaskId(event);
-    if (id === undefined) return false;
+        const newTitle = focusedItem.edit();
+        if (newTitle === undefined) return;
 
-    dispatch(props.state, { type: "DeleteTask", id });
-    return false;
-  });
+        focusedTask.title = newTitle;
+      },
+      { filterInput: true, prevent: true },
+    )
+    .build();
 
-  bindKey("z", (event): false => {
-    const id = getFocusedTaskId(event);
-    if (id === undefined) return false;
-
-    dispatch(props.state, { type: "ZeroTask", id });
-    return false;
-  });
-
-  bindKey("r", (event): false => {
-    const id = getFocusedTaskId(event);
-    if (id === undefined) return false;
-
-    dispatch(props.state, { type: "ReaddTask", id });
-    if (props.state.current.list !== "open") {
-      notify("Задача заново добавлена в открытый список");
-    }
-    return false;
-  });
-
-  bindKey("shift+r", (): false => {
-    const focusedTask = taskListRef.value?.getFocusedTask();
-    if (focusedTask === undefined) return false;
-
-    newTodoFormRef.value?.focusWithText(focusedTask.title, { origId: focusedTask.id });
-    return false;
-  });
-
-  bindKey("f, h, shift+f, shift+h", (event: KeyboardEvent): false => {
-    const focusedTask = taskListRef.value?.getFocusedTask();
-    if (focusedTask === undefined) return false;
-
-    if (event.shiftKey) {
-      newTodoFormRef.value?.focusWithText(focusedTask.title, {
-        postponed: true,
-        origId: focusedTask.id,
-      });
-      return false;
-    }
-
-    dispatch(props.state, { type: "PostponeTask", id: focusedTask.id });
-    notify("Задача отложена до завтра");
-    return false;
-  });
-
-  bindKey("shift+right", (): false => {
-    next();
-    return false;
-  });
-
-  bindKey("ctrl+z", (): false => {
-    emit("undo", props.state.id);
-    return false;
-  });
-
-  bindKey("ctrl+shift+z", (): false => {
-    emit("redo", props.state.id);
-    return false;
-  });
-
-  bindKey("'", (): false => {
-    itemIconPosToggle.next();
-    return false;
-  });
-
-  bindKey("ctrl+c", () => {
-    // if there is a selection, do not intercept
-    if (window.getSelection()?.toString()) return true;
-
-    // copy focused task title
-    const focusedTask = taskListRef.value?.getFocusedTask();
-    if (focusedTask !== undefined) {
-      void navigator.clipboard.writeText(focusedTask.title);
-    }
-    return false;
-  });
-
-  bindKey("v", (): false => {
-    const focusedItem = taskListRef.value?.getFocusedItem();
-    focusedItem?.openFirstLink();
-    return false;
-  });
-
-  bindKey("e, enter, f2", (): false => {
-    const focusedItem = taskListRef.value?.getFocusedItem();
-    const focusedTask = taskListRef.value?.getFocusedTask();
-    if (focusedItem === undefined || focusedTask === undefined) return false;
-
-    const newTitle = focusedItem.edit();
-    if (newTitle === undefined) return false;
-
-    focusedTask.title = newTitle;
-    // const actions = createActions(props.state, { type: "EditTask", id: focusedTask.id, title: newTitle });
-    // applyActions(props.state, actions);
-    return false;
-  });
+  window.addEventListener("keydown", bindKeysHandler);
 }
 
 function unbindHotkeys() {
-  for (const keys of boundKeys) {
-    hotkeys.unbind(keys);
+  if (bindKeysHandler) {
+    window.removeEventListener("keydown", bindKeysHandler);
+    bindKeysHandler = undefined;
   }
-  boundKeys.clear();
 }
 
 function focusTask() {

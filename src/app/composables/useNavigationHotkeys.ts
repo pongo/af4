@@ -1,8 +1,7 @@
 import { computed, onMounted, onUnmounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { assert } from "smart-invariant";
-import hotkeys from "hotkeys-js";
-import { createKeybindingsHandler } from "tinykeys";
+import { keysHandlerFactory } from "@/lib/bind-keys";
 import { taskListLabelsStore } from "../lib/taskListLabelsStore";
 
 export function useNavigationHotkeys() {
@@ -11,36 +10,42 @@ export function useNavigationHotkeys() {
   const currentId = computed(() => route.params.id as string);
   const { navigateToNextList, navigateListByIndex } = taskListLabelsStore();
 
-  const tinykeysHandler = createKeybindingsHandler({
-    "Alt+([0-9])": (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      const num = parseInt(event.key, 10);
-      const index = (num === 0 ? 10 : num) - 1;
-      assert(index >= 0 && index <= 9);
+  const bindKeysHandler = keysHandlerFactory()
+    .add(
+      Array.from({ length: 10 }, (_, i) => `Alt+${i}`),
+      (event) => {
+        const num = parseInt(event.key, 10);
+        const index = (num === 0 ? 10 : num) - 1;
+        assert(index >= 0 && index <= 9);
 
-      const nextId = navigateListByIndex(index);
-      if (nextId === undefined) return;
-      void router.replace(`/tl/${nextId}`);
-    },
-  });
+        const nextId = navigateListByIndex(index);
+        if (nextId === undefined) return;
+        void router.replace(`/tl/${nextId}`);
+      },
+      { prevent: true },
+    )
+    .add(
+      "q, a",
+      (event) => {
+        if (!currentId.value) return;
+
+        const nextId = navigateToNextList(
+          currentId.value,
+          event.key.toLowerCase() === "q" ? "up" : "down",
+        );
+        if (nextId !== undefined) {
+          void router.replace(`/tl/${nextId}`);
+        }
+      },
+      { filterInput: true, prevent: true },
+    )
+    .build();
 
   onMounted(() => {
-    window.addEventListener("keydown", tinykeysHandler);
-
-    hotkeys("q,a", (event, handler): false => {
-      if (!currentId.value) return false;
-
-      const nextId = navigateToNextList(currentId.value, handler.key === "q" ? "up" : "down");
-      if (nextId !== undefined) {
-        void router.replace(`/tl/${nextId}`);
-      }
-      return false;
-    });
+    window.addEventListener("keydown", bindKeysHandler);
   });
 
   onUnmounted(() => {
-    window.removeEventListener("keydown", tinykeysHandler);
-    hotkeys.unbind("q,a");
+    window.removeEventListener("keydown", bindKeysHandler);
   });
 }
