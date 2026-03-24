@@ -2,7 +2,7 @@
 import { nextTick, onMounted, onUnmounted, useTemplateRef } from "vue";
 import NewTodoForm from "./NewTodoForm/NewTodoForm.vue";
 import TaskList from "./TaskList/TaskList.vue";
-import { keysHandlerFactory } from "@/lib/bind-keys";
+import { keysHandlerBuilder } from "@/lib/bind-keys";
 import type { TaskList as TaskListState, UserAction } from "@/app/types.ts";
 import { toast } from "vue3-toastify";
 import { itemIconPosToggle } from "@/app/lib/toggles.ts";
@@ -77,7 +77,7 @@ function notify(message: string) {
   });
 }
 
-const bindKeysHandler = keysHandlerFactory()
+const bindKeysHandler = keysHandlerBuilder()
   .add(
     ["space", "c", "n"],
     () => {
