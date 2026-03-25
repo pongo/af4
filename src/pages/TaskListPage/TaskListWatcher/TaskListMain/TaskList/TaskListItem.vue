@@ -188,7 +188,7 @@ function edit() {
     </template>
     <template v-else>
       <div>
-        <div>
+        <div class="-ml-9">
           <CheckCheck
             v-if="state.status === 'completed' && state.additionalStatus === 'readded'"
             class="mr-1 inline-block"
