@@ -5,7 +5,6 @@ import TaskList from "./TaskList/TaskList.vue";
 import { keysHandlerBuilder } from "@/lib/bind-keys";
 import type { TaskList as TaskListState, UserAction } from "@/app/types.ts";
 import { toast } from "vue3-toastify";
-import { itemIconPosToggle } from "@/app/lib/toggles.ts";
 import { useDailyCleanup } from "@/app/composables/useDailyCleanup.ts";
 import { dispatch } from "@/app/model/dispatch.ts";
 
@@ -219,13 +218,6 @@ const bindKeysHandler = keysHandlerBuilder()
     "ctrl+shift+z",
     () => {
       emit("redo", props.state.id);
-    },
-    { filterInput: true, prevent: true },
-  )
-  .add(
-    "'",
-    () => {
-      itemIconPosToggle.next();
     },
     { filterInput: true, prevent: true },
   )

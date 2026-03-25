@@ -4,7 +4,6 @@ import { Asterisk, CalendarCheck, Check, CheckCheck, Zap } from "lucide-vue-next
 import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
 import MyKbd from "@/components/MyKbd.vue";
 import { newTodoFormFocused } from "../NewTodoForm/NewTodoForm.vue";
-import { itemIconPosToggle } from "@/app/lib/toggles.ts";
 import { globalFocusedItem } from "@/app/lib/focusedItem.ts";
 import { tw } from "@/lib/tw.ts";
 import Autolinker, { HtmlTag } from "autolinker";
@@ -189,7 +188,7 @@ function edit() {
     </template>
     <template v-else>
       <div>
-        <div :class="itemIconPosToggle.currentValue.value === 'in' ? '' : '-ml-9'">
+        <div>
           <CheckCheck
             v-if="state.status === 'completed' && state.additionalStatus === 'readded'"
             class="mr-1 inline-block"
