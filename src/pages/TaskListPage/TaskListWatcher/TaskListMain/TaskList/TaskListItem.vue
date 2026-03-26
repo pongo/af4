@@ -106,8 +106,16 @@ const isImportant = computed(() => {
   return reImportant.test(props.state.title);
 });
 
+const reListPrefix = /^([^\s])[.)]/;
+const listPrefix = computed(() => {
+  const m = reListPrefix.exec(props.state.title);
+  return m ? m[1] : null;
+});
+
 const cleanedTitle = computed(() => {
-  return props.state.title.replace(reImportant, "").trim();
+  if (isImportant.value) return props.state.title.replace(reImportant, "").trim();
+  if (listPrefix.value !== null) return props.state.title.replace(reListPrefix, "").trim();
+  return props.state.title;
 });
 
 function ellipsis(str: string, truncateLen: number, ellipsisChars = "&hellip;"): string {
@@ -200,6 +208,11 @@ function edit() {
           <Check v-else-if="state.status === 'completed'" class="mr-1 inline-block" />
           <Zap v-else-if="state.zero" class="mr-1 inline-block text-lime-500" />
           <Asterisk v-else-if="isImportant" class="mr-1 inline-block text-red-500" />
+          <span
+            v-else-if="listPrefix !== null"
+            class="mr-1 inline-flex h-6 w-6 items-center justify-center text-base font-bold text-blue-500 uppercase"
+            >{{ listPrefix }}</span
+          >
           <svg
             v-else
             xmlns="http://www.w3.org/2000/svg"
