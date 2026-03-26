@@ -8,6 +8,7 @@ import MyKbd from "@/components/MyKbd.vue";
 import NextButton from "./NextButton.vue";
 import { globalFocusedItem } from "@/app/lib/focusedItem.ts";
 import { assert } from "smart-invariant";
+import { closedListStyleToggle } from "@/app/lib/toggles.ts";
 
 const props = defineProps<{ state: TaskList }>();
 
@@ -99,7 +100,14 @@ defineExpose({
     </p>
   </TaskListHelp>
 
-  <div ref="container" class="relative flex flex-col">
+  <div
+    ref="container"
+    class="relative flex flex-col"
+    :class="{
+      'outline-2 outline-offset-2 outline-neutral-500 outline-dotted':
+        state.current.list === 'closed' && closedListStyleToggle.currentValue.value === 'outline',
+    }"
+  >
     <TaskListItem
       v-for="(item, index) in currentTasks"
       :key="item.id"

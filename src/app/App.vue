@@ -2,10 +2,12 @@
 import AppSidebar from "@/components/AppSidebar.vue";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
-import { ref } from "vue";
+import { onMounted, onUnmounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useNavigationHotkeys } from "@/app/composables/useNavigationHotkeys";
 import ShowNewVersion, { useVersionCheck } from "@/components/ShowNewVersion.vue";
+import { keysHandlerBuilder } from "@/lib/bind-keys.ts";
+import { closedListStyleToggle } from "./lib/toggles.ts";
 
 const { isNewVersionAvailable, newVersionDetails, versionCheckError } = useVersionCheck();
 
@@ -25,6 +27,24 @@ router.beforeEach(() => {
 router.afterEach(() => {
   clearTimeout(loadingTimer);
   isLoading.value = false;
+});
+
+const bindKeysHandler = keysHandlerBuilder()
+  .add(
+    "'",
+    () => {
+      closedListStyleToggle.next();
+    },
+    { filterInput: true, prevent: true },
+  )
+  .build();
+
+onMounted(() => {
+  window.addEventListener("keydown", bindKeysHandler);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("keydown", bindKeysHandler);
 });
 </script>
 
