@@ -170,7 +170,7 @@ function edit() {
     v-focus="focused"
     :data-id="state.id"
     :tabindex="focused ? 0 : -1"
-    class="flex flex-row justify-between p-2 pb-1.5 text-black hover:bg-neutral-100 focus:inset-ring-2 focus:inset-ring-neutral-500 focus:outline-none"
+    class="flex min-h-10 flex-row justify-between p-2 pb-1.5 text-black hover:bg-neutral-100 focus:inset-ring-2 focus:inset-ring-neutral-500 focus:outline-none"
     :class="[
       backgroundColor,
       focused ? 'inset-ring-2 inset-ring-neutral-200' : undefined,
@@ -196,7 +196,7 @@ function edit() {
     </template>
     <template v-else>
       <div>
-        <div class="-ml-9">
+        <div class="-ml-9 h-6">
           <CheckCheck
             v-if="state.status === 'completed' && state.additionalStatus === 'readded'"
             class="mr-1 inline-block"
@@ -213,16 +213,6 @@ function edit() {
             class="mr-1 inline-flex h-6 w-6 items-center justify-center text-base font-bold text-blue-500 uppercase"
             >{{ listPrefix }}</span
           >
-          <svg
-            v-else
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke-width="2"
-            class="mr-1 inline-block"
-          />
         </div>
       </div>
       <div class="w-full">
