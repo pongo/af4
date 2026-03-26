@@ -101,9 +101,12 @@ const backgroundColor = computed(() => {
   return undefined;
 });
 
-const reImportant = /^[!*]+/;
+const reImportant = /^([!*])/;
 const isImportant = computed(() => {
   return reImportant.test(props.state.title);
+});
+const importantPrefix = computed(() => {
+  return reImportant.exec(props.state.title)?.[1];
 });
 
 const reListPrefix = /^([^\s])[.)]/;
@@ -207,7 +210,12 @@ function edit() {
           />
           <Check v-else-if="state.status === 'completed'" class="mr-1 inline-block" />
           <Zap v-else-if="state.zero" class="mr-1 inline-block text-lime-500" />
-          <Asterisk v-else-if="isImportant" class="mr-1 inline-block text-red-500" />
+          <span v-else-if="isImportant" class="mr-1 text-red-500">
+            <Asterisk class="inline-block" />
+            <span class="text-transparent selection:text-transparent">{{
+              importantPrefix ?? "*"
+            }}</span>
+          </span>
           <span
             v-else-if="listPrefix !== null"
             class="mr-1 inline-flex h-6 w-6 items-center justify-center text-base font-bold text-blue-500 uppercase"
