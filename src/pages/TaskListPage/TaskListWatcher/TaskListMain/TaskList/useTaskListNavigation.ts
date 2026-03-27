@@ -8,9 +8,9 @@ const PAGE_SIZE_FALLBACK = 10;
 
 class Navigation {
   constructor(
-    private items: Ref<Task[]>,
-    private taskItems: Readonly<ShallowRef<TaskListItem[] | null>>,
-    private focusedIndex: Ref<number>,
+    private readonly items: Ref<Task[]>,
+    private readonly taskItems: Readonly<ShallowRef<TaskListItem[] | null>>,
+    private readonly focusedIndex: Ref<number>,
   ) {}
 
   up() {

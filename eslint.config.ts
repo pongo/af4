@@ -34,6 +34,7 @@ export default defineConfigWithVueTs(
       "vue/multi-word-component-names": "off",
       "vue/require-default-prop": "off",
       "@typescript-eslint/restrict-template-expressions": ["error", { allowNumber: true }],
+      "@typescript-eslint/prefer-readonly": "error",
     },
   },
 );
