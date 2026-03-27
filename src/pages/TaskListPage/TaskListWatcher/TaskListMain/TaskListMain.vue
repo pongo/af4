@@ -2,7 +2,7 @@
 import { nextTick, onMounted, onUnmounted, useTemplateRef } from "vue";
 import NewTodoForm from "./NewTodoForm/NewTodoForm.vue";
 import TaskList from "./TaskList/TaskList.vue";
-import { keysHandlerBuilder } from "@/lib/bind-keys";
+import { keysHandlerBuilder } from "bind-keys";
 import type { TaskList as TaskListState, UserAction } from "@/app/types.ts";
 import { toast } from "vue3-toastify";
 import { useDailyCleanup } from "@/app/composables/useDailyCleanup.ts";

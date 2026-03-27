@@ -6,7 +6,7 @@ import { onMounted, onUnmounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useNavigationHotkeys } from "@/app/composables/useNavigationHotkeys";
 import ShowNewVersion, { useVersionCheck } from "@/components/ShowNewVersion.vue";
-import { keysHandlerBuilder } from "@/lib/bind-keys.ts";
+import { keysHandlerBuilder } from "bind-keys";
 import { closedListStyleToggle } from "./lib/toggles.ts";
 
 const { isNewVersionAvailable, newVersionDetails, versionCheckError } = useVersionCheck();

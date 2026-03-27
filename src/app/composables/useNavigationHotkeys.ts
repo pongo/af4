@@ -1,7 +1,7 @@
 import { computed, onMounted, onUnmounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { assert } from "smart-invariant";
-import { keysHandlerBuilder, digits, withModifier } from "@/lib/bind-keys";
+import { keysHandlerBuilder, digits, withModifier } from "bind-keys";
 import { taskListLabelsStore } from "../lib/taskListLabelsStore";
 
 export function useNavigationHotkeys() {
