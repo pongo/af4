@@ -16,7 +16,7 @@ export function taskListLabelsStore() {
   };
 }
 
-async function reorderLabels(orderedIds: string[]) {
+async function reorderLabels(orderedIds: readonly string[]) {
   await db.reorderTaskListLabels(orderedIds);
 }
 

@@ -16,7 +16,11 @@ withDefaults(
 );
 
 const emit = defineEmits<{
-  (e: "add-todo", text: string, options: { postponed?: boolean; origId?: string }): void;
+  (
+    e: "add-todo",
+    text: string,
+    options: { readonly postponed?: boolean; readonly origId?: string },
+  ): void;
   (e: "focus-task"): void;
 }>();
 
@@ -36,7 +40,10 @@ const handleSubmit = (event?: KeyboardEvent | MouseEvent) => {
   inputRef.value?.focus();
 };
 
-function focusWithText(text: string, options: { postponed?: boolean; origId?: string } = {}) {
+function focusWithText(
+  text: string,
+  options: { readonly postponed?: boolean; readonly origId?: string } = {},
+) {
   newTodo.value = text;
   postponed.value = options.postponed ?? false;
   origId.value = options.origId;

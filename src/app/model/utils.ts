@@ -21,11 +21,11 @@ export function completeTask(
   (task as CompletedTask).additionalStatus = additionalStatus;
 }
 
-export function today(now: Date) {
+export function today(now: Readonly<Date>) {
   return new Date(now.getFullYear(), now.getMonth(), now.getDate());
 }
 
-export function tomorrow(now: Date) {
+export function tomorrow(now: Readonly<Date>) {
   return new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
 }
 

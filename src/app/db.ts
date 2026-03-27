@@ -16,9 +16,9 @@ const DB_VERSION = 1;
 export const taskListLabels = shallowRef<TaskListLabel[]>([]);
 
 export interface DBChangeEvent {
-  storeName: string;
-  type: "change" | "delete";
-  id?: string;
+  readonly storeName: string;
+  readonly type: "change" | "delete";
+  readonly id?: string;
 }
 
 const { data: dbChangedData, post: postMessage } = useBroadcastChannel<
@@ -106,7 +106,7 @@ export const db = {
     return await idb.getAllFromIndex("tasklists_meta", "position");
   },
 
-  async reorderTaskListLabels(orderedIds: string[]): Promise<void> {
+  async reorderTaskListLabels(orderedIds: readonly string[]): Promise<void> {
     const idb = await dbPromise;
     const tx = idb.transaction("tasklists_meta", "readwrite");
     const store = tx.objectStore("tasklists_meta");

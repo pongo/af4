@@ -3,7 +3,7 @@ import { useRouter } from "vue-router";
 import { db } from "@/app/db.ts";
 import { assert } from "smart-invariant";
 
-export function useDBWatcher(id: Ref<string>) {
+export function useDBWatcher(id: Readonly<Ref<string>>) {
   const router = useRouter();
 
   watch(db.dbChangedData, (data) => {

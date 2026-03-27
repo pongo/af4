@@ -5,9 +5,9 @@ import type { Plugin, ResolvedConfig } from "vite";
 
 interface Options {
   /** name of the emitted JSON file in dist/ (default: 'version.json') */
-  output?: string;
+  readonly output?: string;
   /** whether to inject compile-time constants (default: true) */
-  define?: boolean | "minimal";
+  readonly define?: boolean | "minimal";
 }
 
 // run `git describe --tags --always` or fall back
@@ -39,27 +39,27 @@ export function gitCommitTimestamp(): string {
 
 // Functional Core: Data structures
 interface VersionDetails {
-  name: string;
-  version: string;
-  tag: string;
-  commit: string;
-  commitTime: string;
-  created: string;
+  readonly name: string;
+  readonly version: string;
+  readonly tag: string;
+  readonly commit: string;
+  readonly commitTime: string;
+  readonly created: string;
 }
 
 interface VersionDataInput {
-  packageJsonString: string;
-  gitTagValue: string;
-  gitCommitValue: string;
-  gitCommitTimestampValue: string;
-  timestampForJsonCreation: string;
-  timestampForDefaultVersion: string; // For generating version if missing from package.json
-  pluginOptions: Options;
+  readonly packageJsonString: string;
+  readonly gitTagValue: string;
+  readonly gitCommitValue: string;
+  readonly gitCommitTimestampValue: string;
+  readonly timestampForJsonCreation: string;
+  readonly timestampForDefaultVersion: string; // For generating version if missing from package.json
+  readonly pluginOptions: Readonly<Options>;
 }
 
 interface ProcessedVersionInfo {
-  versionDetails: VersionDetails;
-  defines?: Record<string, string>;
+  readonly versionDetails: VersionDetails;
+  readonly defines?: Record<string, string>;
 }
 
 // Functional Core: Pure function to generate version information

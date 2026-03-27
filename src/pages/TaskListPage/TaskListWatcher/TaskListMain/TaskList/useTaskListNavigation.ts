@@ -123,7 +123,7 @@ export function useTaskListNavigation(
   }
 }
 
-function getVisibleIndices(taskItems: TaskListItem[] | null) {
+function getVisibleIndices(taskItems: readonly TaskListItem[] | null) {
   if (!taskItems) return [];
   return taskItems
     .map((component, index) => {

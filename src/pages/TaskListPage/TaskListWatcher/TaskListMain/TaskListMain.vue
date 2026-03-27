@@ -21,7 +21,7 @@ const taskListRef = useTemplateRef("taskList");
 
 function handleAddTodo(
   title: string,
-  { postponed = false, origId }: { postponed?: boolean; origId?: string },
+  { postponed = false, origId }: { readonly postponed?: boolean; readonly origId?: string },
 ) {
   dispatch(props.state, getAction());
   void nextTick(() => {
