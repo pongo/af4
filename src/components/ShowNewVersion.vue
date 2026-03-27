@@ -19,7 +19,7 @@ export function useVersionCheck() {
         `Failed to fetch ${versionJsonPath}: ${response.status} ${response.statusText}`,
       );
     }
-    return await response.json();
+    return (await response.json()) as { version: string; tag: string };
   }
 
   async function fetchInitialVersion() {

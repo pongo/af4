@@ -64,7 +64,7 @@ interface ProcessedVersionInfo {
 
 // Functional Core: Pure function to generate version information
 function generateVersionInfo(input: VersionDataInput): ProcessedVersionInfo {
-  const pkg = JSON.parse(input.packageJsonString);
+  const pkg = JSON.parse(input.packageJsonString) as { version?: string; name?: string };
   const defaultVersionString = input.timestampForDefaultVersion.replace(/[-:T]/g, "").slice(0, 15); // YYYYMMDDHHmmss
   const version = pkg.version ?? defaultVersionString;
   const pkgName = pkg.name ?? "unknown";
