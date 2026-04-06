@@ -4,7 +4,6 @@ import { Asterisk, CalendarCheck, Check, CheckCheck, Zap } from "lucide-vue-next
 import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
 import MyKbd from "@/components/MyKbd.vue";
 import { newTodoFormFocused } from "../NewTodoForm/NewTodoForm.vue";
-import { globalFocusedItem } from "@/app/lib/focusedItem.ts";
 import { tw } from "@/lib/tw.ts";
 import Autolinker, { HtmlTag } from "autolinker";
 import { YYYYMMDD } from "@/lib/YYYYMMDD.ts";
@@ -63,7 +62,6 @@ watch(
   () => props.focused,
   (value) => {
     if (value) {
-      globalFocusedItem.value = props.state;
       wasFocused.value = true;
     }
   },
@@ -180,10 +178,7 @@ function edit() {
       state.status === 'completed' ? 'text-neutral-400' : undefined,
       state.status === 'deleted' ? 'text-neutral-400' : undefined,
     ]"
-    @click="
-      $emit('focus');
-      globalFocusedItem = props.state;
-    "
+    @click="$emit('focus')"
   >
     <template v-if="isDivider">
       <XDivider

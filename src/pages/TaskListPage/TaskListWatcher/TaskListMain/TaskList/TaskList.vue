@@ -6,7 +6,6 @@ import type { TaskList } from "@/app/types.ts";
 import TaskListHelp from "./TaskListHelp.vue";
 import MyKbd from "@/components/MyKbd.vue";
 import NextButton from "./NextButton.vue";
-import { globalFocusedItem } from "@/app/lib/focusedItem.ts";
 import { assert } from "smart-invariant";
 import { closedListStyleToggle } from "@/app/lib/toggles.ts";
 
@@ -59,10 +58,6 @@ watch(focusedIndex, () => {
     const task = focusedTask.value;
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     assert(task != undefined);
-    if (task.id !== globalFocusedItem.value?.id) {
-      console.log("!!!!", task, globalFocusedItem.value);
-      globalFocusedItem.value = task;
-    }
   });
 });
 
