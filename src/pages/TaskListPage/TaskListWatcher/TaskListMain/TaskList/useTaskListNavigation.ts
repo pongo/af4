@@ -99,7 +99,7 @@ class Navigation {
 }
 
 function scrollBottom() {
-  window.scrollTo({ top: document.body.scrollHeight });
+  window.scrollTo({ top: document.documentElement.scrollHeight });
 }
 
 function scrollTop() {
