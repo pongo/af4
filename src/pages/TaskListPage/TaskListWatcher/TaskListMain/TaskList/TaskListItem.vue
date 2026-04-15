@@ -130,6 +130,7 @@ const titleWithLinks = computed(() => {
   return Autolinker.link(cleanedTitle.value, {
     phone: false,
     email: false,
+    sanitizeHtml: true,
     replaceFn(match) {
       return new HtmlTag({
         tagName: "a",
