@@ -260,7 +260,16 @@ const bindKeysHandler = keysHandlerBuilder()
   .build();
 
 function focusTask() {
-  taskListRef.value?.getFocusedItem()?.focus();
+  if (taskListRef.value == null) return;
+
+  const focusedItem = taskListRef.value.getFocusedItem();
+  if (focusedItem) {
+    focusedItem.focus();
+    return;
+  }
+
+  // focusedItem may be undefined after list cleanup. Then focus the last task
+  taskListRef.value.navigate("end");
 }
 
 function getFocusedTaskId(event: KeyboardEvent) {
