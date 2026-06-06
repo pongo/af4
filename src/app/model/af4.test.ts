@@ -9,7 +9,7 @@ import type {
   TaskList,
   UserAction,
 } from "../types.ts";
-import { makeAf4, reduceAf4 } from "./af4.ts";
+import { makeAf4, reduceAf4, reduceAf4State } from "./af4.ts";
 import { findTask } from "./utils.ts";
 
 const baseNow = new Date("2025-01-01T10:00:00.000Z");
@@ -278,6 +278,44 @@ describe("AF4 list transitions", () => {
 
     expect(tasklist.current.list).toBe("open");
     expect(findTask(tasklist, "created").list).toBe("open");
+  });
+});
+
+describe("AF4 immutable reducer", () => {
+  it("returns the next state without mutating the input tasklist", () => {
+    const tasklist = createTaskList();
+
+    const next = reduceAf4State(
+      tasklist,
+      { type: "AddTask", title: "Immutable task" },
+      { generateId: () => "created", now: () => baseNow },
+    );
+
+    expect(next).not.toBe(tasklist);
+    expect(next.tasks).toHaveLength(1);
+    expect(next.tasks[0]).toMatchObject({
+      id: "created",
+      title: "Immutable task",
+      createdAt: baseNow,
+      status: "new",
+      list: "open",
+    });
+    expect(tasklist.tasks).toHaveLength(0);
+  });
+
+  it("clones dates as dates before reducing", () => {
+    const tasklist = createTaskList();
+    tasklist.tasks.push(createTask("target", { list: "open", createdAt: baseNow }));
+
+    const next = reduceAf4State(
+      tasklist,
+      { type: "CompleteTask", id: "target" },
+      { generateId: () => "unused", now: () => baseNow },
+    );
+
+    expect(findTask(next, "target").createdAt).toBeInstanceOf(Date);
+    expect(findTask(next, "target").createdAt).not.toBe(findTask(tasklist, "target").createdAt);
+    expect(findTask(tasklist, "target").status).toBe("new");
   });
 });
 

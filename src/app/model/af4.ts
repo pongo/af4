@@ -1,4 +1,5 @@
 import { assert } from "smart-invariant";
+import { klona } from "klona";
 import type {
   TaskList,
   UserAction,
@@ -19,10 +20,10 @@ import {
   tomorrow,
 } from "./utils.ts";
 
-type Af4Env = {
+interface Af4Env {
   generateId: () => string;
   now: () => Date;
-};
+}
 
 export function makeAf4(env: Af4Env) {
   return (tasklist: TaskList, action: UserAction): void => {
@@ -45,6 +46,12 @@ export function reduceAf4(tasklist: TaskList, action: UserAction, env: Af4Env): 
     default:
       applyTaskAction(env, tasklist, action);
   }
+}
+
+export function reduceAf4State(tasklist: TaskList, action: UserAction, env: Af4Env): TaskList {
+  const next = klona(tasklist);
+  reduceAf4(next, action, env);
+  return next;
 }
 
 type TaskAction = Exclude<UserAction, { type: "Next" } | { type: "Cleanup" }>;
@@ -117,12 +124,7 @@ function applyTaskAction(env: Af4Env, tasklist: TaskList, action: TaskAction) {
   }
 }
 
-function createNewTask(
-  env: Af4Env,
-  title: string,
-  createdAt: Date,
-  list: ListType = "open",
-): Task {
+function createNewTask(env: Af4Env, title: string, createdAt: Date, list: ListType = "open"): Task {
   return { id: env.generateId(), title, createdAt, status: "new", list };
 }
 
