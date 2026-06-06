@@ -31,6 +31,10 @@ export function makeAf4(env: Af4Env) {
 }
 
 function reduceAf4(tasklist: TaskList, action: UserAction, env: Af4Env): void {
+  const setCurrent = (tasklist: TaskList, current: CurrentList) => {
+    changeCurrentList(env, tasklist, current);
+  };
+
   switch (action.type) {
     case "Next": {
       moveToNextList(tasklist);
@@ -38,7 +42,7 @@ function reduceAf4(tasklist: TaskList, action: UserAction, env: Af4Env): void {
     }
 
     case "Cleanup": {
-      cleanup(tasklist, action.now);
+      cleanup(env, tasklist, action.now);
       break;
     }
 
@@ -62,14 +66,14 @@ function reduceAf4(tasklist: TaskList, action: UserAction, env: Af4Env): void {
 
         const title = action.title ?? existingTask.title;
         const newTaskList = getNewTaskListForAction(tasklist);
-        markTaskActioned(tasklist, action.id, env.now(), changeCurrentList, "readded");
+        markTaskActioned(tasklist, action.id, env.now(), setCurrent, "readded");
         tasklist.tasks.push(createNewTask(env, title, newTaskList));
         updateCurrentListStatus(tasklist);
         break;
       }
 
       case "CompleteTask": {
-        markTaskActioned(tasklist, action.id, env.now(), changeCurrentList);
+        markTaskActioned(tasklist, action.id, env.now(), setCurrent);
         updateCurrentListStatus(tasklist);
         break;
       }
@@ -104,7 +108,7 @@ function reduceAf4(tasklist: TaskList, action: UserAction, env: Af4Env): void {
 
         const title = action.title ?? task.title;
         const newTaskList = getNewTaskListForAction(tasklist);
-        markTaskActioned(tasklist, action.id, env.now(), changeCurrentList, "postponed");
+        markTaskActioned(tasklist, action.id, env.now(), setCurrent, "postponed");
         tasklist.tasks.push(createPostponedTask(env, title, env.now(), newTaskList));
         updateCurrentListStatus(tasklist);
         break;
@@ -117,22 +121,23 @@ function reduceAf4(tasklist: TaskList, action: UserAction, env: Af4Env): void {
     switch (tasklist.current.list) {
       case "open":
         cleanList(tasklist, env.now());
-        changeCurrentList(tasklist, makeCurrent(tasklist, "closed"));
+        changeCurrentList(env, tasklist, makeCurrent(tasklist, "closed"));
         break;
       case "closed":
         cleanList(tasklist, env.now());
         if (tasklist.tasks.some((t) => t.list === "review" && t.status === "new")) {
-          changeCurrentList(tasklist, makeCurrent(tasklist, "review"));
+          changeCurrentList(env, tasklist, makeCurrent(tasklist, "review"));
           break;
         }
         if (tasklist.current.actionedCount === 0) {
           moveAllTasks(tasklist, "closed", "review");
         }
-        changeCurrentList(tasklist, makeCurrent(tasklist, "open"));
+        changeCurrentList(env, tasklist, makeCurrent(tasklist, "open"));
         break;
       case "review":
         deleteAllTasks(tasklist, "review");
         changeCurrentList(
+          env,
           tasklist,
           tasklist.tasks.some((t) => t.list === "closed" && t.status === "new")
             ? makeCurrent(tasklist, "closed")
@@ -141,38 +146,6 @@ function reduceAf4(tasklist: TaskList, action: UserAction, env: Af4Env): void {
         break;
       default:
         throw new Error("Should never happen");
-    }
-  }
-
-  function cleanup(tasklist: TaskList, now: Date) {
-    deleteAllDeletedTasks(tasklist);
-    reviveDuePostponedTasks(tasklist, now);
-    markOldTasksAsDeleted(tasklist, now);
-    deleteAllDeletedTasks(tasklist);
-  }
-
-  function reviveDuePostponedTasks(tasklist: TaskList, now: Date) {
-    const newTasks = tasklist.tasks
-      .filter(
-        (task): task is PostponedTask => task.status === "postponed" && task.postponedUntil <= now,
-      )
-      .map((task) => revivePostponedTask(env, task));
-
-    if (newTasks.length > 0) {
-      tasklist.tasks = tasklist.tasks.filter(
-        (task) => !(task.status === "postponed" && task.postponedUntil <= now),
-      );
-      for (const newTask of newTasks) {
-        tasklist.tasks.push(newTask);
-      }
-    }
-  }
-
-  function changeCurrentList(tasklist: TaskList, newCurrent: CurrentList) {
-    tasklist.current = newCurrent;
-    if (newCurrent.list === "open") {
-      revealNextOpenPassTasks(tasklist);
-      reviveDuePostponedTasks(tasklist, env.now());
     }
   }
 }
@@ -201,6 +174,38 @@ function createPostponedTask(
 
 function revivePostponedTask(env: Af4Env, task: PostponedTask): Task {
   return createNewTask(env, task.title, task.list);
+}
+
+function cleanup(env: Af4Env, tasklist: TaskList, now: Date) {
+  deleteAllDeletedTasks(tasklist);
+  reviveDuePostponedTasks(env, tasklist, now);
+  markOldTasksAsDeleted(tasklist, now);
+  deleteAllDeletedTasks(tasklist);
+}
+
+function reviveDuePostponedTasks(env: Af4Env, tasklist: TaskList, now: Date) {
+  const newTasks = tasklist.tasks
+    .filter(
+      (task): task is PostponedTask => task.status === "postponed" && task.postponedUntil <= now,
+    )
+    .map((task) => revivePostponedTask(env, task));
+
+  if (newTasks.length > 0) {
+    tasklist.tasks = tasklist.tasks.filter(
+      (task) => !(task.status === "postponed" && task.postponedUntil <= now),
+    );
+    for (const newTask of newTasks) {
+      tasklist.tasks.push(newTask);
+    }
+  }
+}
+
+function changeCurrentList(env: Af4Env, tasklist: TaskList, newCurrent: CurrentList) {
+  tasklist.current = newCurrent;
+  if (newCurrent.list === "open") {
+    revealNextOpenPassTasks(tasklist);
+    reviveDuePostponedTasks(env, tasklist, env.now());
+  }
 }
 
 function makeCurrent(tasklist: TaskList, list: CurrentListType): CurrentList {
