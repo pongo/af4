@@ -47,7 +47,6 @@ function runAction(
 function tasksCountByLists(tasklist: TaskList) {
   return {
     open: tasklist.tasks.filter((task) => task.list === "open").length,
-    openNew: tasklist.tasks.filter((task) => task.list === "open-new").length,
     closed: tasklist.tasks.filter((task) => task.list === "closed").length,
     review: tasklist.tasks.filter((task) => task.list === "review").length,
     deleted: tasklist.tasks.filter((task) => task.list === "deleted").length,
@@ -347,7 +346,6 @@ describe("Simple cleanup", () => {
     });
     expect(tasksCountByLists(tasklist)).toEqual({
       open: 1,
-      openNew: 0,
       closed: 0,
       review: 0,
       deleted: 0,

@@ -20,8 +20,6 @@ import {
 
 export function makeAf4({ generateId, now }: { generateId: () => string; now: () => Date }) {
   return (tasklist: TaskList, action: UserAction): void => {
-    console.log("action", action);
-
     switch (action.type) {
       case "Next": {
         clearZero(tasklist);
@@ -58,7 +56,7 @@ export function makeAf4({ generateId, now }: { generateId: () => string; now: ()
       }
 
       case "AddTask": {
-        tasklist.tasks.push(createTask(action.title, tasklist));
+        tasklist.tasks.push(createTask(action.title));
         updateCurrentListStatus(tasklist);
         break;
       }
@@ -70,8 +68,9 @@ export function makeAf4({ generateId, now }: { generateId: () => string; now: ()
         }
 
         const title = action.title ?? existingTask.title;
+        const newTaskList = getNewOpenTaskList(tasklist);
         complete(action.id, "readded");
-        tasklist.tasks.push(createTask(title, tasklist));
+        tasklist.tasks.push(createTask(title, newTaskList));
         updateCurrentListStatus(tasklist);
         break;
       }
@@ -111,8 +110,9 @@ export function makeAf4({ generateId, now }: { generateId: () => string; now: ()
         }
 
         const title = action.title ?? task.title;
+        const newTaskList = getNewOpenTaskList(tasklist);
         complete(action.id, "postponed");
-        tasklist.tasks.push(createPostponedTask(title, now()));
+        tasklist.tasks.push(createPostponedTask(title, now(), newTaskList));
         updateCurrentListStatus(tasklist);
         break;
       }
@@ -171,21 +171,17 @@ export function makeAf4({ generateId, now }: { generateId: () => string; now: ()
     }
   };
 
-  function createTask(title: string, _tasklist: TaskList): Task {
-    // TODO: это точно нужно? как оно должно работать?
-    // const list: ListType =
-    // tasklist.current.list === "open" && tasklist.current.actionedCount > 0 ? "open-new" : "open";
-    const list: ListType = "open";
+  function createTask(title: string, list: ListType = "open"): Task {
     return { id: generateId(), title, createdAt: now(), status: "new", list };
   }
 
-  function createPostponedTask(title: string, nowDate: Date): Task {
+  function createPostponedTask(title: string, nowDate: Date, list: ListType = "open"): Task {
     return {
       id: generateId(),
       title,
       createdAt: nowDate,
       status: "postponed",
-      list: "open",
+      list,
       postponedUntil: nowDate.getHours() < 4 ? today(nowDate) : tomorrow(nowDate),
     };
   }
@@ -198,16 +194,15 @@ export function makeAf4({ generateId, now }: { generateId: () => string; now: ()
         title: task.title,
         createdAt: now,
         status: "new",
-        list: "open",
+        list: task.list,
       }));
 
     if (newTasks.length > 0) {
-      console.log(newTasks);
       tasklist.tasks = tasklist.tasks.filter(
         (task) => !(task.status === "postponed" && task.postponedUntil <= now),
       );
       for (const newTask of newTasks) {
-        tasklist.tasks.push(createTask(newTask.title, tasklist));
+        tasklist.tasks.push(createTask(newTask.title, newTask.list));
       }
     }
   }
@@ -215,10 +210,14 @@ export function makeAf4({ generateId, now }: { generateId: () => string; now: ()
   function changeCurrentList(tasklist: TaskList, newCurrent: CurrentList, now: () => Date) {
     tasklist.current = newCurrent;
     if (newCurrent.list === "open") {
+      moveNewOpenTasksToOpen(tasklist);
       checkPostponedTasks(tasklist, now());
-      moveNewTasksToOpen(tasklist);
     }
   }
+}
+
+function getNewOpenTaskList(tasklist: TaskList): ListType {
+  return tasklist.current.list === "open" ? "open-new" : "open";
 }
 
 function shouldMoveOpenToClosed(tasklist: TaskList): boolean {
@@ -248,9 +247,9 @@ function updateCurrentListStatus(tasklist: TaskList) {
   tasklist.current.willBeMarkedForReview = tasklist.current.actionedCount === 0;
 }
 
-function moveNewTasksToOpen(tasklist: TaskList) {
-  tasklist.tasks.forEach((t) => {
-    if (t.list === "open-new") t.list = "open";
+function moveNewOpenTasksToOpen(tasklist: TaskList) {
+  tasklist.tasks.forEach((task) => {
+    if (task.list === "open-new") task.list = "open";
   });
 }
 

@@ -198,6 +198,86 @@ describe("AF4 list transitions", () => {
       status: "completed",
     });
   });
+
+  it("stages readded open tasks for the next open pass", () => {
+    const tasklist = createTaskList();
+    tasklist.tasks.push(createTask("target", { list: "open" }));
+
+    runAction(tasklist, { type: "ReaddTask", id: "target" }, { id: "readded" });
+
+    expect(findTask<CompletedTask>(tasklist, "target")).toMatchObject({
+      status: "completed",
+      additionalStatus: "readded",
+    });
+    expect(findTask(tasklist, "readded")).toMatchObject({
+      status: "new",
+      list: "open-new",
+    });
+  });
+
+  it("stages postponed open tasks for the next open pass", () => {
+    const tasklist = createTaskList();
+    const now = new Date("2025-01-01T02:00:00.000Z");
+    tasklist.tasks.push(createTask("target", { list: "open" }));
+
+    runAction(tasklist, { type: "PostponeTask", id: "target" }, { id: "postponed", now });
+
+    expect(findTask<CompletedTask>(tasklist, "target")).toMatchObject({
+      status: "completed",
+      additionalStatus: "postponed",
+    });
+    expect(findTask<PostponedTask>(tasklist, "postponed")).toMatchObject({
+      status: "postponed",
+      list: "open-new",
+      postponedUntil: new Date(2025, 0, 2),
+    });
+  });
+
+  it("reveals staged open tasks when returning to open", () => {
+    const tasklist = createTaskList();
+    tasklist.current = {
+      actionedCount: 1,
+      list: "closed",
+      showNext: false,
+      willBeMarkedForReview: false,
+    };
+    tasklist.tasks.push(createTask("staged", { list: "open-new" }));
+
+    runAction(tasklist, { type: "Next" });
+
+    expect(tasklist.current.list).toBe("open");
+    expect(findTask(tasklist, "staged").list).toBe("open");
+  });
+
+  it("keeps due staged postponed tasks hidden until returning to open", () => {
+    const tasklist = createTaskList();
+    const dueDate = new Date("2025-01-02T00:01:00.000Z");
+    tasklist.tasks.push(
+      createTask("postponed", {
+        list: "open-new",
+        status: "postponed",
+        postponedUntil: new Date("2025-01-02T00:00:00.000Z"),
+      }),
+    );
+
+    runAction(tasklist, { type: "Cleanup", now: dueDate }, { id: "created", now: dueDate });
+
+    expect(findTask(tasklist, "created")).toMatchObject({
+      status: "new",
+      list: "open-new",
+    });
+
+    tasklist.current = {
+      actionedCount: 1,
+      list: "closed",
+      showNext: false,
+      willBeMarkedForReview: false,
+    };
+    runAction(tasklist, { type: "Next" }, { now: dueDate });
+
+    expect(tasklist.current.list).toBe("open");
+    expect(findTask(tasklist, "created").list).toBe("open");
+  });
 });
 
 describe("AF4 actions in current list variants", () => {
@@ -257,7 +337,7 @@ describe("AF4 actions in current list variants", () => {
         expect(findTask(tasklist, `${current}-readded`)).toMatchObject({
           title: "Renamed task",
           status: "new",
-          list: "open",
+          list: current === "open" ? "open-new" : "open",
         });
         expect(tasklist.current.actionedCount).toBe(1);
         if (current === "closed") {
@@ -283,7 +363,7 @@ describe("AF4 actions in current list variants", () => {
         expect(findTask<PostponedTask>(tasklist, `${current}-later`)).toMatchObject({
           title: "Later task",
           status: "postponed",
-          list: "open",
+          list: current === "open" ? "open-new" : "open",
           postponedUntil: new Date(2025, 0, 2),
         });
         expect(tasklist.current.actionedCount).toBe(1);
@@ -381,12 +461,12 @@ describe("AF4 actions in current list variants", () => {
     expect(findTask(tasklist, "readd-from-deleted")).toMatchObject({
       status: "new",
       title: "deleted",
-      list: "open",
+      list: "open-new",
     });
     expect(findTask<PostponedTask>(tasklist, "postpone-from-deleted")).toMatchObject({
       status: "postponed",
       title: "deleted",
-      list: "open",
+      list: "open-new",
     });
     expect(tasklist.current.actionedCount).toBe(0);
   });
@@ -462,7 +542,6 @@ describe("AF4 cleanup", () => {
         status: "postponed",
         postponedUntil: new Date("2025-01-02T00:00:00.000Z"),
       }),
-      createTask("new-open", { list: "open-new" }),
     );
 
     runAction(tasklist, { type: "Next" }, { id: "due-created", now: dueDate });
@@ -474,7 +553,6 @@ describe("AF4 cleanup", () => {
       list: "open",
     });
     expect(tasklist.tasks.map((task) => task.id)).not.toContain("due-postponed");
-    expect(findTask(tasklist, "new-open").list).toBe("open");
   });
 });
 
@@ -616,7 +694,6 @@ describe("Postponed tasks", () => {
     // });
     // expect(tasksCountByLists(tasklist)).toEqual({
     //   open: 6,
-    //   openNew: 0,
     //   closed: 0,
     //   review: 0,
     //   deleted: 0,
