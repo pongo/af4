@@ -3,6 +3,7 @@ import type {
   TaskList,
   UserAction,
   Task,
+  PostponedTask,
   AdditionalStatus,
   BaseCurrentList,
   ListType,
@@ -27,10 +28,7 @@ export function makeAf4({ generateId, now }: { generateId: () => string; now: ()
       }
 
       case "Cleanup": {
-        deleteAllDeletedTasks(tasklist);
-        reviveDuePostponedTasks(tasklist, action.now);
-        markOldTasksAsDeleted(tasklist, action.now);
-        deleteAllDeletedTasks(tasklist);
+        cleanup(tasklist, action.now);
         break;
       }
 
@@ -41,7 +39,7 @@ export function makeAf4({ generateId, now }: { generateId: () => string; now: ()
     function applyTaskAction(tasklist: TaskList, action: TaskAction) {
       switch (action.type) {
         case "AddTask": {
-          tasklist.tasks.push(createTask(action.title));
+          tasklist.tasks.push(createNewTask(action.title));
           updateCurrentListStatus(tasklist);
           break;
         }
@@ -55,7 +53,7 @@ export function makeAf4({ generateId, now }: { generateId: () => string; now: ()
           const title = action.title ?? existingTask.title;
           const newTaskList = getNewTaskListForAction(tasklist);
           complete(action.id, "readded");
-          tasklist.tasks.push(createTask(title, newTaskList));
+          tasklist.tasks.push(createNewTask(title, newTaskList));
           updateCurrentListStatus(tasklist);
           break;
         }
@@ -153,7 +151,14 @@ export function makeAf4({ generateId, now }: { generateId: () => string; now: ()
     }
   }
 
-  function createTask(title: string, list: ListType = "open"): Task {
+  function cleanup(tasklist: TaskList, now: Date) {
+    deleteAllDeletedTasks(tasklist);
+    reviveDuePostponedTasks(tasklist, now);
+    markOldTasksAsDeleted(tasklist, now);
+    deleteAllDeletedTasks(tasklist);
+  }
+
+  function createNewTask(title: string, list: ListType = "open"): Task {
     return { id: generateId(), title, createdAt: now(), status: "new", list };
   }
 
@@ -169,24 +174,24 @@ export function makeAf4({ generateId, now }: { generateId: () => string; now: ()
   }
 
   function reviveDuePostponedTasks(tasklist: TaskList, now: Date) {
-    const newTasks: Task[] = tasklist.tasks
-      .filter((task) => task.status === "postponed" && task.postponedUntil <= now)
-      .map((task) => ({
-        id: task.id,
-        title: task.title,
-        createdAt: now,
-        status: "new",
-        list: task.list,
-      }));
+    const newTasks = tasklist.tasks
+      .filter(
+        (task): task is PostponedTask => task.status === "postponed" && task.postponedUntil <= now,
+      )
+      .map((task) => revivePostponedTask(task));
 
     if (newTasks.length > 0) {
       tasklist.tasks = tasklist.tasks.filter(
         (task) => !(task.status === "postponed" && task.postponedUntil <= now),
       );
       for (const newTask of newTasks) {
-        tasklist.tasks.push(createTask(newTask.title, newTask.list));
+        tasklist.tasks.push(newTask);
       }
     }
+  }
+
+  function revivePostponedTask(task: PostponedTask): Task {
+    return createNewTask(task.title, task.list);
   }
 
   function changeCurrentList(tasklist: TaskList, newCurrent: CurrentList) {
