@@ -37,7 +37,7 @@ function reduceAf4(tasklist: TaskList, action: UserAction, env: Af4Env): void {
 
   switch (action.type) {
     case "Next": {
-      moveToNextList(tasklist);
+      moveToNextList(env, tasklist);
       break;
     }
 
@@ -115,39 +115,6 @@ function reduceAf4(tasklist: TaskList, action: UserAction, env: Af4Env): void {
       }
     }
   }
-
-  function moveToNextList(tasklist: TaskList) {
-    clearZero(tasklist);
-    switch (tasklist.current.list) {
-      case "open":
-        cleanList(tasklist, env.now());
-        changeCurrentList(env, tasklist, makeCurrent(tasklist, "closed"));
-        break;
-      case "closed":
-        cleanList(tasklist, env.now());
-        if (tasklist.tasks.some((t) => t.list === "review" && t.status === "new")) {
-          changeCurrentList(env, tasklist, makeCurrent(tasklist, "review"));
-          break;
-        }
-        if (tasklist.current.actionedCount === 0) {
-          moveAllTasks(tasklist, "closed", "review");
-        }
-        changeCurrentList(env, tasklist, makeCurrent(tasklist, "open"));
-        break;
-      case "review":
-        deleteAllTasks(tasklist, "review");
-        changeCurrentList(
-          env,
-          tasklist,
-          tasklist.tasks.some((t) => t.list === "closed" && t.status === "new")
-            ? makeCurrent(tasklist, "closed")
-            : makeCurrent(tasklist, "open"),
-        );
-        break;
-      default:
-        throw new Error("Should never happen");
-    }
-  }
 }
 
 type TaskAction = Exclude<UserAction, { type: "Next" } | { type: "Cleanup" }>;
@@ -205,6 +172,39 @@ function changeCurrentList(env: Af4Env, tasklist: TaskList, newCurrent: CurrentL
   if (newCurrent.list === "open") {
     revealNextOpenPassTasks(tasklist);
     reviveDuePostponedTasks(env, tasklist, env.now());
+  }
+}
+
+function moveToNextList(env: Af4Env, tasklist: TaskList) {
+  clearZero(tasklist);
+  switch (tasklist.current.list) {
+    case "open":
+      cleanList(tasklist, env.now());
+      changeCurrentList(env, tasklist, makeCurrent(tasklist, "closed"));
+      break;
+    case "closed":
+      cleanList(tasklist, env.now());
+      if (tasklist.tasks.some((t) => t.list === "review" && t.status === "new")) {
+        changeCurrentList(env, tasklist, makeCurrent(tasklist, "review"));
+        break;
+      }
+      if (tasklist.current.actionedCount === 0) {
+        moveAllTasks(tasklist, "closed", "review");
+      }
+      changeCurrentList(env, tasklist, makeCurrent(tasklist, "open"));
+      break;
+    case "review":
+      deleteAllTasks(tasklist, "review");
+      changeCurrentList(
+        env,
+        tasklist,
+        tasklist.tasks.some((t) => t.list === "closed" && t.status === "new")
+          ? makeCurrent(tasklist, "closed")
+          : makeCurrent(tasklist, "open"),
+      );
+      break;
+    default:
+      throw new Error("Should never happen");
   }
 }
 
