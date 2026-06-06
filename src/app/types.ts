@@ -44,9 +44,6 @@ export interface BaseCurrentList {
 type CurrentOpenList = BaseCurrentList & {
   list: "open";
 };
-type CurrentOpenNewList = BaseCurrentList & {
-  list: "open-new";
-};
 type CurrentClosedList = BaseCurrentList & {
   list: "closed";
   willBeMarkedForReview: boolean;
@@ -61,7 +58,6 @@ type CurrentDeletedList = BaseCurrentList & {
 };
 export type CurrentList =
   | CurrentOpenList
-  | CurrentOpenNewList
   | CurrentClosedList
   | CurrentReviewList
   | CurrentDeletedList;

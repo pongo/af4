@@ -5,7 +5,6 @@ import type {
   Task,
   PostponedTask,
   AdditionalStatus,
-  BaseCurrentList,
   ListType,
   CurrentList,
 } from "../types.ts";
@@ -207,28 +206,54 @@ type CurrentScreenList = Exclude<ListType, "open-new">;
 type TaskAction = Exclude<UserAction, { type: "Next" } | { type: "Cleanup" }>;
 
 function makeCurrent(tasklist: TaskList, list: CurrentScreenList): CurrentList {
-  const base: BaseCurrentList = {
-    actionedCount: 0,
-    showNext: false,
-  };
   switch (list) {
     case "open":
-      return {
+      return deriveCurrentFlags(tasklist, {
         actionedCount: 0,
         list: "open",
+        showNext: false,
+      });
+    case "closed":
+      return deriveCurrentFlags(tasklist, {
+        actionedCount: 0,
+        list: "closed",
+        showNext: false,
+        willBeMarkedForReview: false,
+      });
+    case "review":
+      return deriveCurrentFlags(tasklist, {
+        actionedCount: 0,
+        list: "review",
+        showNext: true,
+      });
+    case "deleted":
+      return deriveCurrentFlags(tasklist, {
+        actionedCount: 0,
+        list: "deleted",
+        showNext: false,
+      });
+    default:
+      throw new Error("Should never happen");
+  }
+}
+
+function deriveCurrentFlags(tasklist: TaskList, current: CurrentList): CurrentList {
+  switch (current.list) {
+    case "open":
+      return {
+        ...current,
         showNext: tasklist.tasks.some((t) => t.list === "closed" && t.status === "new"),
       };
     case "closed":
       return {
-        actionedCount: 0,
-        list: "closed",
+        ...current,
         showNext: tasklist.tasks.some((t) => t.list === "open" && t.status === "new"),
-        willBeMarkedForReview: true,
+        willBeMarkedForReview: current.actionedCount === 0,
       };
     case "review":
-      return { ...base, list: "review", showNext: true };
+      return { ...current, showNext: true };
     case "deleted":
-      return { ...base, list: "deleted", showNext: false };
+      return { ...current, showNext: false };
     default:
       throw new Error("Should never happen");
   }
@@ -260,9 +285,7 @@ function cleanList(tasklist: TaskList, now: Date) {
 }
 
 function updateCurrentListStatus(tasklist: TaskList) {
-  if (tasklist.current.list !== "closed") return;
-  tasklist.current.showNext = tasklist.tasks.some((t) => t.list === "open" && t.status === "new");
-  tasklist.current.willBeMarkedForReview = tasklist.current.actionedCount === 0;
+  tasklist.current = deriveCurrentFlags(tasklist, tasklist.current);
 }
 
 function revealNextOpenPassTasks(tasklist: TaskList) {
