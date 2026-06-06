@@ -22,36 +22,7 @@ export function makeAf4({ generateId, now }: { generateId: () => string; now: ()
   return (tasklist: TaskList, action: UserAction): void => {
     switch (action.type) {
       case "Next": {
-        clearZero(tasklist);
-        switch (tasklist.current.list) {
-          case "open":
-            cleanList(tasklist, now());
-            changeCurrentList(tasklist, makeCurrent("closed"), now);
-            break;
-          case "closed":
-            cleanList(tasklist, now());
-            if (tasklist.tasks.some((t) => t.list === "review" && t.status === "new")) {
-              changeCurrentList(tasklist, makeCurrent("review"), now);
-              break;
-            }
-            if (tasklist.current.actionedCount === 0) {
-              moveAllTasks(tasklist, "closed", "review");
-            }
-            changeCurrentList(tasklist, makeCurrent("open"), now);
-            break;
-          case "review":
-            deleteAllTasks(tasklist, "review");
-            changeCurrentList(
-              tasklist,
-              tasklist.tasks.some((t) => t.list === "closed" && t.status === "new")
-                ? makeCurrent("closed")
-                : makeCurrent("open"),
-              now,
-            );
-            break;
-          default:
-            throw new Error("Should never happen");
-        }
+        moveToNextList(tasklist);
         break;
       }
 
@@ -68,7 +39,7 @@ export function makeAf4({ generateId, now }: { generateId: () => string; now: ()
         }
 
         const title = action.title ?? existingTask.title;
-        const newTaskList = getNewOpenTaskList(tasklist);
+        const newTaskList = getNewTaskListForAction(tasklist);
         complete(action.id, "readded");
         tasklist.tasks.push(createTask(title, newTaskList));
         updateCurrentListStatus(tasklist);
@@ -110,7 +81,7 @@ export function makeAf4({ generateId, now }: { generateId: () => string; now: ()
         }
 
         const title = action.title ?? task.title;
-        const newTaskList = getNewOpenTaskList(tasklist);
+        const newTaskList = getNewTaskListForAction(tasklist);
         complete(action.id, "postponed");
         tasklist.tasks.push(createPostponedTask(title, now(), newTaskList));
         updateCurrentListStatus(tasklist);
@@ -119,7 +90,7 @@ export function makeAf4({ generateId, now }: { generateId: () => string; now: ()
 
       case "Cleanup": {
         deleteAllDeletedTasks(tasklist);
-        checkPostponedTasks(tasklist, action.now);
+        reviveDuePostponedTasks(tasklist, action.now);
         markOldTasksAsDeleted(tasklist, action.now);
         deleteAllDeletedTasks(tasklist);
         break;
@@ -133,43 +104,47 @@ export function makeAf4({ generateId, now }: { generateId: () => string; now: ()
       tasklist.current.actionedCount++;
       if (shouldMoveOpenToClosed(tasklist)) {
         deleteAllTasks(tasklist, "closed");
-        const newCurrent = makeCurrent("closed");
+        const newCurrent = makeCurrent(tasklist, "closed");
         newCurrent.restoreFocus = true;
-        changeCurrentList(tasklist, newCurrent, now);
+        changeCurrentList(tasklist, newCurrent);
         moveAllTasks(tasklist, "open", "closed");
         tasklist.current.actionedCount++;
         updateCurrentListStatus(tasklist);
       }
     }
-
-    function makeCurrent(list: ListType): CurrentList {
-      const base: BaseCurrentList = {
-        actionedCount: 0,
-        showNext: false,
-      };
-      switch (list) {
-        case "open":
-          return {
-            actionedCount: 0,
-            list: "open",
-            showNext: tasklist.tasks.some((t) => t.list === "closed" && t.status === "new"),
-          };
-        case "closed":
-          return {
-            actionedCount: 0,
-            list: "closed",
-            showNext: tasklist.tasks.some((t) => t.list === "open" && t.status === "new"),
-            willBeMarkedForReview: true,
-          };
-        case "review":
-          return { ...base, list: "review", showNext: true };
-        case "deleted":
-          return { ...base, list: "deleted", showNext: false };
-        default:
-          throw new Error("Should never happen");
-      }
-    }
   };
+
+  function moveToNextList(tasklist: TaskList) {
+    clearZero(tasklist);
+    switch (tasklist.current.list) {
+      case "open":
+        cleanList(tasklist, now());
+        changeCurrentList(tasklist, makeCurrent(tasklist, "closed"));
+        break;
+      case "closed":
+        cleanList(tasklist, now());
+        if (tasklist.tasks.some((t) => t.list === "review" && t.status === "new")) {
+          changeCurrentList(tasklist, makeCurrent(tasklist, "review"));
+          break;
+        }
+        if (tasklist.current.actionedCount === 0) {
+          moveAllTasks(tasklist, "closed", "review");
+        }
+        changeCurrentList(tasklist, makeCurrent(tasklist, "open"));
+        break;
+      case "review":
+        deleteAllTasks(tasklist, "review");
+        changeCurrentList(
+          tasklist,
+          tasklist.tasks.some((t) => t.list === "closed" && t.status === "new")
+            ? makeCurrent(tasklist, "closed")
+            : makeCurrent(tasklist, "open"),
+        );
+        break;
+      default:
+        throw new Error("Should never happen");
+    }
+  }
 
   function createTask(title: string, list: ListType = "open"): Task {
     return { id: generateId(), title, createdAt: now(), status: "new", list };
@@ -186,7 +161,7 @@ export function makeAf4({ generateId, now }: { generateId: () => string; now: ()
     };
   }
 
-  function checkPostponedTasks(tasklist: TaskList, now: Date) {
+  function reviveDuePostponedTasks(tasklist: TaskList, now: Date) {
     const newTasks: Task[] = tasklist.tasks
       .filter((task) => task.status === "postponed" && task.postponedUntil <= now)
       .map((task) => ({
@@ -207,16 +182,46 @@ export function makeAf4({ generateId, now }: { generateId: () => string; now: ()
     }
   }
 
-  function changeCurrentList(tasklist: TaskList, newCurrent: CurrentList, now: () => Date) {
+  function changeCurrentList(tasklist: TaskList, newCurrent: CurrentList) {
     tasklist.current = newCurrent;
     if (newCurrent.list === "open") {
-      moveNewOpenTasksToOpen(tasklist);
-      checkPostponedTasks(tasklist, now());
+      revealNextOpenPassTasks(tasklist);
+      reviveDuePostponedTasks(tasklist, now());
     }
   }
 }
 
-function getNewOpenTaskList(tasklist: TaskList): ListType {
+type CurrentScreenList = Exclude<ListType, "open-new">;
+
+function makeCurrent(tasklist: TaskList, list: CurrentScreenList): CurrentList {
+  const base: BaseCurrentList = {
+    actionedCount: 0,
+    showNext: false,
+  };
+  switch (list) {
+    case "open":
+      return {
+        actionedCount: 0,
+        list: "open",
+        showNext: tasklist.tasks.some((t) => t.list === "closed" && t.status === "new"),
+      };
+    case "closed":
+      return {
+        actionedCount: 0,
+        list: "closed",
+        showNext: tasklist.tasks.some((t) => t.list === "open" && t.status === "new"),
+        willBeMarkedForReview: true,
+      };
+    case "review":
+      return { ...base, list: "review", showNext: true };
+    case "deleted":
+      return { ...base, list: "deleted", showNext: false };
+    default:
+      throw new Error("Should never happen");
+  }
+}
+
+function getNewTaskListForAction(tasklist: TaskList): ListType {
   return tasklist.current.list === "open" ? "open-new" : "open";
 }
 
@@ -247,7 +252,7 @@ function updateCurrentListStatus(tasklist: TaskList) {
   tasklist.current.willBeMarkedForReview = tasklist.current.actionedCount === 0;
 }
 
-function moveNewOpenTasksToOpen(tasklist: TaskList) {
+function revealNextOpenPassTasks(tasklist: TaskList) {
   tasklist.tasks.forEach((task) => {
     if (task.list === "open-new") task.list = "open";
   });
