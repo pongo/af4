@@ -29,3 +29,4 @@ coverage
 
 *.tsbuildinfo
 /post-build.bat
+/.eslintcache
