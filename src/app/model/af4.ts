@@ -26,74 +26,81 @@ export function makeAf4({ generateId, now }: { generateId: () => string; now: ()
         break;
       }
 
-      case "AddTask": {
-        tasklist.tasks.push(createTask(action.title));
-        updateCurrentListStatus(tasklist);
-        break;
-      }
-
-      case "ReaddTask": {
-        const existingTask = findTask(tasklist, action.id);
-        if (existingTask.status === "completed" && existingTask.additionalStatus === "readded") {
-          break;
-        }
-
-        const title = action.title ?? existingTask.title;
-        const newTaskList = getNewTaskListForAction(tasklist);
-        complete(action.id, "readded");
-        tasklist.tasks.push(createTask(title, newTaskList));
-        updateCurrentListStatus(tasklist);
-        break;
-      }
-
-      case "CompleteTask": {
-        complete(action.id);
-        updateCurrentListStatus(tasklist);
-        break;
-      }
-
-      case "DeleteTask": {
-        const task = findTask(tasklist, action.id);
-        if (task.status !== "new") break;
-        markDeleteTask(tasklist, action.id, now());
-        tasklist.current.actionedCount++;
-        updateCurrentListStatus(tasklist);
-        break;
-      }
-
-      case "ZeroTask": {
-        const task = findTask(tasklist, action.id);
-        if (task.status !== "new") break;
-        task.zero = !(task.zero ?? false);
-        break;
-      }
-
-      case "AddPostponedTask": {
-        tasklist.tasks.push(createPostponedTask(action.title, now()));
-        updateCurrentListStatus(tasklist);
-        break;
-      }
-
-      case "PostponeTask": {
-        const task = findTask(tasklist, action.id);
-        if (task.status === "completed" && task.additionalStatus === "postponed") {
-          break;
-        }
-
-        const title = action.title ?? task.title;
-        const newTaskList = getNewTaskListForAction(tasklist);
-        complete(action.id, "postponed");
-        tasklist.tasks.push(createPostponedTask(title, now(), newTaskList));
-        updateCurrentListStatus(tasklist);
-        break;
-      }
-
       case "Cleanup": {
         deleteAllDeletedTasks(tasklist);
         reviveDuePostponedTasks(tasklist, action.now);
         markOldTasksAsDeleted(tasklist, action.now);
         deleteAllDeletedTasks(tasklist);
         break;
+      }
+
+      default:
+        applyTaskAction(tasklist, action);
+    }
+
+    function applyTaskAction(tasklist: TaskList, action: TaskAction) {
+      switch (action.type) {
+        case "AddTask": {
+          tasklist.tasks.push(createTask(action.title));
+          updateCurrentListStatus(tasklist);
+          break;
+        }
+
+        case "ReaddTask": {
+          const existingTask = findTask(tasklist, action.id);
+          if (existingTask.status === "completed" && existingTask.additionalStatus === "readded") {
+            break;
+          }
+
+          const title = action.title ?? existingTask.title;
+          const newTaskList = getNewTaskListForAction(tasklist);
+          complete(action.id, "readded");
+          tasklist.tasks.push(createTask(title, newTaskList));
+          updateCurrentListStatus(tasklist);
+          break;
+        }
+
+        case "CompleteTask": {
+          complete(action.id);
+          updateCurrentListStatus(tasklist);
+          break;
+        }
+
+        case "DeleteTask": {
+          const task = findTask(tasklist, action.id);
+          if (task.status !== "new") break;
+          markDeleteTask(tasklist, action.id, now());
+          tasklist.current.actionedCount++;
+          updateCurrentListStatus(tasklist);
+          break;
+        }
+
+        case "ZeroTask": {
+          const task = findTask(tasklist, action.id);
+          if (task.status !== "new") break;
+          task.zero = !(task.zero ?? false);
+          break;
+        }
+
+        case "AddPostponedTask": {
+          tasklist.tasks.push(createPostponedTask(action.title, now()));
+          updateCurrentListStatus(tasklist);
+          break;
+        }
+
+        case "PostponeTask": {
+          const task = findTask(tasklist, action.id);
+          if (task.status === "completed" && task.additionalStatus === "postponed") {
+            break;
+          }
+
+          const title = action.title ?? task.title;
+          const newTaskList = getNewTaskListForAction(tasklist);
+          complete(action.id, "postponed");
+          tasklist.tasks.push(createPostponedTask(title, now(), newTaskList));
+          updateCurrentListStatus(tasklist);
+          break;
+        }
       }
     }
 
@@ -192,6 +199,7 @@ export function makeAf4({ generateId, now }: { generateId: () => string; now: ()
 }
 
 type CurrentScreenList = Exclude<ListType, "open-new">;
+type TaskAction = Exclude<UserAction, { type: "Next" } | { type: "Cleanup" }>;
 
 function makeCurrent(tasklist: TaskList, list: CurrentScreenList): CurrentList {
   const base: BaseCurrentList = {
