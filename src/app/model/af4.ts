@@ -51,14 +51,14 @@ export function makeAf4({ generateId, now }: { generateId: () => string; now: ()
 
           const title = action.title ?? existingTask.title;
           const newTaskList = getNewTaskListForAction(tasklist);
-          complete(action.id, "readded");
+          markTaskActioned(tasklist, action.id, now(), changeCurrentList, "readded");
           tasklist.tasks.push(createNewTask(title, newTaskList));
           updateCurrentListStatus(tasklist);
           break;
         }
 
         case "CompleteTask": {
-          complete(action.id);
+          markTaskActioned(tasklist, action.id, now(), changeCurrentList);
           updateCurrentListStatus(tasklist);
           break;
         }
@@ -93,27 +93,11 @@ export function makeAf4({ generateId, now }: { generateId: () => string; now: ()
 
           const title = action.title ?? task.title;
           const newTaskList = getNewTaskListForAction(tasklist);
-          complete(action.id, "postponed");
+          markTaskActioned(tasklist, action.id, now(), changeCurrentList, "postponed");
           tasklist.tasks.push(createPostponedTask(title, now(), newTaskList));
           updateCurrentListStatus(tasklist);
           break;
         }
-      }
-    }
-
-    function complete(id: string, additionalStatus?: AdditionalStatus) {
-      const task = findTask(tasklist, id);
-      if (task.status !== "new") return;
-      completeTask(tasklist, id, now(), additionalStatus);
-      tasklist.current.actionedCount++;
-      if (shouldMoveOpenToClosed(tasklist)) {
-        deleteAllTasks(tasklist, "closed");
-        const newCurrent = makeCurrent(tasklist, "closed");
-        newCurrent.restoreFocus = true;
-        changeCurrentList(tasklist, newCurrent);
-        moveAllTasks(tasklist, "open", "closed");
-        tasklist.current.actionedCount++;
-        updateCurrentListStatus(tasklist);
       }
     }
   };
@@ -261,6 +245,28 @@ function deriveCurrentFlags(tasklist: TaskList, current: CurrentList): CurrentLi
 
 function getNewTaskListForAction(tasklist: TaskList): ListType {
   return tasklist.current.list === "open" ? "open-new" : "open";
+}
+
+function markTaskActioned(
+  tasklist: TaskList,
+  id: string,
+  actionedAt: Date,
+  changeCurrentList: (tasklist: TaskList, current: CurrentList) => void,
+  additionalStatus?: AdditionalStatus,
+) {
+  const task = findTask(tasklist, id);
+  if (task.status !== "new") return;
+  completeTask(tasklist, id, actionedAt, additionalStatus);
+  tasklist.current.actionedCount++;
+  if (shouldMoveOpenToClosed(tasklist)) {
+    deleteAllTasks(tasklist, "closed");
+    const newCurrent = makeCurrent(tasklist, "closed");
+    newCurrent.restoreFocus = true;
+    changeCurrentList(tasklist, newCurrent);
+    moveAllTasks(tasklist, "open", "closed");
+    tasklist.current.actionedCount++;
+    updateCurrentListStatus(tasklist);
+  }
 }
 
 function shouldMoveOpenToClosed(tasklist: TaskList): boolean {
