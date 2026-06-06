@@ -202,7 +202,7 @@ function edit() {
           />
           <CalendarCheck
             v-else-if="state.status === 'completed' && state.additionalStatus === 'postponed'"
-            class="relative top-[-2px] mr-1 inline-block"
+            class="relative -top-0.5 mr-1 inline-block"
           />
           <Check v-else-if="state.status === 'completed'" class="mr-1 inline-block" />
           <Zap v-else-if="state.zero" class="mr-1 inline-block text-lime-500" />
