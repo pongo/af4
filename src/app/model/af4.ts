@@ -7,6 +7,7 @@ import type {
   AdditionalStatus,
   ListType,
   CurrentList,
+  CurrentListType,
 } from "../types.ts";
 import {
   completeTask,
@@ -186,10 +187,9 @@ export function makeAf4({ generateId, now }: { generateId: () => string; now: ()
   }
 }
 
-type CurrentScreenList = Exclude<ListType, "open-new">;
 type TaskAction = Exclude<UserAction, { type: "Next" } | { type: "Cleanup" }>;
 
-function makeCurrent(tasklist: TaskList, list: CurrentScreenList): CurrentList {
+function makeCurrent(tasklist: TaskList, list: CurrentListType): CurrentList {
   switch (list) {
     case "open":
       return deriveCurrentFlags(tasklist, {
