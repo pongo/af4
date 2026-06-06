@@ -26,7 +26,7 @@ type TTaskListItem = InstanceType<typeof TaskListItem>;
 const taskItems = ref<TTaskListItem[]>([]);
 function setTaskItemRef(el: Element | ComponentPublicInstance | null, index: number) {
   if (el) {
-    taskItems.value[index] = el as unknown as TTaskListItem;
+    taskItems.value[index] = el as TTaskListItem;
   } else {
     taskItems.value.splice(index, 1);
   }
