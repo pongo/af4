@@ -30,7 +30,7 @@ export function makeAf4(env: Af4Env) {
   };
 }
 
-function reduceAf4(tasklist: TaskList, action: UserAction, env: Af4Env): void {
+export function reduceAf4(tasklist: TaskList, action: UserAction, env: Af4Env): void {
   switch (action.type) {
     case "Next": {
       moveToNextList(env, tasklist);

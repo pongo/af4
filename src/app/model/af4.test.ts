@@ -7,8 +7,9 @@ import type {
   PostponedTask,
   Task,
   TaskList,
+  UserAction,
 } from "../types.ts";
-import { makeAf4 } from "./af4.ts";
+import { makeAf4, reduceAf4 } from "./af4.ts";
 import { findTask } from "./utils.ts";
 
 const baseNow = new Date("2025-01-01T10:00:00.000Z");
@@ -41,14 +42,14 @@ function createTask(
 
 function runAction(
   tasklist: TaskList,
-  action: Parameters<ReturnType<typeof makeAf4>>[1],
+  action: UserAction,
   options: { id?: string; now?: Date } = {},
 ) {
   const date = options.now ?? baseNow;
-  makeAf4({ generateId: () => options.id ?? `${action.type}-id`, now: () => date })(
-    tasklist,
-    action,
-  );
+  reduceAf4(tasklist, action, {
+    generateId: () => options.id ?? `${action.type}-id`,
+    now: () => date,
+  });
 }
 
 function tasksCountByLists(tasklist: TaskList) {

@@ -17,7 +17,7 @@
     "lint:eslint": "eslint . --fix",
     "lint": "run-s lint:*",
     "format": "prettier src --write --log-level error",
-    "agent:lint": "oxlint -f unix src --fix && eslint --no-color src --fix --cache",
+    "agent:lint": "oxlint -f unix src && eslint --no-color src --cache",
     "agent:test": "vitest run --no-color --reporter=agent"
   },
   "dependencies": {
