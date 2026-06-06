@@ -27,11 +27,11 @@ interface Af4Env {
 
 export function makeAf4(env: Af4Env) {
   return (tasklist: TaskList, action: UserAction): void => {
-    reduceAf4(tasklist, action, env);
+    reduceAf4InPlace(tasklist, action, env);
   };
 }
 
-export function reduceAf4(tasklist: TaskList, action: UserAction, env: Af4Env): void {
+export function reduceAf4InPlace(tasklist: TaskList, action: UserAction, env: Af4Env): void {
   switch (action.type) {
     case "Next": {
       moveToNextList(env, tasklist);
@@ -48,9 +48,9 @@ export function reduceAf4(tasklist: TaskList, action: UserAction, env: Af4Env): 
   }
 }
 
-export function reduceAf4State(tasklist: TaskList, action: UserAction, env: Af4Env): TaskList {
+export function reduceAf4(tasklist: TaskList, action: UserAction, env: Af4Env): TaskList {
   const next = klona(tasklist);
-  reduceAf4(next, action, env);
+  reduceAf4InPlace(next, action, env);
   return next;
 }
 

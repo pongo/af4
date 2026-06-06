@@ -9,7 +9,7 @@ import type {
   TaskList,
   UserAction,
 } from "../types.ts";
-import { makeAf4, reduceAf4, reduceAf4State } from "./af4.ts";
+import { makeAf4, reduceAf4, reduceAf4InPlace } from "./af4.ts";
 import { findTask } from "./utils.ts";
 
 const baseNow = new Date("2025-01-01T10:00:00.000Z");
@@ -46,7 +46,7 @@ function runAction(
   options: { id?: string; now?: Date } = {},
 ) {
   const date = options.now ?? baseNow;
-  reduceAf4(tasklist, action, {
+  reduceAf4InPlace(tasklist, action, {
     generateId: () => options.id ?? `${action.type}-id`,
     now: () => date,
   });
@@ -285,7 +285,7 @@ describe("AF4 immutable reducer", () => {
   it("returns the next state without mutating the input tasklist", () => {
     const tasklist = createTaskList();
 
-    const next = reduceAf4State(
+    const next = reduceAf4(
       tasklist,
       { type: "AddTask", title: "Immutable task" },
       { generateId: () => "created", now: () => baseNow },
@@ -307,7 +307,7 @@ describe("AF4 immutable reducer", () => {
     const tasklist = createTaskList();
     tasklist.tasks.push(createTask("target", { list: "open", createdAt: baseNow }));
 
-    const next = reduceAf4State(
+    const next = reduceAf4(
       tasklist,
       { type: "CompleteTask", id: "target" },
       { generateId: () => "unused", now: () => baseNow },
