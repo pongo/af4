@@ -31,10 +31,6 @@ export function makeAf4(env: Af4Env) {
 }
 
 function reduceAf4(tasklist: TaskList, action: UserAction, env: Af4Env): void {
-  const setCurrent = (tasklist: TaskList, current: CurrentList) => {
-    changeCurrentList(env, tasklist, current);
-  };
-
   switch (action.type) {
     case "Next": {
       moveToNextList(env, tasklist);
@@ -47,19 +43,13 @@ function reduceAf4(tasklist: TaskList, action: UserAction, env: Af4Env): void {
     }
 
     default:
-      applyTaskAction(env, tasklist, action, setCurrent);
+      applyTaskAction(env, tasklist, action);
   }
 }
 
 type TaskAction = Exclude<UserAction, { type: "Next" } | { type: "Cleanup" }>;
-type SetCurrentList = (tasklist: TaskList, current: CurrentList) => void;
 
-function applyTaskAction(
-  env: Af4Env,
-  tasklist: TaskList,
-  action: TaskAction,
-  setCurrent: SetCurrentList,
-) {
+function applyTaskAction(env: Af4Env, tasklist: TaskList, action: TaskAction) {
   switch (action.type) {
     case "AddTask": {
       tasklist.tasks.push(createNewTask(env, action.title));
@@ -75,14 +65,14 @@ function applyTaskAction(
 
       const title = action.title ?? existingTask.title;
       const newTaskList = getNewTaskListForAction(tasklist);
-      markTaskActioned(tasklist, action.id, env.now(), setCurrent, "readded");
+      markTaskActioned(env, tasklist, action.id, env.now(), "readded");
       tasklist.tasks.push(createNewTask(env, title, newTaskList));
       updateCurrentListStatus(tasklist);
       break;
     }
 
     case "CompleteTask": {
-      markTaskActioned(tasklist, action.id, env.now(), setCurrent);
+      markTaskActioned(env, tasklist, action.id, env.now());
       updateCurrentListStatus(tasklist);
       break;
     }
@@ -117,7 +107,7 @@ function applyTaskAction(
 
       const title = action.title ?? task.title;
       const newTaskList = getNewTaskListForAction(tasklist);
-      markTaskActioned(tasklist, action.id, env.now(), setCurrent, "postponed");
+      markTaskActioned(env, tasklist, action.id, env.now(), "postponed");
       tasklist.tasks.push(createPostponedTask(env, title, env.now(), newTaskList));
       updateCurrentListStatus(tasklist);
       break;
@@ -273,10 +263,10 @@ function getNewTaskListForAction(tasklist: TaskList): ListType {
 }
 
 function markTaskActioned(
+  env: Af4Env,
   tasklist: TaskList,
   id: string,
   actionedAt: Date,
-  changeCurrentList: (tasklist: TaskList, current: CurrentList) => void,
   additionalStatus?: AdditionalStatus,
 ) {
   const task = findTask(tasklist, id);
@@ -287,7 +277,7 @@ function markTaskActioned(
     deleteAllTasks(tasklist, "closed");
     const newCurrent = makeCurrent(tasklist, "closed");
     newCurrent.restoreFocus = true;
-    changeCurrentList(tasklist, newCurrent);
+    changeCurrentList(env, tasklist, newCurrent);
     moveAllTasks(tasklist, "open", "closed");
     tasklist.current.actionedCount++;
     updateCurrentListStatus(tasklist);
