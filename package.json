@@ -15,7 +15,9 @@
     "lint:oxlint": "oxlint . --fix -D correctness --ignore-path .gitignore",
     "lint:eslint": "eslint . --fix",
     "lint": "run-s lint:*",
-    "format": "prettier --write src/"
+    "format": "prettier src --write --log-level error",
+    "agent:lint": "oxlint -f unix src --fix && eslint --no-color src --fix --cache",
+    "agent:test": "vitest run --no-color --reporter=agent"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.1",

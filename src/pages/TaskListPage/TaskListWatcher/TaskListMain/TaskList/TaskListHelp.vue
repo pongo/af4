@@ -3,9 +3,9 @@ defineProps<{ sign?: string }>();
 </script>
 
 <template>
-  <div class="pb-4 flex gap-2 select-none">
+  <div class="flex gap-2 pb-4 select-none">
     <div v-if="sign">{{ sign }}</div>
-    <div class="text-neutral-400 space-y-1">
+    <div class="space-y-1 text-neutral-400">
       <slot />
     </div>
   </div>

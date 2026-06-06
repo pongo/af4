@@ -41,7 +41,7 @@ function setOpen(value: boolean) {
   open.value = value; // emits('update:open', value)
 
   // This sets the cookie to keep the sidebar state.
-   
+
   document.cookie = `${SIDEBAR_COOKIE_NAME}=${open.value}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
 }
 
@@ -87,7 +87,7 @@ provideSidebarContext({
       }"
       :class="
         cn(
-          'group/sidebar-wrapper has-data-[variant=inset]:bg-sidebar flex min-h-svh w-full',
+          'group/sidebar-wrapper flex min-h-svh w-full has-data-[variant=inset]:bg-sidebar',
           props.class,
         )
       "
