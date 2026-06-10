@@ -9,12 +9,17 @@ import NextButton from "./NextButton.vue";
 import { assert } from "smart-invariant";
 import { closedListStyleToggle } from "@/app/lib/toggles.ts";
 
-const props = defineProps<{ state: TaskList; showZeroTasks: boolean }>();
+const props = defineProps<{
+  state: TaskList;
+  showZeroTasks: boolean;
+  showCompletedTasks: boolean;
+}>();
 
 const currentTasks = computed(() =>
   props.state.tasks.filter((task) => {
     if (task.list !== props.state.current.list) return false;
     if (task.status === "postponed") return false;
+    if (props.showCompletedTasks && task.status !== "completed") return false;
     if (props.showZeroTasks && task.zero !== true) return false;
     if (task.title === "-" && (task.status === "deleted" || task.status === "completed")) {
       return false;
@@ -57,9 +62,15 @@ const currentListName = computed(() => {
 watch(focusedIndex, () => {
   void nextTick(() => {
     const task = focusedTask.value;
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    assert(task != undefined);
+    if (currentTasks.value.length > 0) {
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      assert(task != undefined);
+    }
   });
+});
+
+watch(currentTasks, () => {
+  focusedIndex.value = Math.min(focusedIndex.value, Math.max(currentTasks.value.length - 1, 0));
 });
 
 watch(

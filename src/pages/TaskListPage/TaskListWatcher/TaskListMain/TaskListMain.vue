@@ -19,6 +19,7 @@ useDailyCleanup(() => {
 const newTodoFormRef = useTemplateRef("newTodoForm");
 const taskListRef = useTemplateRef("taskList");
 const showZeroTasks = ref(false);
+const showCompletedTasks = ref(false);
 
 function handleAddTodo(
   title: string,
@@ -138,6 +139,19 @@ const bindKeysHandler = keysHandlerBuilder()
     { filterInput: true, prevent: true },
   )
   .add(
+    "shift+x",
+    () => {
+      showCompletedTasks.value = !showCompletedTasks.value;
+      if (showCompletedTasks.value) {
+        showZeroTasks.value = false;
+      }
+      void nextTick(() => {
+        taskListRef.value?.navigate("home");
+      });
+    },
+    { filterInput: true, prevent: true },
+  )
+  .add(
     ["delete", "backspace"],
     (event) => {
       const id = getFocusedTaskId(event);
@@ -151,6 +165,9 @@ const bindKeysHandler = keysHandlerBuilder()
     "shift+z",
     () => {
       showZeroTasks.value = !showZeroTasks.value;
+      if (showZeroTasks.value) {
+        showCompletedTasks.value = false;
+      }
       void nextTick(() => {
         taskListRef.value?.navigate("home");
       });
@@ -311,6 +328,12 @@ onUnmounted(() => {
       @focus-task="focusTask"
     />
 
-    <TaskList ref="taskList" :state="state" :show-zero-tasks="showZeroTasks" @next="next()" />
+    <TaskList
+      ref="taskList"
+      :state="state"
+      :show-zero-tasks="showZeroTasks"
+      :show-completed-tasks="showCompletedTasks"
+      @next="next()"
+    />
   </div>
 </template>
