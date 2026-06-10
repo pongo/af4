@@ -47,7 +47,11 @@ const focusedTask = computed(() => {
   return currentTasks.value[focusedIndex.value];
 });
 
-const currentListName = computed(() => {
+const currentListName = computed<string | null>(() => {
+  if (props.state.system === "simple" && props.viewList !== "later") {
+    return null;
+  }
+
   switch (props.viewList) {
     case "open":
       return "Открытый список";
@@ -60,6 +64,12 @@ const currentListName = computed(() => {
     default:
       return props.viewList;
   }
+});
+
+const sideLabel = computed(() => {
+  if (props.showZeroTasks) return "Zero";
+  if (props.showCompletedTasks) return "Выполненные";
+  return currentListName.value;
 });
 
 const showNextHelp = computed(
@@ -133,10 +143,10 @@ defineExpose({
       @focus="focusedIndex = index"
     />
     <div
-      v-if="state.system !== 'simple' || viewList === 'later'"
+      v-if="sideLabel !== null"
       class="absolute top-14 -right-20 -translate-y-1/2 -rotate-90 transform text-sm whitespace-nowrap text-neutral-400 select-none"
     >
-      {{ currentListName }}
+      {{ sideLabel }}
     </div>
   </div>
 
