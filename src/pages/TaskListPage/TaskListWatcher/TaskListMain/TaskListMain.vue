@@ -13,6 +13,8 @@ const props = defineProps<{ state: TaskListState }>();
 
 type TaskListViewMode = "current" | "later" | "completed" | "zero";
 
+const ruPluralRules = new Intl.PluralRules("ru-RU");
+
 useDailyCleanup(() => {
   const now = new Date();
   console.log("useDailyCleanup [TaskListView]", now);
@@ -28,6 +30,21 @@ const viewList = computed<ViewListType>(() =>
 const laterNewCount = computed(
   () => props.state.tasks.filter((task) => task.list === "later" && task.status === "new").length,
 );
+const laterNewCountText = computed(() => {
+  const count = laterNewCount.value;
+  const taskWord = (() => {
+    switch (ruPluralRules.select(count)) {
+      case "one":
+        return "задача";
+      case "few":
+        return "задачи";
+      default:
+        return "задач";
+    }
+  })();
+
+  return `${count} ${taskWord} в списке «когда-нибудь»`;
+});
 const showLaterNewCount = computed(() => laterNewCount.value > 0 && viewMode.value === "current");
 
 function handleAddTodo(
@@ -362,8 +379,8 @@ onUnmounted(() => {
     />
 
     <div v-if="showLaterNewCount" class="mb-4 text-sm text-neutral-500">
-      В списке «когда-нибудь»: {{ laterNewCount }}
-      <span class="ml-2 *:text-xs">
+      {{ laterNewCountText }}
+      <span class="ml-0.75 *:text-xs">
         <MyKbd>Shift</MyKbd><span class="mx-0.75">+</span><MyKbd>L</MyKbd>
       </span>
     </div>
