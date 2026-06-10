@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Plus } from "lucide-vue-next";
+import { Plus } from "@lucide/vue";
 import NavTaskLists from "@/components/NavTaskLists.vue";
 import {
   Sidebar,

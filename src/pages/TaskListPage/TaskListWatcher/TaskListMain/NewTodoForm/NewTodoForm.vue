@@ -3,7 +3,7 @@ export const newTodoFormFocused = ref(false);
 </script>
 <script setup lang="ts">
 import { ref, useTemplateRef } from "vue";
-import { Plus, CalendarCheck } from "lucide-vue-next";
+import { Plus, CalendarCheck } from "@lucide/vue";
 import { useShiftKey } from "./useShiftKey.ts";
 
 withDefaults(
