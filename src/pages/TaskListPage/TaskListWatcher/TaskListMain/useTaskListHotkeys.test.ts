@@ -2,6 +2,7 @@ import { mount } from "@vue/test-utils";
 import { computed, defineComponent, h, ref } from "vue";
 import { describe, expect, it, vi } from "vitest";
 import type { Task, TaskList } from "@/app/types.ts";
+import { dispatch } from "@/app/model/dispatch.ts";
 import { useTaskListHotkeys } from "./useTaskListHotkeys.ts";
 
 function makeTask(id: string): Task {
@@ -53,7 +54,9 @@ describe("useTaskListHotkeys", () => {
               getFocusedItem: () => undefined,
             },
           },
-          notify: vi.fn(),
+          executeCommand: (result) => {
+            if (result.action !== undefined) dispatch(stateRef.value, result.action);
+          },
           next: vi.fn(),
           toggleLaterView: vi.fn(),
           undo: vi.fn(),

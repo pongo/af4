@@ -11,10 +11,10 @@ import { useLaterNewCount } from "./useLaterNewCount.ts";
 import type { TaskListViewMode } from "./types.ts";
 import { useTaskListHotkeys } from "./useTaskListHotkeys.ts";
 import {
-  getAddTodoAction,
-  getAddTodoNotification,
-  type AddTodoOptions,
-} from "./useTaskListAddTodo.ts";
+  handleTaskListIntent,
+  type TaskListCommandResult,
+  type TaskListUiEffect,
+} from "./TaskListInteraction.ts";
 
 const props = defineProps<{ state: TaskListState }>();
 
@@ -33,14 +33,29 @@ const viewList = computed<ViewListType>(() =>
 const { laterNewCount, laterNewCountText } = useLaterNewCount(props.state);
 const showLaterNewCount = computed(() => laterNewCount.value > 0 && viewMode.value === "current");
 
-function handleAddTodo(title: string, options: AddTodoOptions) {
-  dispatch(props.state, getAddTodoAction(title, options));
-  void nextTick(() => {
-    newTodoFormRef.value?.focus();
-  });
+function handleAddTodo(
+  title: string,
+  options: { readonly postponed?: boolean; readonly origId?: string },
+) {
+  executeCommand(
+    handleTaskListIntent(
+      { type: "submit-new-todo", title, postponed: options.postponed, origId: options.origId },
+      {
+        taskList: props.state,
+        viewList: viewList.value,
+        viewMode: viewMode.value,
+        focusedTaskId: null,
+      },
+    ),
+  );
+}
 
-  const notification = getAddTodoNotification(props.state, options);
-  if (notification !== undefined) notify(notification);
+function executeCommand(result: TaskListCommandResult) {
+  runEffects(result.effects.beforeDispatch);
+  if (result.action !== undefined) dispatch(props.state, result.action);
+  void nextTick(() => {
+    runEffects(result.effects.afterDispatch);
+  });
 }
 
 const emit = defineEmits<{ undo: [string]; redo: [string] }>();
@@ -71,6 +86,34 @@ function notify(message: string) {
   });
 }
 
+function runEffects(effects: readonly TaskListUiEffect[]) {
+  for (const effect of effects) {
+    switch (effect.type) {
+      case "focus-new-todo-input":
+        newTodoFormRef.value?.focus();
+        break;
+      case "notify-task-added-to-open":
+        notify("Задача добавлена в открытый список");
+        break;
+      case "notify-task-added-for-tomorrow":
+        notify("Задача добавлена на завтра");
+        break;
+      case "notify-task-staged-after-open-actions":
+        notify("Задача появится после перехода из закрытого списка");
+        break;
+      case "notify-task-readded-to-open":
+        notify("Задача заново добавлена в открытый список");
+        break;
+      case "notify-task-moved-to-later":
+        notify("Задача добавлена в список «когда-нибудь»");
+        break;
+      case "notify-task-postponed-to-tomorrow":
+        notify("Задача отложена до завтра");
+        break;
+    }
+  }
+}
+
 function focusTask() {
   if (taskListRef.value == null) return;
 
@@ -90,7 +133,7 @@ useTaskListHotkeys({
   viewList,
   newTodoFormRef,
   taskListRef,
-  notify,
+  executeCommand,
   next,
   toggleLaterView,
   undo: () => {

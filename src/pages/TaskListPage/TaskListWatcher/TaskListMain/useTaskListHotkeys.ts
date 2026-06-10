@@ -1,8 +1,12 @@
 import { nextTick, onMounted, onUnmounted, toValue, type ComputedRef, type Ref } from "vue";
 import { keysHandlerBuilder } from "bind-keys";
 import type { Task, TaskList as TaskListState, ViewListType } from "@/app/types.ts";
-import { dispatch } from "@/app/model/dispatch.ts";
 import type { TaskListViewMode } from "./types.ts";
+import {
+  handleTaskListIntent,
+  type TaskListCommandResult,
+  type TaskListIntent,
+} from "./TaskListInteraction.ts";
 
 interface ComponentRef<T> {
   readonly value: T | null;
@@ -34,7 +38,7 @@ interface UseTaskListHotkeysOptions {
   readonly viewList: ComputedRef<ViewListType>;
   readonly newTodoFormRef: ComponentRef<NewTodoFormComponent>;
   readonly taskListRef: ComponentRef<TaskListComponent>;
-  readonly notify: (message: string) => void;
+  readonly executeCommand: (result: TaskListCommandResult) => void;
   readonly next: () => void;
   readonly toggleLaterView: () => void;
   readonly undo: () => void;
@@ -47,7 +51,7 @@ export function useTaskListHotkeys({
   viewList,
   newTodoFormRef,
   taskListRef,
-  notify,
+  executeCommand,
   next,
   toggleLaterView,
   undo,
@@ -64,6 +68,17 @@ export function useTaskListHotkeys({
     }
     const focusedTask = taskListRef.value?.getFocusedTask();
     return focusedTask !== undefined ? focusedTask.id : undefined;
+  }
+
+  function executeIntent(intent: TaskListIntent, focusedTaskId: string | null) {
+    executeCommand(
+      handleTaskListIntent(intent, {
+        taskList: getState(),
+        viewList: viewList.value,
+        viewMode: viewMode.value,
+        focusedTaskId,
+      }),
+    );
   }
 
   const bindKeysHandler = keysHandlerBuilder()
@@ -119,10 +134,7 @@ export function useTaskListHotkeys({
     .add(
       ["x", "d"],
       (event) => {
-        const id = getFocusedTaskId(event);
-        if (id === undefined) return;
-
-        dispatch(getState(), { type: "CompleteTask", id });
+        executeIntent({ type: "complete-focused" }, getFocusedTaskId(event) ?? null);
       },
       { filterInput: true, prevent: true },
     )
@@ -139,10 +151,7 @@ export function useTaskListHotkeys({
     .add(
       ["delete", "backspace"],
       (event) => {
-        const id = getFocusedTaskId(event);
-        if (id === undefined) return;
-
-        dispatch(getState(), { type: "DeleteTask", id });
+        executeIntent({ type: "delete-focused" }, getFocusedTaskId(event) ?? null);
       },
       { filterInput: true, prevent: true },
     )
@@ -159,39 +168,21 @@ export function useTaskListHotkeys({
     .add(
       "z",
       (event) => {
-        const id = getFocusedTaskId(event);
-        if (id === undefined) return;
-
-        dispatch(getState(), { type: "ZeroTask", id });
+        executeIntent({ type: "zero-focused" }, getFocusedTaskId(event) ?? null);
       },
       { filterInput: true, prevent: true },
     )
     .add(
       "r",
       (event) => {
-        const id = getFocusedTaskId(event);
-        if (id === undefined) return;
-
-        const currentState = getState();
-        dispatch(currentState, { type: "ReaddTask", id });
-        if (currentState.current.list !== "open") {
-          notify("Задача заново добавлена в открытый список");
-        }
+        executeIntent({ type: "readd-focused" }, getFocusedTaskId(event) ?? null);
       },
       { filterInput: true, prevent: true },
     )
     .add(
       "l",
       (event) => {
-        const id = getFocusedTaskId(event);
-        if (id === undefined) return;
-
-        dispatch(getState(), { type: viewList.value === "later" ? "ReaddTask" : "LaterTask", id });
-        if (viewList.value !== "later") {
-          notify("Задача добавлена в список «когда-нибудь»");
-        } else {
-          notify("Задача заново добавлена в открытый список");
-        }
+        executeIntent({ type: "toggle-later-for-focused" }, getFocusedTaskId(event) ?? null);
       },
       { filterInput: true, prevent: true },
     )
@@ -228,8 +219,7 @@ export function useTaskListHotkeys({
           return;
         }
 
-        dispatch(getState(), { type: "PostponeTask", id: focusedTask.id });
-        notify("Задача отложена до завтра");
+        executeIntent({ type: "postpone-focused" }, focusedTask.id);
       },
       { filterInput: true, prevent: true },
     )
