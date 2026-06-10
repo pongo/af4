@@ -18,7 +18,8 @@
     "lint": "run-s lint:*",
     "format": "oxfmt src",
     "agent:lint": "oxlint -f unix src && eslint --no-color src --cache",
-    "agent:test": "vitest run --no-color --reporter=agent"
+    "agent:test": "vitest run --no-color --reporter=agent",
+    "prepare": "simple-git-hooks"
   },
   "dependencies": {
     "@lucide/vue": "^1.17.0",
@@ -61,13 +62,21 @@
     "eslint-plugin-vue": "~10.9.2",
     "jiti": "^2.7.0",
     "jsdom": "^28.1.0",
+    "lint-staged": "^17.0.7",
     "npm-run-all2": "^8.0.4",
     "oxfmt": "^0.54.0",
     "oxlint": "~1.68.0",
+    "simple-git-hooks": "^2.13.1",
     "typescript": "~5.9.3",
     "vite": "^8.0.16",
     "vite-plugin-vue-devtools": "^8.1.2",
     "vitest": "^4.1.8",
     "vue-tsc": "^3.3.3"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "npx lint-staged"
+  },
+  "lint-staged": {
+    "*": "oxfmt --no-error-on-unmatched-pattern"
   }
 }
