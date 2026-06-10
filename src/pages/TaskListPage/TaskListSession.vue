@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
 import type { TaskList } from "@/app/types.ts";
-import TaskListMain from "@/pages/TaskListPage/TaskListWatcher/TaskListMain/TaskListMain.vue";
+import TaskListWorkspace from "@/pages/TaskListPage/TaskListWorkspace/TaskListWorkspace.vue";
 import { useDebouncedRefHistory } from "@vueuse/core";
 import { klona } from "klona";
 import { assert } from "smart-invariant";
@@ -60,5 +60,5 @@ function redo(id: string) {
 </script>
 
 <template>
-  <TaskListMain :state="state" @undo="undo" @redo="redo" />
+  <TaskListWorkspace :state="state" @undo="undo" @redo="redo" />
 </template>

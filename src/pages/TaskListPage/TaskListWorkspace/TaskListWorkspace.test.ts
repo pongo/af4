@@ -4,7 +4,7 @@ import { defineComponent, h, nextTick, ref, type PropType } from "vue";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { TaskList, UserAction, ViewListType } from "@/app/types.ts";
 import type { TaskListViewMode } from "./types.ts";
-import TaskListMain from "./TaskListMain.vue";
+import TaskListWorkspace from "./TaskListWorkspace.vue";
 
 const mocks = vi.hoisted(() => ({
   dispatch: vi.fn(),
@@ -94,14 +94,14 @@ function makeTaskList(overrides: Partial<TaskList> = {}): TaskList {
   };
 }
 
-describe("TaskListMain", () => {
+describe("TaskListWorkspace", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it("dispatches add-todo actions and focuses the form again", async () => {
     const state = makeTaskList();
-    const wrapper = mount(TaskListMain, { props: { state } });
+    const wrapper = mount(TaskListWorkspace, { props: { state } });
 
     await wrapper.find("[data-test='add-todo']").trigger("click");
     await nextTick();
@@ -112,7 +112,7 @@ describe("TaskListMain", () => {
 
   it("dispatches cleanup through daily cleanup", () => {
     const state = makeTaskList();
-    mount(TaskListMain, { props: { state } });
+    mount(TaskListWorkspace, { props: { state } });
 
     const cleanup = mocks.useDailyCleanup.mock.calls[0][0] as () => void;
     cleanup();
@@ -125,7 +125,7 @@ describe("TaskListMain", () => {
 
   it("dispatches Next and navigates home in current view mode", async () => {
     const state = makeTaskList();
-    const wrapper = mount(TaskListMain, { props: { state } });
+    const wrapper = mount(TaskListWorkspace, { props: { state } });
 
     await wrapper.find("[data-test='next']").trigger("click");
     await nextTick();
@@ -147,7 +147,7 @@ describe("TaskListMain", () => {
         },
       ],
     });
-    const wrapper = mount(TaskListMain, { props: { state } });
+    const wrapper = mount(TaskListWorkspace, { props: { state } });
     const hotkeyOptions = mocks.useTaskListHotkeys.mock.calls[0][0] as {
       readonly viewMode: typeof viewMode;
       readonly toggleLaterView: () => void;
@@ -177,7 +177,7 @@ describe("TaskListMain", () => {
         },
       ],
     });
-    const wrapper = mount(TaskListMain, { props: { state } });
+    const wrapper = mount(TaskListWorkspace, { props: { state } });
     const hotkeyOptions = mocks.useTaskListHotkeys.mock.calls[0][0] as {
       readonly toggleLaterView: () => void;
     };

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useRoute } from "vue-router";
-import TaskListWatcher from "./TaskListWatcher/TaskListWatcher.vue";
+import TaskListSession from "./TaskListSession.vue";
 import { useDBWatcher } from "./useDBWatcher";
 
 const route = useRoute();
@@ -13,5 +13,5 @@ const state = computed(() => route.meta.taskListData ?? null);
 </script>
 
 <template>
-  <TaskListWatcher v-if="state" :key="id" :initial-data="state" />
+  <TaskListSession v-if="state" :key="id" :initial-data="state" />
 </template>

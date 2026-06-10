@@ -3,7 +3,7 @@ import { mount } from "@vue/test-utils";
 import { defineComponent, h, nextTick, type PropType } from "vue";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { TaskList } from "@/app/types.ts";
-import TaskListWatcher from "./TaskListWatcher.vue";
+import TaskListSession from "./TaskListSession.vue";
 
 const mocks = vi.hoisted(() => ({
   saveTaskList: vi.fn(),
@@ -29,7 +29,7 @@ vi.mock("@vueuse/core", async () => {
   };
 });
 
-vi.mock("./TaskListMain/TaskListMain.vue", () => ({
+vi.mock("./TaskListWorkspace/TaskListWorkspace.vue", () => ({
   default: defineComponent({
     props: {
       state: { type: Object as PropType<TaskList>, required: true },
@@ -91,16 +91,16 @@ function makeTaskList(): TaskList {
   };
 }
 
-describe("TaskListWatcher", () => {
+describe("TaskListSession", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.stubGlobal("alert", mocks.alert);
     vi.spyOn(console, "error").mockImplementation(() => undefined);
   });
 
-  it("clones initial data before passing it to TaskListMain", async () => {
+  it("clones initial data before passing it to TaskListWorkspace", async () => {
     const initialData = makeTaskList();
-    const wrapper = mount(TaskListWatcher, { props: { initialData } });
+    const wrapper = mount(TaskListSession, { props: { initialData } });
 
     await wrapper.find("[data-test='mutate']").trigger("click");
 
@@ -110,7 +110,7 @@ describe("TaskListWatcher", () => {
 
   it("saves cloned state after local state changes", async () => {
     const initialData = makeTaskList();
-    const wrapper = mount(TaskListWatcher, { props: { initialData } });
+    const wrapper = mount(TaskListSession, { props: { initialData } });
 
     await wrapper.find("[data-test='mutate']").trigger("click");
     await nextTick();
@@ -126,7 +126,7 @@ describe("TaskListWatcher", () => {
 
   it("alerts when saving fails", async () => {
     mocks.saveTaskList.mockRejectedValueOnce(new Error("Disk full"));
-    const wrapper = mount(TaskListWatcher, { props: { initialData: makeTaskList() } });
+    const wrapper = mount(TaskListSession, { props: { initialData: makeTaskList() } });
 
     await wrapper.find("[data-test='mutate']").trigger("click");
     await nextTick();
