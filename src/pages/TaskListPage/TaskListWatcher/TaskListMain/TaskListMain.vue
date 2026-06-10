@@ -2,7 +2,7 @@
 import { computed, nextTick, ref, useTemplateRef } from "vue";
 import NewTodoForm from "./NewTodoForm/NewTodoForm.vue";
 import TaskList from "./TaskList/TaskList.vue";
-import type { TaskList as TaskListState, UserAction, ViewListType } from "@/app/types.ts";
+import type { TaskList as TaskListState, ViewListType } from "@/app/types.ts";
 import { toast } from "vue3-toastify";
 import { useDailyCleanup } from "@/app/composables/useDailyCleanup.ts";
 import { dispatch } from "@/app/model/dispatch.ts";
@@ -10,6 +10,11 @@ import MyKbd from "@/components/MyKbd.vue";
 import { useLaterNewCount } from "./useLaterNewCount.ts";
 import type { TaskListViewMode } from "./types.ts";
 import { useTaskListHotkeys } from "./useTaskListHotkeys.ts";
+import {
+  getAddTodoAction,
+  getAddTodoNotification,
+  type AddTodoOptions,
+} from "./useTaskListAddTodo.ts";
 
 const props = defineProps<{ state: TaskListState }>();
 
@@ -28,41 +33,14 @@ const viewList = computed<ViewListType>(() =>
 const { laterNewCount, laterNewCountText } = useLaterNewCount(props.state);
 const showLaterNewCount = computed(() => laterNewCount.value > 0 && viewMode.value === "current");
 
-function handleAddTodo(
-  title: string,
-  { postponed = false, origId }: { readonly postponed?: boolean; readonly origId?: string },
-) {
-  dispatch(props.state, getAction());
+function handleAddTodo(title: string, options: AddTodoOptions) {
+  dispatch(props.state, getAddTodoAction(title, options));
   void nextTick(() => {
     newTodoFormRef.value?.focus();
   });
 
-  if (props.state.system === "af4" || props.state.system === undefined) {
-    if (props.state.current.list !== "open") {
-      if (postponed) {
-        notify("Задача добавлена на завтра");
-      } else {
-        notify("Задача добавлена в открытый список");
-      }
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    } else if (props.state.current.list === "open" && props.state.current.actionedCount > 0) {
-      notify("Задача появится после перехода из закрытого списка");
-    }
-    return;
-  }
-
-  if (postponed) {
-    notify("Задача добавлена на завтра");
-  }
-
-  function getAction(): UserAction {
-    if (postponed) {
-      if (origId !== undefined) return { type: "PostponeTask", id: origId, title };
-      return { type: "AddPostponedTask", title };
-    }
-    if (origId !== undefined) return { type: "ReaddTask", id: origId, title };
-    return { type: "AddTask", title };
-  }
+  const notification = getAddTodoNotification(props.state, options);
+  if (notification !== undefined) notify(notification);
 }
 
 const emit = defineEmits<{ undo: [string]; redo: [string] }>();
