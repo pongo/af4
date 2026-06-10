@@ -12,6 +12,7 @@ export default mergeConfig(
       silent: "passed-only",
       coverage: {
         provider: "v8",
+        include: ["src/**/*.{ts,vue}"],
       },
     },
   }),
