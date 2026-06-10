@@ -1,20 +1,35 @@
-import { nextTick, onMounted, onUnmounted, type ComputedRef, type Ref } from "vue";
+import { nextTick, onMounted, onUnmounted, toValue, type ComputedRef, type Ref } from "vue";
 import { keysHandlerBuilder } from "bind-keys";
-import type { TaskList as TaskListState, ViewListType } from "@/app/types.ts";
+import type { Task, TaskList as TaskListState, ViewListType } from "@/app/types.ts";
 import { dispatch } from "@/app/model/dispatch.ts";
-import type NewTodoForm from "./NewTodoForm/NewTodoForm.vue";
-import type TaskList from "./TaskList/TaskList.vue";
 import type { TaskListViewMode } from "./types.ts";
 
 interface ComponentRef<T> {
   readonly value: T | null;
 }
 
-type NewTodoFormComponent = InstanceType<typeof NewTodoForm>;
-type TaskListComponent = InstanceType<typeof TaskList>;
+interface NewTodoFormComponent {
+  focus: () => void;
+  focusWithText: (
+    text: string,
+    options?: { readonly postponed?: boolean; readonly origId?: string },
+  ) => void;
+}
+
+interface TaskListItemComponent {
+  openFirstLink: () => void;
+  edit: () => string | undefined;
+  focus: () => void;
+}
+
+interface TaskListComponent {
+  navigate: (direction: "up" | "down" | "home" | "end" | "pageup" | "pagedown") => void;
+  getFocusedTask: () => Task | undefined;
+  getFocusedItem: () => TaskListItemComponent | undefined;
+}
 
 interface UseTaskListHotkeysOptions {
-  readonly state: TaskListState;
+  readonly state: () => TaskListState;
   readonly viewMode: Ref<TaskListViewMode>;
   readonly viewList: ComputedRef<ViewListType>;
   readonly newTodoFormRef: ComponentRef<NewTodoFormComponent>;
@@ -38,6 +53,10 @@ export function useTaskListHotkeys({
   undo,
   redo,
 }: UseTaskListHotkeysOptions) {
+  function getState() {
+    return toValue(state);
+  }
+
   function getFocusedTaskId(event: KeyboardEvent) {
     const id = (event.target as HTMLElement).dataset.id;
     if (id !== undefined) {
@@ -103,7 +122,7 @@ export function useTaskListHotkeys({
         const id = getFocusedTaskId(event);
         if (id === undefined) return;
 
-        dispatch(state, { type: "CompleteTask", id });
+        dispatch(getState(), { type: "CompleteTask", id });
       },
       { filterInput: true, prevent: true },
     )
@@ -123,7 +142,7 @@ export function useTaskListHotkeys({
         const id = getFocusedTaskId(event);
         if (id === undefined) return;
 
-        dispatch(state, { type: "DeleteTask", id });
+        dispatch(getState(), { type: "DeleteTask", id });
       },
       { filterInput: true, prevent: true },
     )
@@ -143,7 +162,7 @@ export function useTaskListHotkeys({
         const id = getFocusedTaskId(event);
         if (id === undefined) return;
 
-        dispatch(state, { type: "ZeroTask", id });
+        dispatch(getState(), { type: "ZeroTask", id });
       },
       { filterInput: true, prevent: true },
     )
@@ -153,8 +172,9 @@ export function useTaskListHotkeys({
         const id = getFocusedTaskId(event);
         if (id === undefined) return;
 
-        dispatch(state, { type: "ReaddTask", id });
-        if (state.current.list !== "open") {
+        const currentState = getState();
+        dispatch(currentState, { type: "ReaddTask", id });
+        if (currentState.current.list !== "open") {
           notify("Задача заново добавлена в открытый список");
         }
       },
@@ -166,7 +186,7 @@ export function useTaskListHotkeys({
         const id = getFocusedTaskId(event);
         if (id === undefined) return;
 
-        dispatch(state, { type: viewList.value === "later" ? "ReaddTask" : "LaterTask", id });
+        dispatch(getState(), { type: viewList.value === "later" ? "ReaddTask" : "LaterTask", id });
         if (viewList.value !== "later") {
           notify("Задача добавлена в список «когда-нибудь»");
         } else {
@@ -208,7 +228,7 @@ export function useTaskListHotkeys({
           return;
         }
 
-        dispatch(state, { type: "PostponeTask", id: focusedTask.id });
+        dispatch(getState(), { type: "PostponeTask", id: focusedTask.id });
         notify("Задача отложена до завтра");
       },
       { filterInput: true, prevent: true },

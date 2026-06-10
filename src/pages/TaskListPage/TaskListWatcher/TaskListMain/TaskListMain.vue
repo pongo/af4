@@ -85,7 +85,7 @@ function focusTask() {
 }
 
 useTaskListHotkeys({
-  state: props.state,
+  state: () => props.state,
   viewMode,
   viewList,
   newTodoFormRef,
