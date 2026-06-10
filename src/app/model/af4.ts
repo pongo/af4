@@ -40,6 +40,7 @@ export function reduceAf4InPlace(tasklist: TaskList, action: UserAction, env: Af
 
     case "Cleanup": {
       cleanup(env, tasklist, action.now);
+      movePastEmptyClosedList(env, tasklist);
       break;
     }
 
@@ -153,6 +154,12 @@ function cleanup(env: Af4Env, tasklist: TaskList, now: Date) {
   reviveDuePostponedTasks(env, tasklist, now);
   markOldTasksAsDeleted(tasklist, now);
   deleteAllDeletedTasks(tasklist);
+}
+
+function movePastEmptyClosedList(env: Af4Env, tasklist: TaskList) {
+  if (tasklist.current.list !== "closed") return;
+  if (tasklist.tasks.some((task) => task.list === "closed")) return;
+  moveToNextList(env, tasklist);
 }
 
 function reviveDuePostponedTasks(env: Af4Env, tasklist: TaskList, now: Date) {

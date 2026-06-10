@@ -530,6 +530,97 @@ describe("AF4 actions in current list variants", () => {
 });
 
 describe("AF4 cleanup", () => {
+  it("moves past closed when cleanup removes the last closed task", () => {
+    const tasklist = createTaskList();
+    const oldDate = new Date("2025-01-01T00:00:00.000Z");
+    const cleanupDate = new Date("2025-01-01T13:00:00.000Z");
+    tasklist.current = {
+      actionedCount: 0,
+      list: "closed",
+      showNext: false,
+      willBeMarkedForReview: true,
+    };
+    tasklist.tasks.push(
+      createTask("old-closed-task", {
+        list: "closed",
+        status: "completed",
+        completedAt: oldDate,
+      }),
+    );
+
+    runAction(tasklist, { type: "Cleanup", now: cleanupDate });
+
+    expect(tasklist.current).toStrictEqual({
+      actionedCount: 0,
+      list: "open",
+      showNext: false,
+    });
+    expect(tasklist.tasks).toHaveLength(0);
+  });
+
+  it("moves from empty closed to review after cleanup when review has tasks", () => {
+    const tasklist = createTaskList();
+    const oldDate = new Date("2025-01-01T00:00:00.000Z");
+    const cleanupDate = new Date("2025-01-01T13:00:00.000Z");
+    tasklist.current = {
+      actionedCount: 0,
+      list: "closed",
+      showNext: false,
+      willBeMarkedForReview: true,
+    };
+    tasklist.tasks.push(
+      createTask("old-closed-task", {
+        list: "closed",
+        status: "completed",
+        completedAt: oldDate,
+      }),
+      createTask("review-task", { list: "review" }),
+    );
+
+    runAction(tasklist, { type: "Cleanup", now: cleanupDate });
+
+    expect(tasklist.current).toStrictEqual({
+      actionedCount: 0,
+      list: "review",
+      showNext: true,
+    });
+    expect(tasklist.tasks.map((task) => task.id)).toEqual(["review-task"]);
+  });
+
+  it("stays on closed after cleanup when any closed task remains", () => {
+    const tasklist = createTaskList();
+    const oldDate = new Date("2025-01-01T00:00:00.000Z");
+    const cleanupDate = new Date("2025-01-01T13:00:00.000Z");
+    tasklist.current = {
+      actionedCount: 0,
+      list: "closed",
+      showNext: false,
+      willBeMarkedForReview: true,
+    };
+    tasklist.tasks.push(
+      createTask("old-closed-task", {
+        list: "closed",
+        status: "completed",
+        completedAt: oldDate,
+      }),
+      createTask("fresh-closed-task", {
+        list: "closed",
+        status: "completed",
+        completedAt: new Date("2025-01-01T12:00:00.000Z"),
+      }),
+    );
+
+    runAction(tasklist, { type: "Cleanup", now: cleanupDate });
+
+    expect(tasklist.current).toStrictEqual({
+      actionedCount: 0,
+      list: "closed",
+      showNext: false,
+      willBeMarkedForReview: true,
+    });
+    expect(tasklist.tasks.map((task) => task.id)).toEqual(["fresh-closed-task"]);
+  });
+
   it("removes deleted-list tasks and old actioned tasks from the current list", () => {
     const tasklist = createTaskList();
     const oldDate = new Date("2025-01-01T00:00:00.000Z");
