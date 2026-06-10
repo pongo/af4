@@ -8,8 +8,7 @@ import MyKbd from "@/components/MyKbd.vue";
 import NextButton from "./NextButton.vue";
 import { assert } from "smart-invariant";
 import { closedListStyleToggle } from "@/app/lib/toggles.ts";
-
-type TaskListViewMode = "current" | "later" | "completed" | "zero";
+import type { TaskListViewMode } from "../types.ts";
 
 const props = defineProps<{
   state: TaskList;
