@@ -9,7 +9,7 @@ interface BaseTask {
   // updatedAt: Date;
   completedAt?: Date;
   deletedAt?: Date;
-  list: ListType;
+  list: TaskListType;
   zero?: boolean;
 }
 export type PostponedTask = BaseTask & {
@@ -32,7 +32,9 @@ export type NewTask = BaseTask & {
 
 export type Task = NewTask | PostponedTask | CompletedTask | DeletedTask;
 
-export type ListType = "open" | "open-new" | "closed" | "review" | "deleted";
+export type TaskListType = "open" | "open-new" | "closed" | "review" | "deleted";
+export type CurrentListType = Exclude<TaskListType, "open-new">;
+export type ListType = TaskListType;
 
 export interface BaseCurrentList {
   actionedCount: number;
@@ -43,9 +45,6 @@ export interface BaseCurrentList {
 
 type CurrentOpenList = BaseCurrentList & {
   list: "open";
-};
-type CurrentOpenNewList = BaseCurrentList & {
-  list: "open-new";
 };
 type CurrentClosedList = BaseCurrentList & {
   list: "closed";
@@ -61,7 +60,6 @@ type CurrentDeletedList = BaseCurrentList & {
 };
 export type CurrentList =
   | CurrentOpenList
-  | CurrentOpenNewList
   | CurrentClosedList
   | CurrentReviewList
   | CurrentDeletedList;

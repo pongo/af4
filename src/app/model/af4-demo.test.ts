@@ -174,8 +174,8 @@ describe("AF4 demo", () => {
     // applyActions(tasklist, actual);
     readd("Comments", "Comments__jhEyypUJWpvxSd9UcTWxO");
     expect(tasksCountByLists(tasklist)).toEqual({
-      open: 61, // 60
-      openNew: 0, // 1
+      open: 60,
+      openNew: 1,
       closed: 16,
       review: 0,
       deleted: 0,
@@ -202,8 +202,8 @@ describe("AF4 demo", () => {
     // applyActions(tasklist, actual);
     readd("Voicemail", "W8zqE-4u4bp6W4v_K3Zfn");
     expect(tasksCountByLists(tasklist)).toEqual({
-      open: 62, // 60
-      openNew: 0, // 2
+      open: 60,
+      openNew: 2,
       closed: 16,
       review: 0,
       deleted: 0,
@@ -218,8 +218,8 @@ describe("AF4 demo", () => {
     readd("Comments", "Comments__WoFLt2-rpkkSgUYb0_pKm");
     readd("Comments__jhEyypUJWpvxSd9UcTWxO", "Comments__ui5O29bDKJPU1g2s695U3");
     expect(tasksCountByLists(tasklist)).toEqual({
-      open: 69, // 60
-      openNew: 0, // 9
+      open: 60,
+      openNew: 9,
       closed: 16,
       review: 0,
       deleted: 0,
@@ -263,8 +263,8 @@ describe("AF4 demo", () => {
     expect(tasklist.current.list).toBe("closed");
     expect(tasklist.current.actionedCount).toBe(0);
     expect(tasksCountByLists(tasklist)).toEqual({
-      open: 72, // 71
-      openNew: 0, // 1
+      open: 71,
+      openNew: 1,
       closed: 16,
       review: 0,
       deleted: 0,
@@ -287,7 +287,10 @@ describe("AF4 demo", () => {
     });
 
     readd("Check BP", "jSfeIGwMRQQ9ghA_U0bN7");
-    expect(tasklist.tasks.filter((task) => task.list === "open").length).toBe(1);
+    expect(tasksCountByLists(tasklist)).toMatchObject({
+      open: 0,
+      openNew: 1,
+    });
   });
 
   it("page 302: переход в review", () => {
@@ -296,7 +299,10 @@ describe("AF4 demo", () => {
     expect(tasklist.current.actionedCount).toBe(0);
 
     readd("“Fanny Cradock”", "u-dmkQgTXEFTXt7IF5njb");
-    expect(tasklist.tasks.filter((task) => task.list === "open").length).toBe(2);
+    expect(tasksCountByLists(tasklist)).toMatchObject({
+      open: 1,
+      openNew: 1,
+    });
   });
 
   it("page 313: удаляем из review и переходим в closed", () => {
@@ -311,8 +317,8 @@ describe("AF4 demo", () => {
     });
     expect(tasklist.tasks.length).toBe(90 - 16);
     expect(tasksCountByLists(tasklist)).toEqual({
-      open: 2,
-      openNew: 0,
+      open: 1,
+      openNew: 1,
       closed: 72,
       review: 0,
       deleted: 0,

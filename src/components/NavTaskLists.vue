@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { MoreHorizontal, Pencil, Trash2 } from "lucide-vue-next";
+import { MoreHorizontal, Pencil, Trash2 } from "@lucide/vue";
 
 import {
   DropdownMenu,

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Task } from "@/app/types.ts";
-import { Asterisk, CalendarCheck, Check, CheckCheck, Zap } from "lucide-vue-next";
+import { Asterisk, CalendarCheck, Check, CheckCheck, Zap } from "@lucide/vue";
 import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
 import MyKbd from "@/components/MyKbd.vue";
 import { newTodoFormFocused } from "../NewTodoForm/NewTodoForm.vue";

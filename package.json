@@ -16,11 +16,13 @@
     "lint:oxlint": "oxlint . --fix -D correctness --ignore-path .gitignore",
     "lint:eslint": "eslint . --fix",
     "lint": "run-s lint:*",
-    "format": "prettier src --write --log-level error",
-    "agent:lint": "oxlint -f unix src --fix && eslint --no-color src --fix --cache",
-    "agent:test": "vitest run --no-color --reporter=agent"
+    "format": "oxfmt src",
+    "agent:lint": "oxlint -f unix src && eslint --no-color src --cache",
+    "agent:test": "vitest run --no-color --reporter=agent",
+    "prepare": "simple-git-hooks"
   },
   "dependencies": {
+    "@lucide/vue": "^1.17.0",
     "@tailwindcss/vite": "^4.3.0",
     "@vueuse/core": "^14.3.0",
     "@vueuse/integrations": "^14.3.0",
@@ -30,7 +32,6 @@
     "clsx": "^2.1.1",
     "idb": "^8.0.3",
     "klona": "^2.0.6",
-    "lucide-vue-next": "^0.577.0",
     "nanoid": "^5.1.11",
     "reka-ui": "^2.9.9",
     "smart-invariant": "^2.0.0",
@@ -52,23 +53,30 @@
     "@vitest/coverage-v8": "^4.1.8",
     "@vitest/eslint-plugin": "^1.6.19",
     "@vitest/ui": "^4.1.8",
-    "@vue/eslint-config-prettier": "^10.2.0",
     "@vue/eslint-config-typescript": "^14.8.0",
     "@vue/test-utils": "^2.4.11",
     "@vue/tsconfig": "^0.9.0",
     "eslint": "^9.31.0",
+    "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-oxlint": "~1.68.0",
     "eslint-plugin-vue": "~10.9.2",
     "jiti": "^2.7.0",
     "jsdom": "^28.1.0",
+    "lint-staged": "^17.0.7",
     "npm-run-all2": "^8.0.4",
+    "oxfmt": "^0.54.0",
     "oxlint": "~1.68.0",
-    "prettier": "^3.8.3",
-    "prettier-plugin-tailwindcss": "^0.7.2",
+    "simple-git-hooks": "^2.13.1",
     "typescript": "~5.9.3",
     "vite": "^8.0.16",
     "vite-plugin-vue-devtools": "^8.1.2",
     "vitest": "^4.1.8",
     "vue-tsc": "^3.3.3"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "npx lint-staged"
+  },
+  "lint-staged": {
+    "*": "oxfmt --no-error-on-unmatched-pattern"
   }
 }
