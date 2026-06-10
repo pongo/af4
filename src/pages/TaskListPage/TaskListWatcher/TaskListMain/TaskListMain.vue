@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { nextTick, onMounted, onUnmounted, ref, useTemplateRef } from "vue";
+import { computed, nextTick, onMounted, onUnmounted, ref, useTemplateRef } from "vue";
 import NewTodoForm from "./NewTodoForm/NewTodoForm.vue";
 import TaskList from "./TaskList/TaskList.vue";
 import { keysHandlerBuilder } from "bind-keys";
-import type { TaskList as TaskListState, UserAction } from "@/app/types.ts";
+import type { TaskList as TaskListState, UserAction, ViewListType } from "@/app/types.ts";
 import { toast } from "vue3-toastify";
 import { useDailyCleanup } from "@/app/composables/useDailyCleanup.ts";
 import { dispatch } from "@/app/model/dispatch.ts";
+import MyKbd from "@/components/MyKbd.vue";
 
 const props = defineProps<{ state: TaskListState }>();
 
@@ -20,6 +21,11 @@ const newTodoFormRef = useTemplateRef("newTodoForm");
 const taskListRef = useTemplateRef("taskList");
 const showZeroTasks = ref(false);
 const showCompletedTasks = ref(false);
+const viewListOverride = ref<"later" | null>(null);
+const viewList = computed<ViewListType>(() => viewListOverride.value ?? props.state.current.list);
+const laterNewCount = computed(
+  () => props.state.tasks.filter((task) => task.list === "later" && task.status === "new").length,
+);
 
 function handleAddTodo(
   title: string,
@@ -61,7 +67,17 @@ function handleAddTodo(
 const emit = defineEmits<{ undo: [string]; redo: [string] }>();
 
 function next() {
+  if (viewListOverride.value !== null) return;
   dispatch(props.state, { type: "Next" });
+  void nextTick(() => {
+    taskListRef.value?.navigate("home");
+  });
+}
+
+function toggleLaterView() {
+  viewListOverride.value = viewListOverride.value === "later" ? null : "later";
+  showZeroTasks.value = false;
+  showCompletedTasks.value = false;
   void nextTick(() => {
     taskListRef.value?.navigate("home");
   });
@@ -198,6 +214,28 @@ const bindKeysHandler = keysHandlerBuilder()
     { filterInput: true, prevent: true },
   )
   .add(
+    "l",
+    (event) => {
+      const id = getFocusedTaskId(event);
+      if (id === undefined) return;
+
+      dispatch(props.state, { type: viewList.value === "later" ? "ReaddTask" : "LaterTask", id });
+      if (viewList.value !== "later") {
+        notify("Задача добавлена в список «когда-нибудь»");
+      } else {
+        notify("Задача заново добавлена в открытый список");
+      }
+    },
+    { filterInput: true, prevent: true },
+  )
+  .add(
+    "shift+l",
+    () => {
+      toggleLaterView();
+    },
+    { filterInput: true, prevent: true },
+  )
+  .add(
     "shift+r",
     () => {
       const focusedTask = taskListRef.value?.getFocusedTask();
@@ -328,9 +366,20 @@ onUnmounted(() => {
       @focus-task="focusTask"
     />
 
+    <div
+      v-if="laterNewCount > 0 && viewListOverride !== 'later'"
+      class="mb-4 text-sm text-neutral-500"
+    >
+      В списке «когда-нибудь»: {{ laterNewCount }}
+      <span class="ml-2 *:text-xs">
+        <MyKbd>Shift</MyKbd><span class="mx-0.75">+</span><MyKbd>L</MyKbd>
+      </span>
+    </div>
+
     <TaskList
       ref="taskList"
       :state="state"
+      :view-list="viewList"
       :show-zero-tasks="showZeroTasks"
       :show-completed-tasks="showCompletedTasks"
       @next="next()"

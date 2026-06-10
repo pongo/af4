@@ -16,7 +16,7 @@ export type PostponedTask = BaseTask & {
   status: "postponed";
   postponedUntil: Date;
 };
-export type AdditionalStatus = "readded" | "postponed";
+export type AdditionalStatus = "readded" | "postponed" | "later";
 export type CompletedTask = BaseTask & {
   status: "completed";
   additionalStatus?: AdditionalStatus;
@@ -32,8 +32,9 @@ export type NewTask = BaseTask & {
 
 export type Task = NewTask | PostponedTask | CompletedTask | DeletedTask;
 
-export type TaskListType = "open" | "open-new" | "closed" | "review" | "deleted";
-export type CurrentListType = Exclude<TaskListType, "open-new">;
+export type TaskListType = "open" | "open-new" | "closed" | "review" | "later" | "deleted";
+export type CurrentListType = Exclude<TaskListType, "open-new" | "later">;
+export type ViewListType = CurrentListType | "later";
 export type ListType = TaskListType;
 
 export interface BaseCurrentList {
@@ -77,6 +78,7 @@ export type UserAction =
   | { type: "AddPostponedTask"; title: string }
   | { type: "ReaddTask"; id: string; title?: string }
   | { type: "PostponeTask"; id: string; title?: string }
+  | { type: "LaterTask"; id: string }
   | { type: "CompleteTask"; id: string }
   | { type: "DeleteTask"; id: string }
   | { type: "ZeroTask"; id: string }

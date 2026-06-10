@@ -2,7 +2,7 @@
 import { computed, nextTick, ref, watch, type ComponentPublicInstance } from "vue";
 import TaskListItem from "./TaskListItem.vue";
 import { useTaskListNavigation } from "./useTaskListNavigation.ts";
-import type { TaskList } from "@/app/types.ts";
+import type { TaskList, ViewListType } from "@/app/types.ts";
 import TaskListHelp from "./TaskListHelp.vue";
 import MyKbd from "@/components/MyKbd.vue";
 import NextButton from "./NextButton.vue";
@@ -11,13 +11,14 @@ import { closedListStyleToggle } from "@/app/lib/toggles.ts";
 
 const props = defineProps<{
   state: TaskList;
+  viewList: ViewListType;
   showZeroTasks: boolean;
   showCompletedTasks: boolean;
 }>();
 
 const currentTasks = computed(() =>
   props.state.tasks.filter((task) => {
-    if (task.list !== props.state.current.list) return false;
+    if (task.list !== props.viewList) return false;
     if (task.status === "postponed") return false;
     if (props.showCompletedTasks && task.status !== "completed") return false;
     if (props.showZeroTasks && task.zero !== true) return false;
@@ -47,17 +48,23 @@ const focusedTask = computed(() => {
 });
 
 const currentListName = computed(() => {
-  switch (props.state.current.list) {
+  switch (props.viewList) {
     case "open":
       return "Открытый список";
     case "closed":
       return "Закрытый список";
     case "review":
       return "Ревью";
+    case "later":
+      return "Когда-нибудь";
     default:
-      return props.state.current.list;
+      return props.viewList;
   }
 });
+
+const showNextHelp = computed(
+  () => props.viewList === props.state.current.list && props.state.current.showNext,
+);
 
 watch(focusedIndex, () => {
   void nextTick(() => {
@@ -74,7 +81,7 @@ watch(currentTasks, () => {
 });
 
 watch(
-  () => props.state.current.list,
+  () => props.viewList,
   () => {
     if (!props.state.current.restoreFocus) {
       focusedIndex.value = 0;
@@ -94,25 +101,27 @@ defineExpose({
 
 <template>
   <!-- <div class="mb-2">{{ countByLists }} {{ state.current }}</div> -->
-  <TaskListHelp v-if="state.tasks.length === 0">Добавьте свою первую задачу.</TaskListHelp>
-  <TaskListHelp v-else-if="currentTasks.length > 1">
-    <p style="display: none">
-      Нажмите <MyKbd>Tab</MyKbd>, чтобы перейти к задачам. Используйте <MyKbd>↑</MyKbd
-      ><MyKbd>w</MyKbd><MyKbd>j</MyKbd><MyKbd>PgUp</MyKbd> и <MyKbd>↓</MyKbd><MyKbd>s</MyKbd
-      ><MyKbd>k</MyKbd><MyKbd>PgDn</MyKbd>.
-    </p>
-    <p>
-      Просмотрите каждую задачу. Спросите себя: есть ли у меня сопротивление к этой задаче? Если
-      нет, отметьте её клавишей <MyKbd>z</MyKbd>.
-    </p>
-  </TaskListHelp>
+  <template v-if="viewList !== 'later' && viewList !== 'review'">
+    <TaskListHelp v-if="state.tasks.length === 0">Добавьте свою первую задачу.</TaskListHelp>
+    <TaskListHelp v-else-if="currentTasks.length > 1">
+      <p style="display: none">
+        Нажмите <MyKbd>Tab</MyKbd>, чтобы перейти к задачам. Используйте <MyKbd>↑</MyKbd
+        ><MyKbd>w</MyKbd><MyKbd>j</MyKbd><MyKbd>PgUp</MyKbd> и <MyKbd>↓</MyKbd><MyKbd>s</MyKbd
+        ><MyKbd>k</MyKbd><MyKbd>PgDn</MyKbd>.
+      </p>
+      <p>
+        Просмотрите каждую задачу. Спросите себя: есть ли у меня сопротивление к этой задаче? Если
+        нет, отметьте её клавишей <MyKbd>z</MyKbd>.
+      </p>
+    </TaskListHelp>
+  </template>
 
   <div
     ref="container"
     class="relative flex flex-col"
     :class="{
       'outline-2 outline-offset-2 outline-neutral-500 outline-dotted':
-        state.current.list === 'closed' && closedListStyleToggle.currentValue.value === 'outline',
+        viewList === 'closed' && closedListStyleToggle.currentValue.value === 'outline',
     }"
   >
     <TaskListItem
@@ -124,15 +133,15 @@ defineExpose({
       @focus="focusedIndex = index"
     />
     <div
-      v-if="state.system !== 'simple'"
+      v-if="state.system !== 'simple' || viewList === 'later'"
       class="absolute top-14 -right-20 -translate-y-1/2 -rotate-90 transform text-sm whitespace-nowrap text-neutral-400 select-none"
     >
       {{ currentListName }}
     </div>
   </div>
 
-  <TaskListHelp v-if="props.state.current.showNext" class="mt-4">
-    <template v-if="props.state.current.list === 'closed'">
+  <TaskListHelp v-if="showNextHelp" class="mt-4">
+    <template v-if="props.viewList === 'closed'">
       <p>Можете вернуться в начало списка <MyKbd>Home</MyKbd> и снова пройтись по задачам.</p>
       <p>
         <span v-if="props.state.current.willBeMarkedForReview" class="bg-yellow-100">
@@ -144,10 +153,10 @@ defineExpose({
         </template>
       </p>
     </template>
-    <template v-else-if="props.state.current.list === 'review'">
+    <template v-else-if="props.viewList === 'review'">
       Нажмите <NextButton @next="$emit('next')" />. Все неотмеченные задачи будут удалены.
     </template>
-    <template v-else-if="props.state.current.list === 'open'">
+    <template v-else-if="props.viewList === 'open'">
       Нажмите <NextButton @next="$emit('next')" />, чтобы перейти к закрытому списку. По открытому
       списку достаточно пройтись один раз.
     </template>

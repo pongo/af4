@@ -49,6 +49,7 @@ function tasksCountByLists(tasklist: TaskList) {
     open: tasklist.tasks.filter((task) => task.list === "open").length,
     closed: tasklist.tasks.filter((task) => task.list === "closed").length,
     review: tasklist.tasks.filter((task) => task.list === "review").length,
+    later: tasklist.tasks.filter((task) => task.list === "later").length,
     deleted: tasklist.tasks.filter((task) => task.list === "deleted").length,
   };
 }
@@ -210,6 +211,43 @@ describe("Simple actions", () => {
     });
   });
 
+  it("moves tasks to later and marks original as completed", () => {
+    const tasklist = createTaskList();
+    tasklist.tasks.push(createTask("target", { list: "open" }));
+
+    runAction(tasklist, { type: "LaterTask", id: "target" }, { id: "later" });
+
+    expect(findTask<CompletedTask>(tasklist, "target")).toMatchObject({
+      status: "completed",
+      additionalStatus: "later",
+      completedAt: baseNow,
+    });
+    expect(findTask(tasklist, "later")).toMatchObject({
+      title: "target",
+      status: "new",
+      list: "later",
+    });
+    expect(tasksCountByLists(tasklist)).toMatchObject({
+      later: 1,
+    });
+  });
+
+  it("does not move already latered completed tasks twice", () => {
+    const tasklist = createTaskList();
+    tasklist.tasks.push(
+      createTask("later-done", {
+        list: "open",
+        status: "completed",
+        completedAt: baseNow,
+        additionalStatus: "later",
+      }),
+    );
+
+    runAction(tasklist, { type: "LaterTask", id: "later-done" }, { id: "ignored-later" });
+
+    expect(tasklist.tasks.map((task) => task.id)).toEqual(["later-done"]);
+  });
+
   it("does not readd or postpone already actioned completed tasks twice", () => {
     const tasklist = createTaskList();
     tasklist.tasks.push(
@@ -348,6 +386,7 @@ describe("Simple cleanup", () => {
       open: 1,
       closed: 0,
       review: 0,
+      later: 0,
       deleted: 0,
     });
 

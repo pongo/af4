@@ -58,6 +58,7 @@ function tasksCountByLists(tasklist: TaskList) {
     openNew: tasklist.tasks.filter((task) => task.list === "open-new").length,
     closed: tasklist.tasks.filter((task) => task.list === "closed").length,
     review: tasklist.tasks.filter((task) => task.list === "review").length,
+    later: tasklist.tasks.filter((task) => task.list === "later").length,
     deleted: tasklist.tasks.filter((task) => task.list === "deleted").length,
   };
 }
@@ -234,6 +235,59 @@ describe("AF4 list transitions", () => {
     });
   });
 
+  it("moves open tasks to later without staging them for the next open pass", () => {
+    const tasklist = createTaskList();
+    tasklist.tasks.push(createTask("target", { list: "open" }));
+
+    runAction(tasklist, { type: "LaterTask", id: "target" }, { id: "later" });
+
+    expect(findTask<CompletedTask>(tasklist, "target")).toMatchObject({
+      status: "completed",
+      additionalStatus: "later",
+    });
+    expect(findTask(tasklist, "later")).toMatchObject({
+      title: "target",
+      status: "new",
+      list: "later",
+    });
+    expect(tasksCountByLists(tasklist)).toMatchObject({
+      openNew: 0,
+      later: 1,
+    });
+  });
+
+  it("does not duplicate already latered completed tasks", () => {
+    const tasklist = createTaskList();
+    tasklist.tasks.push(
+      createTask("target", {
+        list: "open",
+        status: "completed",
+        additionalStatus: "later",
+        completedAt: baseNow,
+      }),
+    );
+
+    runAction(tasklist, { type: "LaterTask", id: "target" }, { id: "duplicate" });
+
+    expect(tasklist.tasks.map((task) => task.id)).toEqual(["target"]);
+  });
+
+  it("readds later tasks directly to open while persisted current list is open", () => {
+    const tasklist = createTaskList();
+    tasklist.tasks.push(createTask("later-task", { list: "later" }));
+
+    runAction(tasklist, { type: "ReaddTask", id: "later-task" }, { id: "readded" });
+
+    expect(findTask<CompletedTask>(tasklist, "later-task")).toMatchObject({
+      status: "completed",
+      additionalStatus: "readded",
+    });
+    expect(findTask(tasklist, "readded")).toMatchObject({
+      status: "new",
+      list: "open",
+    });
+  });
+
   it("reveals staged open tasks when returning to open", () => {
     const tasklist = createTaskList();
     tasklist.current = {
@@ -404,6 +458,31 @@ describe("AF4 actions in current list variants", () => {
           status: "postponed",
           list: current === "open" ? "open-new" : "open",
           postponedUntil: new Date(2025, 0, 2),
+        });
+        expect(tasklist.current.actionedCount).toBe(1);
+        if (current === "closed") {
+          expect(tasklist.current.showNext).toBe(false);
+          expect(tasklist.current.willBeMarkedForReview).toBe(false);
+        }
+      });
+
+      it("moves current tasks to later and marks original as completed", () => {
+        const tasklist = createTaskListForCurrent(current);
+
+        runAction(
+          tasklist,
+          { type: "LaterTask", id: `${current}-target` },
+          { id: `${current}-later` },
+        );
+
+        expect(findTask<CompletedTask>(tasklist, `${current}-target`)).toMatchObject({
+          status: "completed",
+          additionalStatus: "later",
+        });
+        expect(findTask(tasklist, `${current}-later`)).toMatchObject({
+          title: `${current}-target`,
+          status: "new",
+          list: "later",
         });
         expect(tasklist.current.actionedCount).toBe(1);
         if (current === "closed") {
@@ -731,6 +810,7 @@ describe("Postponed tasks", () => {
       openNew: 0,
       closed: 0,
       review: 0,
+      later: 0,
       deleted: 0,
     });
 
@@ -780,6 +860,7 @@ describe("Postponed tasks", () => {
       openNew: 0,
       closed: 0,
       review: 0,
+      later: 0,
       deleted: 0,
     });
 
@@ -795,6 +876,7 @@ describe("Postponed tasks", () => {
       openNew: 0,
       closed: 0,
       review: 0,
+      later: 0,
       deleted: 0,
     });
 
@@ -811,6 +893,7 @@ describe("Postponed tasks", () => {
       openNew: 0,
       closed: 0,
       review: 0,
+      later: 0,
       deleted: 0,
     });
 

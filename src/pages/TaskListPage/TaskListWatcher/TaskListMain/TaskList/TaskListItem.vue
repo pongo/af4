@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Task } from "@/app/types.ts";
-import { Asterisk, CalendarCheck, Check, CheckCheck, Zap } from "@lucide/vue";
+import { Archive, Asterisk, CalendarCheck, Check, CheckCheck, Zap } from "@lucide/vue";
 import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
 import MyKbd from "@/components/MyKbd.vue";
 import { newTodoFormFocused } from "../NewTodoForm/NewTodoForm.vue";
@@ -81,7 +81,7 @@ const isDivider = computed(() => {
 
 const backgroundColor = computed(() => {
   if (isDivider.value) return undefined;
-  if (props.state.list === "review") {
+  if (props.state.list === "review" || props.state.list === "later") {
     return props.state.status === "new" ? tw`bg-purple-50` : undefined;
   }
   if (props.state.status !== "new") return undefined;
@@ -202,6 +202,10 @@ function edit() {
           />
           <CalendarCheck
             v-else-if="state.status === 'completed' && state.additionalStatus === 'postponed'"
+            class="relative -top-0.5 mr-1 inline-block"
+          />
+          <Archive
+            v-else-if="state.status === 'completed' && state.additionalStatus === 'later'"
             class="relative -top-0.5 mr-1 inline-block"
           />
           <Check v-else-if="state.status === 'completed'" class="mr-1 inline-block" />

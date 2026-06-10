@@ -62,6 +62,14 @@ export function makeSimple({ generateId, now }: { generateId: () => string; now:
         break;
       }
 
+      case "LaterTask": {
+        const task = findTask(tasklist, action.id);
+        if (task.status === "completed" && task.additionalStatus === "later") break;
+        complete(action.id, "later");
+        tasklist.tasks.push(createTask(task.title, "later"));
+        break;
+      }
+
       case "Cleanup": {
         deleteAllDeletedTasks(tasklist);
         CheckPostponedTasks(tasklist, action.now);
@@ -78,8 +86,8 @@ export function makeSimple({ generateId, now }: { generateId: () => string; now:
     }
   };
 
-  function createTask(title: string): Task {
-    return { id: generateId(), title, createdAt: now(), status: "new", list: "open" };
+  function createTask(title: string, list: Task["list"] = "open"): Task {
+    return { id: generateId(), title, createdAt: now(), status: "new", list };
   }
 
   function createPostponedTask(title: string, nowDate: Date): Task {

@@ -74,7 +74,7 @@ function applyTaskAction(env: Af4Env, tasklist: TaskList, action: TaskAction) {
       }
 
       const title = action.title ?? existingTask.title;
-      const newTaskList = getNewTaskListForAction(tasklist);
+      const newTaskList = getNewTaskListForAction(tasklist, existingTask);
       markTaskActioned(env, tasklist, action.id, actionAt, "readded");
       tasklist.tasks.push(createNewTask(env, title, actionAt, newTaskList));
       updateCurrentListStatus(tasklist);
@@ -116,9 +116,21 @@ function applyTaskAction(env: Af4Env, tasklist: TaskList, action: TaskAction) {
       }
 
       const title = action.title ?? task.title;
-      const newTaskList = getNewTaskListForAction(tasklist);
+      const newTaskList = getNewTaskListForAction(tasklist, task);
       markTaskActioned(env, tasklist, action.id, actionAt, "postponed");
       tasklist.tasks.push(createPostponedTask(env, title, actionAt, newTaskList));
+      updateCurrentListStatus(tasklist);
+      break;
+    }
+
+    case "LaterTask": {
+      const task = findTask(tasklist, action.id);
+      if (task.status === "completed" && task.additionalStatus === "later") {
+        break;
+      }
+
+      markTaskActioned(env, tasklist, action.id, actionAt, "later");
+      tasklist.tasks.push(createNewTask(env, task.title, actionAt, "later"));
       updateCurrentListStatus(tasklist);
       break;
     }
@@ -274,8 +286,8 @@ function deriveCurrentFlags(tasklist: TaskList, current: CurrentList): CurrentLi
   }
 }
 
-function getNewTaskListForAction(tasklist: TaskList): ListType {
-  return tasklist.current.list === "open" ? "open-new" : "open";
+function getNewTaskListForAction(tasklist: TaskList, task: Task): ListType {
+  return tasklist.current.list === "open" && task.list !== "later" ? "open-new" : "open";
 }
 
 function markTaskActioned(
