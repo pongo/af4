@@ -9,19 +9,20 @@ import NextButton from "./NextButton.vue";
 import { assert } from "smart-invariant";
 import { closedListStyleToggle } from "@/app/lib/toggles.ts";
 
+type TaskListViewMode = "current" | "later" | "completed" | "zero";
+
 const props = defineProps<{
   state: TaskList;
   viewList: ViewListType;
-  showZeroTasks: boolean;
-  showCompletedTasks: boolean;
+  viewMode: TaskListViewMode;
 }>();
 
 const currentTasks = computed(() =>
   props.state.tasks.filter((task) => {
     if (task.list !== props.viewList) return false;
     if (task.status === "postponed") return false;
-    if (props.showCompletedTasks && task.status !== "completed") return false;
-    if (props.showZeroTasks && task.zero !== true) return false;
+    if (props.viewMode === "completed" && task.status !== "completed") return false;
+    if (props.viewMode === "zero" && task.zero !== true) return false;
     if (task.title === "-" && (task.status === "deleted" || task.status === "completed")) {
       return false;
     }
@@ -67,13 +68,17 @@ const currentListName = computed<string | null>(() => {
 });
 
 const sideLabel = computed(() => {
-  if (props.showZeroTasks) return "Zero";
-  if (props.showCompletedTasks) return "Выполненные";
+  if (props.viewMode === "zero") return "Zero";
+  if (props.viewMode === "completed") return "Выполненные";
   return currentListName.value;
 });
 
+const showWorkflowHelp = computed(() => props.viewMode === "current");
 const showNextHelp = computed(
-  () => props.viewList === props.state.current.list && props.state.current.showNext,
+  () =>
+    props.viewMode === "current" &&
+    props.viewList === props.state.current.list &&
+    props.state.current.showNext,
 );
 
 watch(focusedIndex, () => {
@@ -111,7 +116,7 @@ defineExpose({
 
 <template>
   <!-- <div class="mb-2">{{ countByLists }} {{ state.current }}</div> -->
-  <template v-if="viewList !== 'later' && viewList !== 'review'">
+  <template v-if="showWorkflowHelp && viewList !== 'later' && viewList !== 'review'">
     <TaskListHelp v-if="state.tasks.length === 0">Добавьте свою первую задачу.</TaskListHelp>
     <TaskListHelp v-else-if="currentTasks.length > 1">
       <p style="display: none">

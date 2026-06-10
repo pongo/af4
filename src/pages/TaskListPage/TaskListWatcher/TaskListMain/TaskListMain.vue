@@ -11,6 +11,8 @@ import MyKbd from "@/components/MyKbd.vue";
 
 const props = defineProps<{ state: TaskListState }>();
 
+type TaskListViewMode = "current" | "later" | "completed" | "zero";
+
 useDailyCleanup(() => {
   const now = new Date();
   console.log("useDailyCleanup [TaskListView]", now);
@@ -19,13 +21,14 @@ useDailyCleanup(() => {
 
 const newTodoFormRef = useTemplateRef("newTodoForm");
 const taskListRef = useTemplateRef("taskList");
-const showZeroTasks = ref(false);
-const showCompletedTasks = ref(false);
-const viewListOverride = ref<"later" | null>(null);
-const viewList = computed<ViewListType>(() => viewListOverride.value ?? props.state.current.list);
+const viewMode = ref<TaskListViewMode>("current");
+const viewList = computed<ViewListType>(() =>
+  viewMode.value === "later" ? "later" : props.state.current.list,
+);
 const laterNewCount = computed(
   () => props.state.tasks.filter((task) => task.list === "later" && task.status === "new").length,
 );
+const showLaterNewCount = computed(() => laterNewCount.value > 0 && viewMode.value === "current");
 
 function handleAddTodo(
   title: string,
@@ -67,7 +70,7 @@ function handleAddTodo(
 const emit = defineEmits<{ undo: [string]; redo: [string] }>();
 
 function next() {
-  if (viewListOverride.value !== null) return;
+  if (viewMode.value !== "current") return;
   dispatch(props.state, { type: "Next" });
   void nextTick(() => {
     taskListRef.value?.navigate("home");
@@ -75,9 +78,7 @@ function next() {
 }
 
 function toggleLaterView() {
-  viewListOverride.value = viewListOverride.value === "later" ? null : "later";
-  showZeroTasks.value = false;
-  showCompletedTasks.value = false;
+  viewMode.value = viewMode.value === "later" ? "current" : "later";
   void nextTick(() => {
     taskListRef.value?.navigate("home");
   });
@@ -157,10 +158,7 @@ const bindKeysHandler = keysHandlerBuilder()
   .add(
     "shift+x",
     () => {
-      showCompletedTasks.value = !showCompletedTasks.value;
-      if (showCompletedTasks.value) {
-        showZeroTasks.value = false;
-      }
+      viewMode.value = viewMode.value === "completed" ? "current" : "completed";
       void nextTick(() => {
         taskListRef.value?.navigate("home");
       });
@@ -180,10 +178,7 @@ const bindKeysHandler = keysHandlerBuilder()
   .add(
     "shift+z",
     () => {
-      showZeroTasks.value = !showZeroTasks.value;
-      if (showZeroTasks.value) {
-        showCompletedTasks.value = false;
-      }
+      viewMode.value = viewMode.value === "zero" ? "current" : "zero";
       void nextTick(() => {
         taskListRef.value?.navigate("home");
       });
@@ -366,10 +361,7 @@ onUnmounted(() => {
       @focus-task="focusTask"
     />
 
-    <div
-      v-if="laterNewCount > 0 && viewListOverride !== 'later'"
-      class="mb-4 text-sm text-neutral-500"
-    >
+    <div v-if="showLaterNewCount" class="mb-4 text-sm text-neutral-500">
       В списке «когда-нибудь»: {{ laterNewCount }}
       <span class="ml-2 *:text-xs">
         <MyKbd>Shift</MyKbd><span class="mx-0.75">+</span><MyKbd>L</MyKbd>
@@ -380,8 +372,7 @@ onUnmounted(() => {
       ref="taskList"
       :state="state"
       :view-list="viewList"
-      :show-zero-tasks="showZeroTasks"
-      :show-completed-tasks="showCompletedTasks"
+      :view-mode="viewMode"
       @next="next()"
     />
   </div>
