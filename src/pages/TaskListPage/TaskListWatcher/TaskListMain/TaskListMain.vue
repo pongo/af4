@@ -8,12 +8,11 @@ import { toast } from "vue3-toastify";
 import { useDailyCleanup } from "@/app/composables/useDailyCleanup.ts";
 import { dispatch } from "@/app/model/dispatch.ts";
 import MyKbd from "@/components/MyKbd.vue";
+import { useLaterNewCount } from "./useLaterNewCount.ts";
 
 const props = defineProps<{ state: TaskListState }>();
 
 type TaskListViewMode = "current" | "later" | "completed" | "zero";
-
-const ruPluralRules = new Intl.PluralRules("ru-RU");
 
 useDailyCleanup(() => {
   const now = new Date();
@@ -27,24 +26,7 @@ const viewMode = ref<TaskListViewMode>("current");
 const viewList = computed<ViewListType>(() =>
   viewMode.value === "later" ? "later" : props.state.current.list,
 );
-const laterNewCount = computed(
-  () => props.state.tasks.filter((task) => task.list === "later" && task.status === "new").length,
-);
-const laterNewCountText = computed(() => {
-  const count = laterNewCount.value;
-  const taskWord = (() => {
-    switch (ruPluralRules.select(count)) {
-      case "one":
-        return "задача";
-      case "few":
-        return "задачи";
-      default:
-        return "задач";
-    }
-  })();
-
-  return `${count} ${taskWord} в списке «когда-нибудь»`;
-});
+const { laterNewCount, laterNewCountText } = useLaterNewCount(props.state);
 const showLaterNewCount = computed(() => laterNewCount.value > 0 && viewMode.value === "current");
 
 function handleAddTodo(
