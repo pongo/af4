@@ -9,12 +9,13 @@ import NextButton from "./NextButton.vue";
 import { assert } from "smart-invariant";
 import { closedListStyleToggle } from "@/app/lib/toggles.ts";
 
-const props = defineProps<{ state: TaskList }>();
+const props = defineProps<{ state: TaskList; showZeroTasks: boolean }>();
 
 const currentTasks = computed(() =>
   props.state.tasks.filter((task) => {
     if (task.list !== props.state.current.list) return false;
     if (task.status === "postponed") return false;
+    if (props.showZeroTasks && task.zero !== true) return false;
     if (task.title === "-" && (task.status === "deleted" || task.status === "completed")) {
       return false;
     }

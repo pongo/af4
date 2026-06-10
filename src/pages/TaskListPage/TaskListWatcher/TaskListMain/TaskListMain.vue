@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onMounted, onUnmounted, useTemplateRef } from "vue";
+import { nextTick, onMounted, onUnmounted, ref, useTemplateRef } from "vue";
 import NewTodoForm from "./NewTodoForm/NewTodoForm.vue";
 import TaskList from "./TaskList/TaskList.vue";
 import { keysHandlerBuilder } from "bind-keys";
@@ -18,6 +18,7 @@ useDailyCleanup(() => {
 
 const newTodoFormRef = useTemplateRef("newTodoForm");
 const taskListRef = useTemplateRef("taskList");
+const showZeroTasks = ref(false);
 
 function handleAddTodo(
   title: string,
@@ -143,6 +144,16 @@ const bindKeysHandler = keysHandlerBuilder()
       if (id === undefined) return;
 
       dispatch(props.state, { type: "DeleteTask", id });
+    },
+    { filterInput: true, prevent: true },
+  )
+  .add(
+    "shift+z",
+    () => {
+      showZeroTasks.value = !showZeroTasks.value;
+      void nextTick(() => {
+        taskListRef.value?.navigate("home");
+      });
     },
     { filterInput: true, prevent: true },
   )
@@ -300,6 +311,6 @@ onUnmounted(() => {
       @focus-task="focusTask"
     />
 
-    <TaskList ref="taskList" :state="state" @next="next()" />
+    <TaskList ref="taskList" :state="state" :show-zero-tasks="showZeroTasks" @next="next()" />
   </div>
 </template>
