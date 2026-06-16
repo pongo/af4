@@ -93,6 +93,16 @@ describe("TaskList", () => {
     expect(renderedTaskIds(wrapper)).toStrictEqual(["zero"]);
   });
 
+  it("renders only dot tasks in dot view mode", () => {
+    const state = makeTaskList({
+      tasks: [makeTask("ordinary"), makeTask("dot", { dot: true })],
+    });
+
+    const wrapper = mountTaskList({ state, viewMode: "dot" });
+
+    expect(renderedTaskIds(wrapper)).toStrictEqual(["dot"]);
+  });
+
   it("does not render a side label for simple current lists", () => {
     const state = makeTaskList({
       system: "simple",
