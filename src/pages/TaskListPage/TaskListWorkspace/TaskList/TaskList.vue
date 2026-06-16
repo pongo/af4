@@ -22,6 +22,7 @@ const currentTasks = computed(() =>
     if (task.status === "postponed") return false;
     if (props.viewMode === "completed" && task.status !== "completed") return false;
     if (props.viewMode === "zero" && task.zero !== true) return false;
+    if (props.viewMode === "dot" && task.dot !== true) return false;
     if (task.title === "-" && (task.status === "deleted" || task.status === "completed")) {
       return false;
     }
@@ -68,6 +69,7 @@ const currentListName = computed<string | null>(() => {
 
 const sideLabel = computed(() => {
   if (props.viewMode === "zero") return "Zero";
+  if (props.viewMode === "dot") return "Dot";
   if (props.viewMode === "completed") return "Выполненные";
   return currentListName.value;
 });

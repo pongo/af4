@@ -11,6 +11,7 @@ interface BaseTask {
   deletedAt?: Date;
   list: TaskListType;
   zero?: boolean;
+  dot?: boolean;
 }
 export type PostponedTask = BaseTask & {
   status: "postponed";
@@ -82,4 +83,5 @@ export type UserAction =
   | { type: "CompleteTask"; id: string }
   | { type: "DeleteTask"; id: string }
   | { type: "ZeroTask"; id: string }
+  | { type: "DotTask"; id: string }
   | { type: "Cleanup"; now: Date };

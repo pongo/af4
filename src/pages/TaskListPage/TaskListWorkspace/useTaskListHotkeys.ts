@@ -173,6 +173,23 @@ export function useTaskListHotkeys({
       { filterInput: true, prevent: true },
     )
     .add(
+      "shift+.",
+      () => {
+        viewMode.value = viewMode.value === "dot" ? "current" : "dot";
+        void nextTick(() => {
+          taskListRef.value?.navigate("home");
+        });
+      },
+      { filterInput: true, prevent: true },
+    )
+    .add(
+      ".",
+      (event) => {
+        executeIntent({ type: "dot-focused" }, getFocusedTaskId(event) ?? null);
+      },
+      { filterInput: true, prevent: true },
+    )
+    .add(
       "r",
       (event) => {
         executeIntent({ type: "readd-focused" }, getFocusedTaskId(event) ?? null);

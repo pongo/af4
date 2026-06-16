@@ -1,6 +1,15 @@
 <script setup lang="ts">
 import type { Task } from "@/app/types.ts";
-import { Archive, Asterisk, CalendarCheck, Check, CheckCheck, Zap } from "@lucide/vue";
+import {
+  Archive,
+  Asterisk,
+  CalendarCheck,
+  Check,
+  CheckCheck,
+  Circle,
+  CircleDot,
+  Dot,
+} from "@lucide/vue";
 import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
 import MyKbd from "@/components/MyKbd.vue";
 import { newTodoFormFocused } from "../NewTodoForm/NewTodoForm.vue";
@@ -209,7 +218,9 @@ function edit() {
             class="relative -top-0.5 mr-1 inline-block"
           />
           <Check v-else-if="state.status === 'completed'" class="mr-1 inline-block" />
-          <Zap v-else-if="state.zero" class="mr-1 inline-block text-lime-500" />
+          <CircleDot v-else-if="state.zero && state.dot" class="mr-1 inline-block text-lime-600" />
+          <Circle v-else-if="state.zero" class="mr-1 inline-block text-lime-500" />
+          <Dot v-else-if="state.dot" class="mr-1 inline-block text-black" />
           <span v-else-if="isImportant" class="mr-1 text-red-500">
             <Asterisk class="inline-block" />
             <span class="text-transparent selection:text-transparent">{{

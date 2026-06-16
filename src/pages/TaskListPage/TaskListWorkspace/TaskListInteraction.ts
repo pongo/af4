@@ -11,6 +11,7 @@ export type TaskListIntent =
   | { readonly type: "complete-focused" }
   | { readonly type: "delete-focused" }
   | { readonly type: "zero-focused" }
+  | { readonly type: "dot-focused" }
   | { readonly type: "readd-focused" }
   | { readonly type: "toggle-later-for-focused" }
   | { readonly type: "postpone-focused" };
@@ -64,6 +65,8 @@ export function handleTaskListIntent(
       return withAction({ type: "DeleteTask", id: focusedTask.id });
     case "zero-focused":
       return withAction({ type: "ZeroTask", id: focusedTask.id });
+    case "dot-focused":
+      return withAction({ type: "DotTask", id: focusedTask.id });
     case "readd-focused":
       return withAction(
         { type: "ReaddTask", id: focusedTask.id },

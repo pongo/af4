@@ -88,6 +88,15 @@ describe("AF4 list transitions", () => {
     expect(findTask(tasklist, "open-task").zero).toBeUndefined();
   });
 
+  it("moves from open to closed and clears dot markers", () => {
+    const tasklist = createTaskList();
+    tasklist.tasks.push(createTask("open-task", { list: "open", dot: true }));
+
+    runAction(tasklist, { type: "Next" });
+
+    expect(findTask(tasklist, "open-task").dot).toBeUndefined();
+  });
+
   it("moves from closed to review when review has new tasks", () => {
     const tasklist = createTaskList();
     tasklist.current = {
@@ -605,6 +614,24 @@ describe("AF4 actions in current list variants", () => {
     runAction(tasklist, { type: "ZeroTask", id: "new-task" });
 
     expect(findTask(tasklist, "new-task").zero).toBe(false);
+  });
+
+  it("toggles dot only on new tasks", () => {
+    const tasklist = createTaskList();
+    tasklist.tasks.push(
+      createTask("new-task", { list: "open" }),
+      createTask("completed-task", { list: "open", status: "completed", completedAt: baseNow }),
+    );
+
+    runAction(tasklist, { type: "DotTask", id: "new-task" });
+    runAction(tasklist, { type: "DotTask", id: "completed-task" });
+
+    expect(findTask(tasklist, "new-task").dot).toBe(true);
+    expect(findTask(tasklist, "completed-task").dot).toBeUndefined();
+
+    runAction(tasklist, { type: "DotTask", id: "new-task" });
+
+    expect(findTask(tasklist, "new-task").dot).toBe(false);
   });
 });
 

@@ -5,6 +5,7 @@ export function markDeleteTask(tasklist: TaskList, id: string, deletedAt: Date) 
   const task = findTask(tasklist, id);
   task.status = "deleted";
   if (task.zero) delete task.zero;
+  if (task.dot) delete task.dot;
   (task as DeletedTask).deletedAt = deletedAt;
 }
 
@@ -17,6 +18,7 @@ export function completeTask(
   const task = findTask(tasklist, id);
   task.status = "completed";
   if (task.zero) delete task.zero;
+  if (task.dot) delete task.dot;
   (task as CompletedTask).completedAt = completedAt;
   (task as CompletedTask).additionalStatus = additionalStatus;
 }

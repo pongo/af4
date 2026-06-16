@@ -103,6 +103,13 @@ function applyTaskAction(env: Af4Env, tasklist: TaskList, action: TaskAction) {
       break;
     }
 
+    case "DotTask": {
+      const task = findTask(tasklist, action.id);
+      if (task.status !== "new") break;
+      task.dot = !(task.dot ?? false);
+      break;
+    }
+
     case "AddPostponedTask": {
       tasklist.tasks.push(createPostponedTask(env, action.title, actionAt));
       updateCurrentListStatus(tasklist);
@@ -201,6 +208,7 @@ function changeCurrentList(env: Af4Env, tasklist: TaskList, newCurrent: CurrentL
 
 function moveToNextList(env: Af4Env, tasklist: TaskList) {
   clearZero(tasklist);
+  clearDot(tasklist);
   switch (tasklist.current.list) {
     case "open":
       cleanList(tasklist, env.now());
@@ -325,6 +333,12 @@ function moveAllTasks(tasklist: TaskList, from: ListType, to: ListType) {
 function clearZero(tasklist: TaskList) {
   tasklist.tasks.forEach((task) => {
     if (task.zero !== undefined) delete task.zero;
+  });
+}
+
+function clearDot(tasklist: TaskList) {
+  tasklist.tasks.forEach((task) => {
+    if (task.dot !== undefined) delete task.dot;
   });
 }
 

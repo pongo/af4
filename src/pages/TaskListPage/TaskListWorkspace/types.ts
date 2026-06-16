@@ -1,1 +1,1 @@
-export type TaskListViewMode = "current" | "later" | "completed" | "zero";
+export type TaskListViewMode = "current" | "later" | "completed" | "zero" | "dot";
