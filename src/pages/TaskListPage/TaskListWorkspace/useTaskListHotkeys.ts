@@ -173,6 +173,13 @@ export function useTaskListHotkeys({
       { filterInput: true, prevent: true },
     )
     .add(
+      ".",
+      (event) => {
+        executeIntent({ type: "dot-focused" }, getFocusedTaskId(event) ?? null);
+      },
+      { filterInput: true, prevent: true },
+    )
+    .add(
       "r",
       (event) => {
         executeIntent({ type: "readd-focused" }, getFocusedTaskId(event) ?? null);

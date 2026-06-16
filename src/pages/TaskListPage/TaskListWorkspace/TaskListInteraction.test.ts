@@ -208,4 +208,15 @@ describe("handleTaskListIntent", () => {
       },
     });
   });
+
+  it("creates a dot action for the focused task", () => {
+    const taskList = makeTaskList({ tasks: [makeTask("task")] });
+
+    expect(
+      handleTaskListIntent(
+        { type: "dot-focused" },
+        makeContext(taskList, { focusedTaskId: "task" }),
+      ).action,
+    ).toStrictEqual({ type: "DotTask", id: "task" });
+  });
 });

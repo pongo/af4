@@ -49,6 +49,13 @@ export function makeSimple({ generateId, now }: { generateId: () => string; now:
         break;
       }
 
+      case "DotTask": {
+        const task = findTask(tasklist, action.id);
+        if (task.status !== "new") break;
+        task.dot = !(task.dot ?? false);
+        break;
+      }
+
       case "AddPostponedTask":
         tasklist.tasks.push(createPostponedTask(action.title, now()));
         break;

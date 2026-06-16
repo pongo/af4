@@ -125,6 +125,15 @@ describe("Simple actions", () => {
     expect(findTask(tasklist, "target").zero).toBeUndefined();
   });
 
+  it("completes new tasks and clears dot markers", () => {
+    const tasklist = createTaskList();
+    tasklist.tasks.push(createTask("target", { list: "open", dot: true }));
+
+    runAction(tasklist, { type: "CompleteTask", id: "target" });
+
+    expect(findTask(tasklist, "target").dot).toBeUndefined();
+  });
+
   it("deletes new tasks and clears zero markers", () => {
     const tasklist = createTaskList();
     tasklist.tasks.push(createTask("target", { list: "open", zero: true }));
@@ -136,6 +145,15 @@ describe("Simple actions", () => {
       deletedAt: baseNow,
     });
     expect(findTask(tasklist, "target").zero).toBeUndefined();
+  });
+
+  it("deletes new tasks and clears dot markers", () => {
+    const tasklist = createTaskList();
+    tasklist.tasks.push(createTask("target", { list: "open", dot: true }));
+
+    runAction(tasklist, { type: "DeleteTask", id: "target" });
+
+    expect(findTask(tasklist, "target").dot).toBeUndefined();
   });
 
   it("toggles zero only on new tasks", () => {
@@ -154,6 +172,24 @@ describe("Simple actions", () => {
     runAction(tasklist, { type: "ZeroTask", id: "new-task" });
 
     expect(findTask(tasklist, "new-task").zero).toBe(false);
+  });
+
+  it("toggles dot only on new tasks", () => {
+    const tasklist = createTaskList();
+    tasklist.tasks.push(
+      createTask("new-task", { list: "open" }),
+      createTask("completed-task", { list: "open", status: "completed", completedAt: baseNow }),
+    );
+
+    runAction(tasklist, { type: "DotTask", id: "new-task" });
+    runAction(tasklist, { type: "DotTask", id: "completed-task" });
+
+    expect(findTask(tasklist, "new-task").dot).toBe(true);
+    expect(findTask(tasklist, "completed-task").dot).toBeUndefined();
+
+    runAction(tasklist, { type: "DotTask", id: "new-task" });
+
+    expect(findTask(tasklist, "new-task").dot).toBe(false);
   });
 
   it("readds new tasks to open and marks original as completed", () => {
